@@ -15,5 +15,24 @@ services:
       POSTGRES_USER: ${POSTGRES_DB_USER}
       POSTGRES_DB: ${POSTGRES_DB_NAME}
 
+  pgadmin:
+    links:
+      - postgres:postgres
+    container_name: pgadmin
+    image: dpage/pgadmin4
+    ports:
+      - "${PGADMIN_PORT}:80"
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+    env_file:
+      - ../.env
+    networks:
+      - postgres
+
 volumes:
   postgres_data:
+  pgadmin-data:
+
+networks:
+  postgres:
+    driver: bridge
