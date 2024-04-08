@@ -26,13 +26,7 @@ services:
       - pgadmin-data:/var/lib/pgadmin
     env_file:
       - ../.env
-    networks:
-      - postgres
 
 volumes:
   postgres_data:
   pgadmin-data:
-
-networks:
-  postgres:
-    driver: bridge

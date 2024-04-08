@@ -11,7 +11,7 @@ class Teacher(TimedBaseModel):
         max_length=100,
     )
     last_name = models.CharField(
-        verbose_name="Teacher's last name",
+        verbose_name="Teacher's Last name",
         max_length=100,
     )
     middle_name = models.CharField(
@@ -24,7 +24,8 @@ class Teacher(TimedBaseModel):
     )
     subjects = models.ManyToManyField(
         Subject,
-        related_name='teacher_subjects'
+        related_name='teacher_subjects',
+        blank=True
     )
     is_active = models.BooleanField(
         verbose_name="Is teacher still teaching",
@@ -32,7 +33,7 @@ class Teacher(TimedBaseModel):
     )
 
     def __str__(self):
-        return f"{self.first_name} {self.last_name[0]}. {self.middle_name[0]}."
+        return f"{self.last_name} {self.first_name[0]}. {self.middle_name[0]}."
 
     class Meta:
         verbose_name = "Teacher"

@@ -12,6 +12,7 @@ class Room(TimedBaseModel):
     description = models.CharField(
         verbose_name="Description of the room",
         max_length=300,
+        blank=True
     )
 
     def __str__(self):

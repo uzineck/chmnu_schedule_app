@@ -11,7 +11,7 @@ class Sophomore(TimedBaseModel):
         max_length=100,
     )
     last_name = models.CharField(
-        verbose_name="Sophomore's last name",
+        verbose_name="Sophomore's Last name",
         max_length=100,
     )
     middle_name = models.CharField(
@@ -26,7 +26,7 @@ class Sophomore(TimedBaseModel):
     )
 
     def __str__(self):
-        return f"{self.first_name} {self.last_name} {self.middle_name}"
+        return f"{self.last_name} {self.first_name} {self.middle_name}"
 
     class Meta:
         verbose_name = "Sophomore"

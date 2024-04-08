@@ -2,14 +2,16 @@ from django.http import HttpRequest, JsonResponse
 from django.urls import path
 from ninja import NinjaAPI
 
-from core.api.schemas import PingResponseSchema
 
-api = NinjaAPI()
+api = NinjaAPI(
+    title="CHMNU Schedule app",
+    description="This is an api for CHMNU schedule",
+)
 
 
-@api.get('/ping', response=PingResponseSchema)
-def ping(request: HttpRequest) -> PingResponseSchema:
-    return PingResponseSchema(result=False)
+@api.get("ping/")
+def ping(request: HttpRequest):
+    return {"status": "ok"}
 
 
 urlpatterns = [

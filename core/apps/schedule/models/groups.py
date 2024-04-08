@@ -2,7 +2,7 @@ from django.db import models
 
 from core.apps.common.models import TimedBaseModel
 from core.apps.schedule.models.lessons import Lesson
-from core.apps.schedule.models.sophomors import Sophomore
+from core.apps.clients.models.sophomors import Sophomore
 
 
 class Group(TimedBaseModel):
@@ -20,12 +20,16 @@ class Group(TimedBaseModel):
         Sophomore,
         verbose_name="Sophomore of the group",
         related_name='group_sophomore',
+        blank=True,
+        null=True,
         on_delete=models.CASCADE,
     )
     lessons = models.ManyToManyField(
         Lesson,
         verbose_name="Group lessons",
-        related_name='group_lessons')
+        related_name='group_lessons',
+        blank=True
+    )
 
     def __str__(self):
         return self.number

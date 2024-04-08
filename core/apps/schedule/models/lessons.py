@@ -47,8 +47,21 @@ class Lesson(TimedBaseModel):
     def __str__(self):
         return (f"Lesson: {self.type} {self.subject}, "
                 f"Teacher: {self.teacher}, "
-                f"Timeslot: {self.timeslot}, "
+                f"Day: {self.timeslot.day}, "
+                f"Number: {self.timeslot.ord_number}, "
                 f"Subgroup: {self.subgroup}")
+
+    def save(self, *args, **kwargs):
+        existing_timeslot = Timeslot.objects.filter(
+            day=self.timeslot.day,
+            ord_number=self.timeslot.ord_number,
+            is_even=self.timeslot.is_even
+        ).first()
+        if existing_timeslot:
+            self.timeslot = existing_timeslot
+        else:
+            self.timeslot.save()
+        super().save(*args, **kwargs)
 
     class Meta:
         verbose_name = "Lesson"

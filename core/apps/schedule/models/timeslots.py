@@ -1,5 +1,6 @@
-from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from django.db.models.signals import pre_save
+from django.dispatch import receiver
 
 from core.apps.common.models import TimedBaseModel, Day, OrdinaryNumber
 
@@ -27,3 +28,16 @@ class Timeslot(TimedBaseModel):
     class Meta:
         verbose_name = "Timeslot"
         verbose_name_plural = "Timeslots"
+
+
+@receiver(pre_save, sender=Timeslot)
+def check_existing_timeslot(sender, instance, **kwargs):
+    existing_timeslot = Timeslot.objects.filter(
+        day=instance.day,
+        ord_number=instance.ord_number,
+        is_even=instance.is_even
+    ).first()
+    if existing_timeslot:
+        instance.created_at = existing_timeslot.created_at
+        instance.updated_at = existing_timeslot.updated_at
+        instance.id = existing_timeslot.id

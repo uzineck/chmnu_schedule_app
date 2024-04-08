@@ -1,0 +1,1 @@
+from .sophomors import Sophomore

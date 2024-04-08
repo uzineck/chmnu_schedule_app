@@ -43,6 +43,7 @@ INSTALLED_APPS = [
 
 
     'core.apps.schedule.apps.ScheduleConfig',
+    'core.apps.clients.apps.ClientsConfig'
 
 ]
 

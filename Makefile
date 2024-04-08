@@ -51,8 +51,19 @@ migrations:
 
 .PHONY: superuser
 superuser:
-		${EXEC} ${APP_CONTAINER} ${MANAGE_PY} createsuperuser
+		${EXEC} ${APP_CONTAINER} ${MANAGE_PY} createsuperuser --username admin --email admin@admin.com
 
 .PHONY: collectstatic
 collectstatic:
 		${EXEC} ${APP_CONTAINER} ${MANAGE_PY} collectstatic
+
+
+.PHONY: dumpdata
+dumpdata:
+		${EXEC} ${APP_CONTAINER} ${MANAGE_PY} dumpdata schedule --indent=4 -o data.json
+
+.PHONY: loaddata
+loaddata:
+		${EXEC} ${APP_CONTAINER} ${MANAGE_PY} loaddata --app=schedule --format=json groups.json
+
+#docker exec -it main-app python manage.py
