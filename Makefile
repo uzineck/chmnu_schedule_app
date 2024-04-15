@@ -64,6 +64,6 @@ dumpdata:
 
 .PHONY: loaddata
 loaddata:
-		${EXEC} ${APP_CONTAINER} ${MANAGE_PY} loaddata --app=schedule --format=json groups.json
+		${EXEC} ${APP_CONTAINER} ${MANAGE_PY} loaddata --app=schedule --format=json
 
 #docker exec -it main-app python manage.py

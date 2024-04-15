@@ -13,9 +13,10 @@ class GroupAdmin(admin.ModelAdmin):
     list_display = ('number', 'has_subgroups', 'sophomore', 'created_at', 'updated_at',)
     search_fields = ('number',)
 
+
 @admin.register(Lesson)
 class LessonAdmin(admin.ModelAdmin):
-    list_display = ('subject', 'teacher', 'type', 'room', 'timeslot', 'subgroup', 'created_at', 'updated_at',)
+    list_display = ('type', 'subject', 'teacher', 'room', 'timeslot', 'subgroup', 'created_at', 'updated_at',)
 
 
 @admin.register(Teacher)
@@ -41,6 +42,3 @@ class RoomAdmin(admin.ModelAdmin):
 @admin.register(Timeslot)
 class TimeslotAdmin(admin.ModelAdmin):
     list_display = ('day', 'ord_number', 'is_even')
-
-
-

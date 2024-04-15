@@ -11,13 +11,13 @@ from core.apps.common.models import TimedBaseModel, LessonType, Subgroup
 class Lesson(TimedBaseModel):
     subject = models.ForeignKey(
         Subject,
-        on_delete=models.CASCADE,
+        on_delete=models.PROTECT,
         verbose_name="Subject of the lesson",
         related_name='lesson_subject',
     )
     teacher = models.ForeignKey(
         Teacher,
-        on_delete=models.CASCADE,
+        on_delete=models.PROTECT,
         verbose_name="Teacher that holds the lesson",
         related_name="lesson_teacher",
     )
@@ -28,13 +28,13 @@ class Lesson(TimedBaseModel):
     )
     room = models.ForeignKey(
         Room,
-        on_delete=models.CASCADE,
+        on_delete=models.PROTECT,
         verbose_name="Room where the lesson is held",
         related_name='lesson_room',
     )
     timeslot = models.ForeignKey(
         Timeslot,
-        on_delete=models.CASCADE,
+        on_delete=models.PROTECT,
         verbose_name="Timeslot when the lesson is held",
         related_name='lesson_timeslot',
     )
