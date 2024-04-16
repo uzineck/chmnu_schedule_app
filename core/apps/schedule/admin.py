@@ -27,7 +27,7 @@ class TeacherAdmin(admin.ModelAdmin):
 
 @admin.register(Subject)
 class SubjectAdmin(admin.ModelAdmin):
-    list_display = ('title', 'slug', 'created_at', 'updated_at',)
+    list_display = ('id', 'title', 'slug', 'created_at', 'updated_at',)
     prepopulated_fields = {"slug": ("title",)}
     search_fields = ('title',)
 

@@ -274,6 +274,16 @@ docs = ["sphinx (>=4.5.0,<5.0.0)", "sphinx-rtd-theme", "zope.interface"]
 tests = ["coverage[toml] (==5.0.4)", "pytest (>=6.0.0,<7.0.0)"]
 
 [[package]]
+name = "pytils"
+version = "0.4.1"
+description = "Russian-specific string utils"
+optional = false
+python-versions = "^3.7"
+files = [
+    {file = "pytils-0.4.1.tar.gz", hash = "sha256:aa109b1bc0ec4bdb7c9768520110348d8aeb0706600e6cf641272e6850e26eab"},
+]
+
+[[package]]
 name = "sqlparse"
 version = "0.4.4"
 description = "A non-validating SQL parser."
@@ -314,4 +324,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "3.10.11"
-content-hash = "dd8c9633e8bfa9359c7da900176ba2af9bfcab12a01414a7f65780b6df4427ee"
+content-hash = "8c586bf9bb1f6cb18a73a480e5131a7253d30c86df8432e34b32870b7f1fed14"

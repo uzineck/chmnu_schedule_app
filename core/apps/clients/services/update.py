@@ -27,3 +27,12 @@ class UpdateUserService(BaseUpdateUserService):
         updated_sophomore = self.client_service.update_email(sophomore=sophomore, email=new_email)
         return new_email, self.client_service.generate_token(sophomore=updated_sophomore)
 
+    def change_credentials(self, email: str, first_name: str, last_name: str, middle_name: str):
+        sophomore = self.client_service.get_by_email(email=email)
+        updated_sophomore = self.client_service.update_credentials(sophomore=sophomore,
+                                                                   first_name=first_name,
+                                                                   last_name=last_name,
+                                                                   middle_name=middle_name)
+
+        return updated_sophomore
+

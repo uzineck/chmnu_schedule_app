@@ -42,3 +42,12 @@ class UpdateEmailOutSchema(Schema):
     email: str
     token: str
 
+
+class UpdateCredentialsInSchema(Schema):
+    last_name: str
+    first_name: str
+    middle_name: str
+
+
+class UpdateCredentialsOutSchema(Schema):
+    sophomore: str

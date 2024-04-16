@@ -4,7 +4,7 @@ from core.apps.common.exceptions import ServiceException
 
 
 @dataclass(eq=False)
-class SophomoreEmailException(ServiceException):
+class SophomoreEmailNotFoundException(ServiceException):
     email: str
 
     @property

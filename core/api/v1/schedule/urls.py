@@ -1,9 +1,9 @@
 from ninja import Router
 
-from core.api.v1.schedule.sophomores.handlers import router as sophomore_router
+from core.api.v1.schedule.subjects.handlers import router as subject_router
 
 router = Router(tags=['Schedule'])
 
-router.add_router(prefix="sophomore/", router=sophomore_router)
+router.add_router(prefix="subject/", router=subject_router)
 
 
