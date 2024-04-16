@@ -3,13 +3,10 @@ from dataclasses import dataclass
 
 from core.apps.common.authentication import BaseAuthenticationService
 from core.apps.clients.services.sophomore import BaseSophomoreService
-from core.apps.clients.exceptions.sophomores import SophomoreEmailException
-from core.apps.common.exceptions import NotAuthorizedException
 
 
 @dataclass(eq=False)
 class BaseAuthService(ABC):
-    authentication_service: BaseAuthenticationService
     client_service: BaseSophomoreService
 
     @abstractmethod
@@ -31,14 +28,8 @@ class AuthService(BaseAuthService):
         return self.client_service.create(first_name, last_name, middle_name, email, password)
 
     def login(self, email: str, password: str):
-        try:
-            sophomore = self.client_service.get_by_email(email=email)
-        except SophomoreEmailException:
-            raise NotAuthorizedException
-        if not self.authentication_service.verify_password(plain_password=password, hashed_password=sophomore.password):
-            raise NotAuthorizedException
-
-        return self.authentication_service.create_jwt(sophomore=sophomore)
+        sophomore = self.client_service.validate_user(email=email, password=password)
+        return self.client_service.generate_token(sophomore=sophomore)
 
 
 

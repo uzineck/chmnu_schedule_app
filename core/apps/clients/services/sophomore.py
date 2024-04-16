@@ -2,15 +2,18 @@ from dataclasses import dataclass
 from uuid import uuid4
 from abc import ABC, abstractmethod
 
+from django.db.utils import IntegrityError
+
 from core.apps.clients.entities.sophomore import Sophomore as SophomoreEntity
 from core.apps.clients.models.sophomors import Sophomore as SophomoreModel
 from core.apps.common.authentication import BaseAuthenticationService
-from core.apps.clients.exceptions.sophomores import SophomoreEmailException
+from core.apps.clients.exceptions.sophomores import SophomoreEmailException, SophomoreAlreadyExistsException
+from core.apps.clients.exceptions.auth import InvalidAuthDataException
 
 
 @dataclass(eq=False)
 class BaseSophomoreService(ABC):
-    auth_service: BaseAuthenticationService
+    authentication_service: BaseAuthenticationService
 
     @abstractmethod
     def create(self,
@@ -22,15 +25,31 @@ class BaseSophomoreService(ABC):
         ...
 
     @abstractmethod
-    def update_password(self, sophomore: SophomoreEntity, plain_password: str):
+    def update_password(self, sophomore: SophomoreEntity, plain_password: str) -> SophomoreEntity:
         ...
 
     @abstractmethod
-    def update_email(self, sophomore: SophomoreEntity, email: str):
+    def update_email(self, sophomore: SophomoreEntity, email: str) -> SophomoreEntity:
         ...
 
     @abstractmethod
     def get_by_email(self, email: str) -> SophomoreEntity:
+        ...
+
+    @abstractmethod
+    def generate_token(self, sophomore: SophomoreEntity) -> str:
+        ...
+
+    @abstractmethod
+    def validate_user(self, email: str, password: str) -> SophomoreEntity:
+        ...
+
+    @abstractmethod
+    def get_user_email_from_token(self, token: str) -> str:
+        ...
+
+    @abstractmethod
+    def get_user_id_from_token(self, token: str) -> str:
         ...
 
 
@@ -41,26 +60,53 @@ class ORMSophomoreService(BaseSophomoreService):
                middle_name: str,
                email: str,
                password: str):
-        hashed_password = self.auth_service.hash_password(plain_password=password)
-        sophomore: SophomoreModel = SophomoreModel.objects.create(first_name=first_name,
-                                                                  last_name=last_name,
-                                                                  middle_name=middle_name,
-                                                                  email=email,
-                                                                  password=hashed_password)
-        return sophomore.to_entity()
+        hashed_password = self.authentication_service.hash_password(plain_password=password)
+        try:
+            sophomore: SophomoreModel = SophomoreModel.objects.create(first_name=first_name,
+                                                                      last_name=last_name,
+                                                                      middle_name=middle_name,
+                                                                      email=email,
+                                                                      password=hashed_password)
+            return sophomore.to_entity()
+        except IntegrityError:
+            raise SophomoreAlreadyExistsException(email=email)
 
-    def update_password(self, sophomore: SophomoreEntity, plain_password: str):
-        hashed_password = self.auth_service.hash_password(plain_password=plain_password)
+    def update_password(self, sophomore: SophomoreEntity, plain_password: str) -> SophomoreEntity:
+        hashed_password = self.authentication_service.hash_password(plain_password=plain_password)
         SophomoreModel.objects.filter(email=sophomore.email).update(password=hashed_password)
-        return hashed_password
+        updated_sophomore = SophomoreModel.objects.get(email=sophomore.email)
+        return updated_sophomore.to_entity()
 
-    def update_email(self, sophomore: SophomoreEntity, email: str):
+    def update_email(self, sophomore: SophomoreEntity, email: str) -> SophomoreEntity:
         SophomoreModel.objects.filter(email=sophomore.email).update(email=email)
-        return email
+        updated_sophomore = SophomoreModel.objects.get(email=email)
+        return updated_sophomore.to_entity()
 
     def get_by_email(self, email: str) -> SophomoreEntity:
         try:
             sophomore: SophomoreModel = SophomoreModel.objects.get(email=email)
             return sophomore.to_entity()
         except SophomoreModel.DoesNotExist:
-            raise SophomoreEmailException
+            raise SophomoreEmailException(email=email)
+
+    def generate_token(self, sophomore: SophomoreEntity) -> str:
+        jwt = self.authentication_service.create_jwt(sophomore=sophomore)
+        SophomoreModel.objects.filter(email=sophomore.email).update(token=jwt)
+        return jwt
+
+    def validate_user(self, email: str, password: str) -> SophomoreEntity:
+        try:
+            sophomore = SophomoreModel.objects.get(email=email)
+        except SophomoreEmailException:
+            raise InvalidAuthDataException(email=email)
+
+        if not self.authentication_service.verify_password(plain_password=password, hashed_password=sophomore.password):
+            raise InvalidAuthDataException(email=email)
+
+        return sophomore.to_entity()
+
+    def get_user_email_from_token(self, token: str) -> str:
+        return self.authentication_service.get_user_email_from_token(token=token)
+
+    def get_user_id_from_token(self, token: str) -> str:
+        return self.authentication_service.get_user_id_from_token(token=token)

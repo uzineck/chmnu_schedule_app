@@ -11,3 +11,14 @@ class SophomoreEmailException(ServiceException):
     def message(self):
         return 'A sophomore with provided email not found'
 
+
+@dataclass(eq=False)
+class SophomoreAlreadyExistsException(ServiceException):
+    email: str
+
+    @property
+    def message(self):
+        return 'A sophomore with provided email is already registered'
+
+
+

@@ -4,15 +4,15 @@ from core.apps.clients.entities.sophomore import Sophomore as SophomoreEntity
 
 
 class SignUpInSchema(Schema):
-    first_name: str
     last_name: str
+    first_name: str
     middle_name: str
     email: str
     password: str
 
 
 class SignUpOutSchema(Schema):
-    sophomore: SophomoreEntity
+    greetings: str
 
 
 class LogInSchema(Schema):
@@ -24,5 +24,21 @@ class LogInOutSchema(Schema):
     token: str
 
 
+class UpdatePwInSchema(Schema):
+    old_password: str
+    new_password: str
 
+
+class UpdatePwOutSchema(Schema):
+    status: str
+
+
+class UpdateEmailInSchema(Schema):
+    email: str
+    password: str
+
+
+class UpdateEmailOutSchema(Schema):
+    email: str
+    token: str
 
