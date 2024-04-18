@@ -1,3 +1,3 @@
-from core.apps.schedule.services.subjects import SubjectService
+from core.apps.schedule.services.subjects import ORMSubjectService
 
-subject_service = SubjectService()
+subject_service = ORMSubjectService()

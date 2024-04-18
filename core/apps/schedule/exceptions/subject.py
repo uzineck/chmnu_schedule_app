@@ -4,7 +4,7 @@ from core.apps.common.exceptions import ServiceException
 
 
 @dataclass(eq=False)
-class SubjectNotFound(ServiceException):
+class SubjectNotFoundException(ServiceException):
     subject_info: str
 
     @property
@@ -13,7 +13,7 @@ class SubjectNotFound(ServiceException):
 
 
 @dataclass(eq=False)
-class SubjectAlreadyExistsException(ServiceException):
+class SubjectAlreadyExistException(ServiceException):
     title: str
 
     @property

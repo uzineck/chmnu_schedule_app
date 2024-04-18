@@ -16,7 +16,7 @@ This is the backend part of the schedule app for CHMNU students and teachers.
 
 
 ---
-### How to use(Windows):
+## How to use(Windows):
 1. #### Clone the repo:
     ```bash
    git clone https://github.com/uzineck/chmnu_schedule_app.git

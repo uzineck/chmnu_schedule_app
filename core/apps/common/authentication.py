@@ -6,19 +6,39 @@ import jwt
 from typing import Any, ClassVar
 
 from django.http import HttpRequest
+from jwt import PyJWTError
+from ninja.errors import HttpError
 from ninja.security import HttpBearer
 
 from core.apps.clients.entities.sophomore import Sophomore as SophomoreEntity
-from core.apps.common.exceptions import JWTKeyParsingException
+from core.apps.clients.exceptions.sophomores import SophomoreEmailNotFoundException
+from core.apps.clients.models import Sophomore as SophomoreModel
+from core.apps.common.exceptions import ServiceException
 from core.project.settings.main import env
 
 
-class AuthBearer(HttpBearer):
+class JWT(HttpBearer):
     def authenticate(self, request: HttpRequest, token: str) -> str:
+        try:
+            user_email = AuthenticationService().get_user_email_from_token(token=token)
+            try:
+                SophomoreModel.objects.get(email=user_email)
+            except SophomoreModel.DoesNotExist:
+                raise SophomoreEmailNotFoundException(email=user_email)
+        except ServiceException as e:
+            raise HttpError(
+                status_code=401,
+                message=e.message
+            )
+        except PyJWTError:
+            raise HttpError(
+                status_code=401,
+                message="Invalid token"
+            )
         return token
 
 
-auth_bearer = AuthBearer()
+auth_bearer = JWT()
 
 
 class BaseAuthenticationService(ABC):

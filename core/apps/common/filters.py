@@ -2,5 +2,5 @@ from dataclasses import dataclass
 
 
 @dataclass(frozen=True)
-class SubjectFilters:
+class SearchFilter:
     search: str | None = None

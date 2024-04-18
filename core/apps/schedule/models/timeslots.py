@@ -3,6 +3,7 @@ from django.db.models.signals import pre_save
 from django.dispatch import receiver
 
 from core.apps.common.models import TimedBaseModel, Day, OrdinaryNumber
+from core.apps.schedule.entities.timeslot import Timeslot as TimeslotEntity
 
 
 class Timeslot(TimedBaseModel):
@@ -19,6 +20,16 @@ class Timeslot(TimedBaseModel):
         verbose_name="Is this lesson taken during even weeks",
         default=True,
     )
+
+    def to_entity(self) -> TimeslotEntity:
+        return TimeslotEntity(
+            id=self.id,
+            day=self.day,
+            ord_number=self.ord_number,
+            is_even=self.is_even,
+            created_at=self.created_at,
+            updated_at=self.updated_at
+        )
 
     def __str__(self):
         return (f"{self.day}\n"

@@ -3,60 +3,74 @@ from django.http import HttpRequest
 from ninja import Router, Query
 from ninja.errors import HttpError
 from django.db import IntegrityError
-from core.api.schemas import ApiResponse
-from core.api.v1.schedule.subjects.schemas import SubjectCreateOutSchema, SubjectCreateInSchema, SubjectGetOutSchema, \
-    SubjectUpdateInSchema, SubjectUpdateOutSchema
+
+from core.api.filters import PaginationOut, PaginationIn, SearchFilter
+from core.api.schemas import ApiResponse, ListPaginatedResponse, StatusResponse
+from core.api.v1.schedule.subjects.schemas import SubjectCreateInSchema, \
+    SubjectUpdateInSchema, SubjectDeleteInSchema, SubjectSchema
 from core.apps.common.authentication import auth_bearer
 from core.apps.common.exceptions import ServiceException
 from core.api.v1.schedule.subjects.containers import subject_service
-from core.api.v1.schedule.subjects.filters import SubjectFilter
-from core.apps.schedule.filters.subjects import SubjectFilters as SubjectFilterEntity
+from core.apps.common.filters import SearchFilter as SearchFiltersEntity
 
 router = Router(tags=["Subjects"])
 
 
-@router.post("create",
-             response=ApiResponse[SubjectCreateOutSchema],
-             operation_id="create_subject",
-             auth=auth_bearer)
-def create_subject(request: HttpRequest, schema: SubjectCreateInSchema) -> ApiResponse[SubjectCreateOutSchema]:
+@router.get("",
+            response=ApiResponse[ListPaginatedResponse[SubjectSchema]],
+            operation_id="get_subject_list")
+def get_subject_list(request: HttpRequest,
+                     filters: Query[SearchFilter],
+                     pagination_in: Query[PaginationIn]) -> ApiResponse[ListPaginatedResponse[SubjectSchema]]:
     try:
-        subject = subject_service.create(title=schema.title)
+        subject_list = subject_service.get_subject_list(filters=SearchFiltersEntity(search=filters.search),
+                                                        pagination=pagination_in)
+        subject_count = subject_service.get_subject_count(filters=filters)
+
+        items = [SubjectSchema.from_entity(obj) for obj in subject_list]
+
+        pagination_out = PaginationOut(
+            offset=pagination_in.offset,
+            limit=pagination_in.limit,
+            total=subject_count,
+        )
     except ServiceException as e:
         raise HttpError(
             status_code=401,
             message=e.message
         )
 
-    return ApiResponse(data=SubjectCreateOutSchema(
-        title=subject.title,
-        slug=subject.slug
+    return ApiResponse(data=ListPaginatedResponse(
+        items=items,
+        pagination=pagination_out
     ))
 
 
-@router.get("",
-            response=ApiResponse[SubjectGetOutSchema],
-            operation_id="get_subject_by_title")
-def get_subject(request: HttpRequest, title: Query[SubjectFilter]) -> ApiResponse[SubjectGetOutSchema]:
+@router.post("",
+             response=ApiResponse[SubjectSchema],
+             operation_id="get_or_create_subject",
+             auth=auth_bearer)
+def get_or_create_subject(request: HttpRequest, schema: SubjectCreateInSchema) -> ApiResponse[SubjectSchema]:
     try:
-        subject = subject_service.get_subject_by_title(filters=SubjectFilterEntity(search=title.search))
+        subject = subject_service.get_or_create(title=schema.title)
     except ServiceException as e:
         raise HttpError(
             status_code=401,
             message=e.message
         )
 
-    return ApiResponse(data=SubjectGetOutSchema(
+    return ApiResponse(data=SubjectSchema(
+        id=subject.id,
         title=subject.title,
         slug=subject.slug
     ))
 
 
 @router.patch("",
-              response=ApiResponse[SubjectUpdateOutSchema],
+              response=ApiResponse[SubjectSchema],
               operation_id="update_subject_by_id",
               auth=auth_bearer)
-def update_subject(request: HttpRequest, schema: SubjectUpdateInSchema) -> ApiResponse[SubjectUpdateOutSchema]:
+def update_subject(request: HttpRequest, schema: SubjectUpdateInSchema) -> ApiResponse[SubjectSchema]:
     try:
         subject = subject_service.update_subject_by_id(subject_id=schema.subject_id, title=schema.title)
     except ServiceException as e:
@@ -65,7 +79,25 @@ def update_subject(request: HttpRequest, schema: SubjectUpdateInSchema) -> ApiRe
             message=e.message
         )
 
-    return ApiResponse(data=SubjectUpdateOutSchema(
-        title=f"Subject changed successfully: {subject.title}"
+    return ApiResponse(data=SubjectSchema(
+        id=subject.id,
+        title=subject.title,
+        slug=subject.slug
     ))
 
+
+@router.delete("", response=ApiResponse[StatusResponse],
+               operation_id="delete_subject_by_id",
+               auth=auth_bearer)
+def delete_subject(request: HttpRequest, schema: SubjectDeleteInSchema) -> ApiResponse[StatusResponse]:
+    try:
+        subject_service.delete_subject_by_id(subject_id=schema.subject_id)
+    except ServiceException as e:
+        raise HttpError(
+            status_code=401,
+            message=e.message
+        )
+
+    return ApiResponse(data=StatusResponse(
+        status=f"Subject deleted successfully"
+    ))

@@ -107,7 +107,7 @@ def update_email(request: HttpRequest, schema: UpdateEmailInSchema) -> ApiRespon
               response=ApiResponse[UpdateCredentialsOutSchema],
               operation_id='update_credentials',
               auth=auth_bearer)
-def update_email(request: HttpRequest, schema: UpdateCredentialsInSchema) -> ApiResponse[UpdateCredentialsOutSchema]:
+def update_credentials(request: HttpRequest, schema: UpdateCredentialsInSchema) -> ApiResponse[UpdateCredentialsOutSchema]:
     try:
         user_email: str = sophomore_service.get_user_email_from_token(token=request.auth)
     except JWTKeyParsingException as e:

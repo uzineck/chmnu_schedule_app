@@ -2,6 +2,7 @@ from django.db import models
 
 from core.apps.common.models import TimedBaseModel
 from core.apps.common.models import TeachersDegree
+from core.apps.schedule.entities.teacher import Teacher as TeacherEntity
 from core.apps.schedule.models.subjects import Subject
 
 
@@ -31,6 +32,18 @@ class Teacher(TimedBaseModel):
         verbose_name="Is teacher still teaching",
         default=True
     )
+
+    def to_entity(self) -> TeacherEntity:
+        return TeacherEntity(
+            id=self.id,
+            first_name=self.first_name,
+            last_name=self.last_name,
+            middle_name=self.middle_name,
+            rank=self.rank,
+            subjects=self.subjects,
+            created_at=self.created_at,
+            updated_at=self.updated_at
+        )
 
     def __str__(self):
         return f"{self.last_name} {self.first_name[0]}. {self.middle_name[0]}."
