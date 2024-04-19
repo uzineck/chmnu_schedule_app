@@ -6,8 +6,7 @@ from django.db import IntegrityError
 
 from core.api.filters import PaginationOut, PaginationIn, SearchFilter
 from core.api.schemas import ApiResponse, ListPaginatedResponse, StatusResponse
-from core.api.v1.schedule.subjects.schemas import SubjectCreateInSchema, \
-    SubjectUpdateInSchema, SubjectDeleteInSchema, SubjectSchema
+from core.api.v1.schedule.subjects.schemas import SubjectInSchema, SubjectSchema
 from core.apps.common.authentication import auth_bearer
 from core.apps.common.exceptions import ServiceException
 from core.api.v1.schedule.subjects.containers import subject_service
@@ -50,7 +49,7 @@ def get_subject_list(request: HttpRequest,
              response=ApiResponse[SubjectSchema],
              operation_id="get_or_create_subject",
              auth=auth_bearer)
-def get_or_create_subject(request: HttpRequest, schema: SubjectCreateInSchema) -> ApiResponse[SubjectSchema]:
+def get_or_create_subject(request: HttpRequest, schema: SubjectInSchema) -> ApiResponse[SubjectSchema]:
     try:
         subject = subject_service.get_or_create(title=schema.title)
     except ServiceException as e:
@@ -70,9 +69,9 @@ def get_or_create_subject(request: HttpRequest, schema: SubjectCreateInSchema) -
               response=ApiResponse[SubjectSchema],
               operation_id="update_subject_by_id",
               auth=auth_bearer)
-def update_subject(request: HttpRequest, schema: SubjectUpdateInSchema) -> ApiResponse[SubjectSchema]:
+def update_subject(request: HttpRequest, subject_id: int, schema: SubjectInSchema) -> ApiResponse[SubjectSchema]:
     try:
-        subject = subject_service.update_subject_by_id(subject_id=schema.subject_id, title=schema.title)
+        subject = subject_service.update_subject_by_id(subject_id=subject_id, title=schema.title)
     except ServiceException as e:
         raise HttpError(
             status_code=401,
@@ -89,9 +88,9 @@ def update_subject(request: HttpRequest, schema: SubjectUpdateInSchema) -> ApiRe
 @router.delete("", response=ApiResponse[StatusResponse],
                operation_id="delete_subject_by_id",
                auth=auth_bearer)
-def delete_subject(request: HttpRequest, schema: SubjectDeleteInSchema) -> ApiResponse[StatusResponse]:
+def delete_subject(request: HttpRequest, subject_id: int) -> ApiResponse[StatusResponse]:
     try:
-        subject_service.delete_subject_by_id(subject_id=schema.subject_id)
+        subject_service.delete_subject_by_id(subject_id=subject_id)
     except ServiceException as e:
         raise HttpError(
             status_code=401,

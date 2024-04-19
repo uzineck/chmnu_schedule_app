@@ -13,7 +13,7 @@ router = Router(tags=["Timeslots"])
 
 
 @router.post("", response=ApiResponse[TimeslotSchema], operation_id="get_or_create_timeslot", auth=auth_bearer)
-def get_or_create_timeslot(request:HttpRequest, schema: TimeslotSchema) -> ApiResponse[TimeslotSchema]:
+def get_or_create_timeslot(request: HttpRequest, schema: TimeslotSchema) -> ApiResponse[TimeslotSchema]:
     try:
         timeslot = timeslot_service.get_or_create(day=schema.day, ord_number=schema.ord_number, is_even=schema.is_even)
     except ServiceException as e:

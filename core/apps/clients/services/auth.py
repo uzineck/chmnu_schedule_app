@@ -3,6 +3,7 @@ from dataclasses import dataclass
 
 from core.apps.common.authentication import BaseAuthenticationService
 from core.apps.clients.services.sophomore import BaseSophomoreService
+from core.apps.clients.entities.sophomore import Sophomore as SophomoreEntity
 
 
 @dataclass(eq=False)
@@ -15,7 +16,7 @@ class BaseAuthService(ABC):
                 last_name: str,
                 middle_name: str,
                 email: str,
-                password: str):
+                password: str) -> SophomoreEntity:
         ...
 
     @abstractmethod
@@ -24,12 +25,12 @@ class BaseAuthService(ABC):
 
 
 class AuthService(BaseAuthService):
-    def sign_up(self, first_name: str, last_name: str, middle_name: str, email: str, password: str):
+    def sign_up(self, first_name: str, last_name: str, middle_name: str, email: str, password: str) -> SophomoreEntity:
         return self.client_service.create(first_name, last_name, middle_name, email, password)
 
-    def login(self, email: str, password: str):
+    def login(self, email: str, password: str) -> tuple[SophomoreEntity, str]:
         sophomore = self.client_service.validate_user(email=email, password=password)
-        return self.client_service.generate_token(sophomore=sophomore)
+        return sophomore, self.client_service.generate_token(sophomore=sophomore)
 
 
 

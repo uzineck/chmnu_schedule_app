@@ -5,8 +5,7 @@ from ninja.errors import HttpError
 
 from core.api.filters import PaginationIn, SearchFilter, PaginationOut
 from core.api.schemas import ApiResponse, ListPaginatedResponse, StatusResponse
-from core.api.v1.schedule.rooms.schemas import (RoomSchema, RoomNumberInSchema, RoomDescriptionUpdateInSchema,
-                                                RoomNumberUpdateInSchema)
+from core.api.v1.schedule.rooms.schemas import (RoomSchema, RoomNumberInSchema, RoomDescriptionUpdateInSchema)
 from core.apps.common.authentication import auth_bearer
 from core.apps.common.exceptions import ServiceException
 from core.apps.common.filters import SearchFilter as SearchFilterEntity
@@ -64,14 +63,15 @@ def get_or_create_room(request: HttpRequest, schema: RoomNumberInSchema) -> ApiR
     ))
 
 
-@router.patch("number",
+@router.patch("{room_number}/change_number",
               response=ApiResponse[RoomSchema],
               operation_id="update_room_number",
               auth=auth_bearer)
 def update_room_number(request: HttpRequest,
-                       schema: RoomNumberUpdateInSchema) -> ApiResponse[RoomSchema]:
+                       room_number: str,
+                       schema: RoomNumberInSchema) -> ApiResponse[RoomSchema]:
     try:
-        room = room_service.update_room_number(number=schema.number, new_number=schema.new_number)
+        room = room_service.update_room_number(number=room_number, new_number=schema.number)
     except ServiceException as e:
         raise HttpError(
             status_code=401,
@@ -84,14 +84,15 @@ def update_room_number(request: HttpRequest,
     ))
 
 
-@router.patch("description",
+@router.patch("{room_number}/change_description",
               response=ApiResponse[RoomSchema],
               operation_id="update_room_description",
               auth=auth_bearer)
 def update_room_description(request: HttpRequest,
+                            room_number: str,
                             schema: RoomDescriptionUpdateInSchema) -> ApiResponse[RoomSchema]:
     try:
-        room = room_service.update_room_description(number=schema.number, description=schema.description)
+        room = room_service.update_room_description(number=room_number, description=schema.description)
     except ServiceException as e:
         raise HttpError(
             status_code=401,
@@ -104,12 +105,12 @@ def update_room_description(request: HttpRequest,
     ))
 
 
-@router.delete("", response=ApiResponse[StatusResponse],
+@router.delete("{room_number}", response=ApiResponse[StatusResponse],
                operation_id="delete_room_by_number",
                auth=auth_bearer)
-def delete_room(request: HttpRequest, schema: RoomNumberInSchema) -> ApiResponse[StatusResponse]:
+def delete_room(request: HttpRequest, room_number: str) -> ApiResponse[StatusResponse]:
     try:
-        room_service.delete_room_by_number(number=schema.number)
+        room_service.delete_room_by_number(number=room_number)
     except ServiceException as e:
         raise HttpError(
             status_code=401,

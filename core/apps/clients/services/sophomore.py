@@ -21,7 +21,7 @@ class BaseSophomoreService(ABC):
                last_name: str,
                middle_name: str,
                email: str,
-               password: str):
+               password: str) -> SophomoreEntity:
         ...
 
     @abstractmethod
@@ -64,7 +64,7 @@ class ORMSophomoreService(BaseSophomoreService):
                last_name: str,
                middle_name: str,
                email: str,
-               password: str):
+               password: str) -> SophomoreEntity:
         hashed_password = self.authentication_service.hash_password(plain_password=password)
         try:
             sophomore: SophomoreModel = SophomoreModel.objects.create(first_name=first_name,

@@ -17,17 +17,8 @@ class SubjectSchema(Schema):
         )
 
 
-class SubjectCreateInSchema(Schema):
+class SubjectInSchema(Schema):
     title: str
-
-
-class SubjectUpdateInSchema(Schema):
-    subject_id: int
-    title: str
-
-
-class SubjectDeleteInSchema(Schema):
-    subject_id: int
 
 
 

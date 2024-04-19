@@ -3,6 +3,13 @@ from ninja import Schema
 from core.apps.clients.entities.sophomore import Sophomore as SophomoreEntity
 
 
+class SophomoreSchema(Schema):
+    last_name: str
+    first_name: str
+    middle_name: str
+    email: str
+
+
 class SignUpInSchema(Schema):
     last_name: str
     first_name: str
@@ -11,16 +18,12 @@ class SignUpInSchema(Schema):
     password: str
 
 
-class SignUpOutSchema(Schema):
-    greetings: str
-
-
 class LogInSchema(Schema):
     email: str
     password: str
 
 
-class LogInOutSchema(Schema):
+class TokenOutSchema(SophomoreSchema):
     token: str
 
 
@@ -29,25 +32,12 @@ class UpdatePwInSchema(Schema):
     new_password: str
 
 
-class UpdatePwOutSchema(Schema):
-    status: str
-
-
 class UpdateEmailInSchema(Schema):
     email: str
     password: str
-
-
-class UpdateEmailOutSchema(Schema):
-    email: str
-    token: str
 
 
 class UpdateCredentialsInSchema(Schema):
     last_name: str
     first_name: str
     middle_name: str
-
-
-class UpdateCredentialsOutSchema(Schema):
-    sophomore: str
