@@ -5,14 +5,14 @@ from ninja.errors import HttpError
 
 from core.api.schemas import ApiResponse
 from core.api.v1.schedule.timeslots.schemas import TimeslotSchema
-from core.apps.common.authentication import auth_bearer
+from core.apps.common.authentication.bearer import jwt_bearer
 from core.apps.common.exceptions import ServiceException
 from core.api.v1.schedule.timeslots.containers import timeslot_service
 
 router = Router(tags=["Timeslots"])
 
 
-@router.post("", response=ApiResponse[TimeslotSchema], operation_id="get_or_create_timeslot", auth=auth_bearer)
+@router.post("", response=ApiResponse[TimeslotSchema], operation_id="get_or_create_timeslot", auth=jwt_bearer)
 def get_or_create_timeslot(request: HttpRequest, schema: TimeslotSchema) -> ApiResponse[TimeslotSchema]:
     try:
         timeslot = timeslot_service.get_or_create(day=schema.day, ord_number=schema.ord_number, is_even=schema.is_even)

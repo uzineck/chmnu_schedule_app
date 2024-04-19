@@ -7,7 +7,7 @@ from django.db import IntegrityError
 from core.api.filters import PaginationOut, PaginationIn, SearchFilter
 from core.api.schemas import ApiResponse, ListPaginatedResponse, StatusResponse
 from core.api.v1.schedule.subjects.schemas import SubjectInSchema, SubjectSchema
-from core.apps.common.authentication import auth_bearer
+from core.apps.common.authentication.bearer import jwt_bearer
 from core.apps.common.exceptions import ServiceException
 from core.api.v1.schedule.subjects.containers import subject_service
 from core.apps.common.filters import SearchFilter as SearchFiltersEntity
@@ -48,7 +48,7 @@ def get_subject_list(request: HttpRequest,
 @router.post("",
              response=ApiResponse[SubjectSchema],
              operation_id="get_or_create_subject",
-             auth=auth_bearer)
+             auth=jwt_bearer)
 def get_or_create_subject(request: HttpRequest, schema: SubjectInSchema) -> ApiResponse[SubjectSchema]:
     try:
         subject = subject_service.get_or_create(title=schema.title)
@@ -65,10 +65,10 @@ def get_or_create_subject(request: HttpRequest, schema: SubjectInSchema) -> ApiR
     ))
 
 
-@router.patch("",
+@router.patch("{subject_id}",
               response=ApiResponse[SubjectSchema],
               operation_id="update_subject_by_id",
-              auth=auth_bearer)
+              auth=jwt_bearer)
 def update_subject(request: HttpRequest, subject_id: int, schema: SubjectInSchema) -> ApiResponse[SubjectSchema]:
     try:
         subject = subject_service.update_subject_by_id(subject_id=subject_id, title=schema.title)
@@ -85,9 +85,10 @@ def update_subject(request: HttpRequest, subject_id: int, schema: SubjectInSchem
     ))
 
 
-@router.delete("", response=ApiResponse[StatusResponse],
+@router.delete("{subject_id}",
+               response=ApiResponse[StatusResponse],
                operation_id="delete_subject_by_id",
-               auth=auth_bearer)
+               auth=jwt_bearer)
 def delete_subject(request: HttpRequest, subject_id: int) -> ApiResponse[StatusResponse]:
     try:
         subject_service.delete_subject_by_id(subject_id=subject_id)

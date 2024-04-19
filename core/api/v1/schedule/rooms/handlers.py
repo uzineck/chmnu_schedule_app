@@ -6,7 +6,7 @@ from ninja.errors import HttpError
 from core.api.filters import PaginationIn, SearchFilter, PaginationOut
 from core.api.schemas import ApiResponse, ListPaginatedResponse, StatusResponse
 from core.api.v1.schedule.rooms.schemas import (RoomSchema, RoomNumberInSchema, RoomDescriptionUpdateInSchema)
-from core.apps.common.authentication import auth_bearer
+from core.apps.common.authentication.bearer import jwt_bearer
 from core.apps.common.exceptions import ServiceException
 from core.apps.common.filters import SearchFilter as SearchFilterEntity
 from core.api.v1.schedule.rooms.containers import room_service
@@ -47,7 +47,7 @@ def get_room_list(request: HttpRequest,
 @router.post("",
              response=ApiResponse[RoomSchema],
              operation_id="get_or_create_room",
-             auth=auth_bearer)
+             auth=jwt_bearer)
 def get_or_create_room(request: HttpRequest, schema: RoomNumberInSchema) -> ApiResponse[RoomSchema]:
     try:
         room = room_service.get_or_create(number=schema.number)
@@ -66,7 +66,7 @@ def get_or_create_room(request: HttpRequest, schema: RoomNumberInSchema) -> ApiR
 @router.patch("{room_number}/change_number",
               response=ApiResponse[RoomSchema],
               operation_id="update_room_number",
-              auth=auth_bearer)
+              auth=jwt_bearer)
 def update_room_number(request: HttpRequest,
                        room_number: str,
                        schema: RoomNumberInSchema) -> ApiResponse[RoomSchema]:
@@ -87,7 +87,7 @@ def update_room_number(request: HttpRequest,
 @router.patch("{room_number}/change_description",
               response=ApiResponse[RoomSchema],
               operation_id="update_room_description",
-              auth=auth_bearer)
+              auth=jwt_bearer)
 def update_room_description(request: HttpRequest,
                             room_number: str,
                             schema: RoomDescriptionUpdateInSchema) -> ApiResponse[RoomSchema]:
@@ -107,7 +107,7 @@ def update_room_description(request: HttpRequest,
 
 @router.delete("{room_number}", response=ApiResponse[StatusResponse],
                operation_id="delete_room_by_number",
-               auth=auth_bearer)
+               auth=jwt_bearer)
 def delete_room(request: HttpRequest, room_number: str) -> ApiResponse[StatusResponse]:
     try:
         room_service.delete_room_by_number(number=room_number)

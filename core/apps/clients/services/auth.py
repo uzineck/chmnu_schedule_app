@@ -1,7 +1,6 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 
-from core.apps.common.authentication import BaseAuthenticationService
 from core.apps.clients.services.sophomore import BaseSophomoreService
 from core.apps.clients.entities.sophomore import Sophomore as SophomoreEntity
 

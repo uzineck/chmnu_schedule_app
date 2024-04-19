@@ -6,13 +6,13 @@ from core.api.schemas import ApiResponse, StatusResponse
 from core.api.v1.clients.sophomores.schemas import SignUpInSchema, LogInSchema, \
     UpdateEmailInSchema, UpdatePwInSchema, UpdateCredentialsInSchema, SophomoreSchema, TokenOutSchema
 from core.api.v1.clients.sophomores.containers import sophomore_auth, sophomore_service, sophomore_update
-from core.apps.common.authentication import auth_bearer
+from core.apps.common.authentication.bearer import jwt_bearer
 from core.apps.common.exceptions import ServiceException, JWTKeyParsingException
 
 router = Router(tags=["Sophomores"])
 
 
-@router.post("sign_up", response=ApiResponse[SophomoreSchema], operation_id='sign_up')
+@router.post("sign-up", response=ApiResponse[SophomoreSchema], operation_id='sign_up')
 def sign_up_handler(request: HttpRequest, schema: SignUpInSchema) -> ApiResponse[SophomoreSchema]:
     try:
         sophomore = sophomore_auth.sign_up(first_name=schema.first_name,
@@ -34,7 +34,7 @@ def sign_up_handler(request: HttpRequest, schema: SignUpInSchema) -> ApiResponse
     ))
 
 
-@router.post("login", response=ApiResponse[TokenOutSchema], operation_id='login')
+@router.post("log-in", response=ApiResponse[TokenOutSchema], operation_id='login')
 def login_handler(request: HttpRequest, schema: LogInSchema) -> ApiResponse[TokenOutSchema]:
     try:
         sophomore, jwt_token = sophomore_auth.login(email=schema.email, password=schema.password)
@@ -55,7 +55,7 @@ def login_handler(request: HttpRequest, schema: LogInSchema) -> ApiResponse[Toke
 @router.patch("update_password",
               response=ApiResponse[StatusResponse],
               operation_id='update_password',
-              auth=auth_bearer)
+              auth=jwt_bearer)
 def update_password(request: HttpRequest, schema: UpdatePwInSchema) -> ApiResponse[StatusResponse]:
     try:
         user_email: str = sophomore_service.get_user_email_from_token(token=request.auth)
@@ -83,7 +83,7 @@ def update_password(request: HttpRequest, schema: UpdatePwInSchema) -> ApiRespon
 @router.patch("update_email",
               response=ApiResponse[TokenOutSchema],
               operation_id='update_email',
-              auth=auth_bearer)
+              auth=jwt_bearer)
 def update_email(request: HttpRequest, schema: UpdateEmailInSchema) -> ApiResponse[TokenOutSchema]:
     try:
         user_email: str = sophomore_service.get_user_email_from_token(token=request.auth)
@@ -112,11 +112,11 @@ def update_email(request: HttpRequest, schema: UpdateEmailInSchema) -> ApiRespon
 
 
 @router.patch("update_credentials",
-              response=ApiResponse[UpdateCredentialsOutSchema],
+              response=ApiResponse[SophomoreSchema],
               operation_id='update_credentials',
-              auth=auth_bearer)
-def update_credentials(request: HttpRequest, schema: UpdateCredentialsInSchema) -> ApiResponse[
-    UpdateCredentialsOutSchema]:
+              auth=jwt_bearer)
+def update_credentials(request: HttpRequest,
+                       schema: SophomoreSchema) -> ApiResponse[SophomoreSchema]:
     try:
         user_email: str = sophomore_service.get_user_email_from_token(token=request.auth)
     except JWTKeyParsingException as e:
