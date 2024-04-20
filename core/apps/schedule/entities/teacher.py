@@ -1,8 +1,9 @@
 from dataclasses import dataclass, field
 from datetime import datetime
+from typing import Iterable
 
 from core.apps.common.constants import EntityStatus
-from core.apps.schedule.entities.subject import Subject
+from core.apps.schedule.entities.subject import Subject as SubjectEntity
 
 
 @dataclass
@@ -12,7 +13,7 @@ class Teacher:
     last_name: str
     middle_name: str
     rank: str
-    subjects: Subject | EntityStatus = field(default=EntityStatus.NOT_LOADED, kw_only=True)
+    subjects: Iterable[SubjectEntity] | EntityStatus = field(default=EntityStatus.NOT_LOADED, kw_only=True)
     created_at: datetime
     updated_at: datetime
 

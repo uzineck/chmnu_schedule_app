@@ -82,7 +82,7 @@ class ORMRoomService(BaseRoomService):
         try:
             updated_room = RoomModel.objects.get(number=number)
         except RoomModel.DoesNotExist:
-            raise RoomNotFoundException(number=new_number)
+            raise RoomNotFoundException(number=number)
 
         return updated_room.to_entity()
 

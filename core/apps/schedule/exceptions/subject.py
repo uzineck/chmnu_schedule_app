@@ -13,6 +13,15 @@ class SubjectNotFoundException(ServiceException):
 
 
 @dataclass(eq=False)
+class SubjectIdNotFoundException(ServiceException):
+    subject_id: int
+
+    @property
+    def message(self):
+        return f'Subject with provided id not found ID({self.subject_id})'
+
+
+@dataclass(eq=False)
 class SubjectAlreadyExistException(ServiceException):
     title: str
 

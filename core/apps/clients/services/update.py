@@ -30,7 +30,7 @@ class UpdateUserService(BaseUpdateUserService):
     def change_email(self, old_email: str, new_email: str, password: str) -> tuple[SophomoreEntity, str]:
         sophomore = self.client_service.validate_user(email=old_email, password=password)
         updated_sophomore = self.client_service.update_email(sophomore=sophomore, email=new_email)
-        return sophomore, self.client_service.generate_token(sophomore=updated_sophomore)
+        return updated_sophomore, self.client_service.generate_token(sophomore=updated_sophomore)
 
     def change_credentials(self, email: str, first_name: str, last_name: str, middle_name: str) -> SophomoreEntity:
         sophomore = self.client_service.get_by_email(email=email)

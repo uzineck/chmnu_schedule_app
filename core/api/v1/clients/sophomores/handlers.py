@@ -1,6 +1,7 @@
 from django.http import HttpRequest
-from ninja import Router
+from ninja import Router, Form
 from ninja.errors import HttpError
+from ninja.security import django_auth_superuser
 
 from core.api.schemas import ApiResponse, StatusResponse
 from core.api.v1.clients.sophomores.schemas import SignUpInSchema, LogInSchema, \
@@ -12,8 +13,8 @@ from core.apps.common.exceptions import ServiceException, JWTKeyParsingException
 router = Router(tags=["Sophomores"])
 
 
-@router.post("sign-up", response=ApiResponse[SophomoreSchema], operation_id='sign_up')
-def sign_up_handler(request: HttpRequest, schema: SignUpInSchema) -> ApiResponse[SophomoreSchema]:
+@router.post("sign-up", response=ApiResponse[SophomoreSchema], operation_id='sign_up', auth=django_auth_superuser)
+def sign_up_handler(request: HttpRequest, schema: Form[SignUpInSchema]) -> ApiResponse[SophomoreSchema]:
     try:
         sophomore = sophomore_auth.sign_up(first_name=schema.first_name,
                                            last_name=schema.last_name,
@@ -116,7 +117,7 @@ def update_email(request: HttpRequest, schema: UpdateEmailInSchema) -> ApiRespon
               operation_id='update_credentials',
               auth=jwt_bearer)
 def update_credentials(request: HttpRequest,
-                       schema: SophomoreSchema) -> ApiResponse[SophomoreSchema]:
+                       schema: UpdateCredentialsInSchema) -> ApiResponse[SophomoreSchema]:
     try:
         user_email: str = sophomore_service.get_user_email_from_token(token=request.auth)
     except JWTKeyParsingException as e:

@@ -1,15 +1,33 @@
 DC = docker-compose
+
 STORAGES_FILE = docker_compose/storages.yaml
-EXEC = docker exec -it
-DB_CONTAINER = chmnu-db
-LOGS = docker logs
-ENV = --env-file .env
-DB_USER = myuser
-DB_NAME = chmnu_schedule
 APP_FILE = docker_compose/app.yaml
 APP_CONTAINER = main-app
+
+EXEC = docker exec -it
+LOGS = docker logs
+
+ENV = --env-file .env
+
+DB_CONTAINER = chmnu-db
+DB_USER = myuser
+DB_NAME = chmnu_schedule
+
 MANAGE_PY = python manage.py
 
+
+.PHONY: app
+app:
+		${DC} ${ENV} -f ${APP_FILE} -f ${STORAGES_FILE} up --build -d
+
+
+.PHONY: app-logs
+app-logs:
+		${LOGS} ${APP_CONTAINER} -f
+
+.PHONY: app-down
+app-down:
+		${DC} -f ${APP_FILE} -f ${STORAGES_FILE} down
 
 
 .PHONY: storages
@@ -20,26 +38,19 @@ storages:
 storages-down:
 		${DC} -f ${STORAGES_FILE} down
 
-.PHONY: postgres
-postgres:
-		${EXEC} ${DB_CONTAINER} psql -U ${DB_USER} -d ${DB_NAME}
-
 .PHONY: storages-logs
 storages-logs:
 		${LOGS} ${DB_CONTAINER} -f
 
-.PHONY: app
-app:
-		${DC} -f ${APP_FILE} -f ${STORAGES_FILE} ${ENV} up --build -d
+.PHONY: db-logs
+db-logs:
+		${DC} -f ${STORAGES_FILE} logs -f
 
 
-.PHONY: app-logs
-app-logs:
-		${LOGS} ${APP_CONTAINER} -f
+.PHONY: postgres
+postgres:
+		${EXEC} ${DB_CONTAINER} psql -U ${DB_USER} -d ${DB_NAME}
 
-.PHONY: app-down
-app-down:
-		${DC} -f ${APP_FILE} -f ${STORAGES_FILE} down
 
 .PHONY: migrate
 migrate:
@@ -56,7 +67,6 @@ superuser:
 .PHONY: collectstatic
 collectstatic:
 		${EXEC} ${APP_CONTAINER} ${MANAGE_PY} collectstatic
-
 
 .PHONY: dumpdata
 dumpdata:

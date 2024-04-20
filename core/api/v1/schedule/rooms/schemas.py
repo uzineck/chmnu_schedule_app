@@ -22,6 +22,5 @@ class RoomNumberInSchema(Schema):
 
 
 class RoomDescriptionUpdateInSchema(Schema):
-    number: str
     description: str
 

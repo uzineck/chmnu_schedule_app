@@ -86,7 +86,10 @@ class ORMSophomoreService(BaseSophomoreService):
 
     def update_email(self, sophomore: SophomoreEntity, email: str) -> SophomoreEntity:
         SophomoreModel.objects.filter(email=sophomore.email).update(email=email)
-        updated_sophomore = SophomoreModel.objects.get(email=email)
+        try:
+            updated_sophomore = SophomoreModel.objects.get(email=email)
+        except SophomoreModel.DoesNotExist:
+            raise SophomoreEmailNotFoundException(email=email)
         return updated_sophomore.to_entity()
 
     def update_credentials(self,
@@ -115,7 +118,7 @@ class ORMSophomoreService(BaseSophomoreService):
     def validate_user(self, email: str, password: str) -> SophomoreEntity:
         try:
             sophomore = SophomoreModel.objects.get(email=email)
-        except SophomoreEmailNotFoundException:
+        except SophomoreModel.DoesNotExist:
             raise InvalidAuthDataException(email=email)
 
         if not self.password_service.verify_password(plain_password=password, hashed_password=sophomore.password):
