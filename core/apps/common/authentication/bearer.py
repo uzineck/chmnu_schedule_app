@@ -12,11 +12,7 @@ from core.apps.common.exceptions import ServiceException
 class JWTBearer(HttpBearer):
     def authenticate(self, request: HttpRequest, token: str) -> str:
         try:
-            user_email = JWTTokenService().get_user_email_from_token(token=token)
-            try:
-                SophomoreModel.objects.get(email=user_email)
-            except SophomoreModel.DoesNotExist:
-                raise SophomoreEmailNotFoundException(email=user_email)
+            JWTTokenService().get_user_email_from_token(token=token)
         except ServiceException as e:
             raise HttpError(
                 status_code=401,

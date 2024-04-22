@@ -10,7 +10,8 @@ from core.apps.common.authentication.bearer import jwt_bearer
 from core.apps.common.exceptions import ServiceException
 from core.api.v1.schedule.teachers.filters import TeacherFilter
 from core.apps.schedule.filters.teacher import TeacherFilter as TeacherFilterEntity
-from core.api.v1.schedule.teachers.containers import teacher_service
+from core.apps.schedule.services.teachers import BaseTeacherService
+from core.project.containers import get_container
 
 router = Router(tags=["Teachers"])
 
@@ -21,11 +22,13 @@ router = Router(tags=["Teachers"])
 def get_teacher_list(request: HttpRequest,
                      filters: Query[TeacherFilter],
                      pagination_in: Query[PaginationIn]) -> ApiResponse[ListPaginatedResponse[TeacherSchema]]:
+    container = get_container()
+    service = container.resolve(BaseTeacherService)
     try:
-        teacher_list = teacher_service.get_teacher_list(filters=TeacherFilterEntity(name=filters.name,
-                                                                                    rank=filters.rank),
-                                                        pagination=pagination_in)
-        teacher_count = teacher_service.get_teacher_count(filters=filters)
+        teacher_list = service.get_teacher_list(filters=TeacherFilterEntity(name=filters.name,
+                                                                            rank=filters.rank),
+                                                pagination=pagination_in)
+        teacher_count = service.get_teacher_count(filters=filters)
 
         items = [TeacherSchema.from_entity(obj) for obj in teacher_list]
 
@@ -51,11 +54,13 @@ def get_teacher_list(request: HttpRequest,
              operation_id="get_or_create_teacher",
              auth=jwt_bearer)
 def get_or_create_teacher(request: HttpRequest, schema: TeacherInSchema) -> ApiResponse[TeacherSchema]:
+    container = get_container()
+    service = container.resolve(BaseTeacherService)
     try:
-        teacher = teacher_service.get_or_create(first_name=schema.first_name,
-                                                last_name=schema.last_name,
-                                                middle_name=schema.middle_name,
-                                                rank=schema.rank)
+        teacher = service.get_or_create(first_name=schema.first_name,
+                                        last_name=schema.last_name,
+                                        middle_name=schema.middle_name,
+                                        rank=schema.rank)
     except ServiceException as e:
         raise HttpError(
             status_code=401,
@@ -79,12 +84,14 @@ def get_or_create_teacher(request: HttpRequest, schema: TeacherInSchema) -> ApiR
 def update_teacher(request: HttpRequest,
                    teacher_id: int,
                    schema: TeacherInSchema) -> ApiResponse[TeacherSchema]:
+    container = get_container()
+    service = container.resolve(BaseTeacherService)
     try:
-        teacher = teacher_service.update_teacher_by_id(teacher_id=teacher_id,
-                                                       first_name=schema.first_name,
-                                                       last_name=schema.last_name,
-                                                       middle_name=schema.middle_name,
-                                                       rank=schema.rank)
+        teacher = service.update_teacher_by_id(teacher_id=teacher_id,
+                                               first_name=schema.first_name,
+                                               last_name=schema.last_name,
+                                               middle_name=schema.middle_name,
+                                               rank=schema.rank)
     except ServiceException as e:
         raise HttpError(
             status_code=401,
@@ -108,8 +115,10 @@ def update_teacher(request: HttpRequest,
 def add_teacher_subjects(request: HttpRequest,
                          teacher_id: int,
                          schema: TeacherUpdateSubjectsInSchema) -> ApiResponse[TeacherSchema]:
+    container = get_container()
+    service = container.resolve(BaseTeacherService)
     try:
-        teacher = teacher_service.add_teacher_subject(teacher_id=teacher_id, subject_id=schema.subject_id)
+        teacher = service.add_teacher_subject(teacher_id=teacher_id, subject_id=schema.subject_id)
     except ServiceException as e:
         raise HttpError(
             status_code=401,
@@ -133,8 +142,10 @@ def add_teacher_subjects(request: HttpRequest,
 def remove_teacher_subjects(request: HttpRequest,
                             teacher_id: int,
                             schema: TeacherUpdateSubjectsInSchema) -> ApiResponse[TeacherSchema]:
+    container = get_container()
+    service = container.resolve(BaseTeacherService)
     try:
-        teacher = teacher_service.remove_teacher_subject(teacher_id=teacher_id, subject_id=schema.subject_id)
+        teacher = service.remove_teacher_subject(teacher_id=teacher_id, subject_id=schema.subject_id)
     except ServiceException as e:
         raise HttpError(
             status_code=401,

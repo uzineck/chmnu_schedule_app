@@ -9,7 +9,8 @@ from core.api.v1.schedule.rooms.schemas import (RoomSchema, RoomNumberInSchema, 
 from core.apps.common.authentication.bearer import jwt_bearer
 from core.apps.common.exceptions import ServiceException
 from core.apps.common.filters import SearchFilter as SearchFilterEntity
-from core.api.v1.schedule.rooms.containers import room_service
+from core.apps.schedule.services.rooms import BaseRoomService
+from core.project.containers import get_container
 
 router = Router(tags=["Rooms"])
 
@@ -20,10 +21,12 @@ router = Router(tags=["Rooms"])
 def get_room_list(request: HttpRequest,
                   filters: Query[SearchFilter],
                   pagination_in: Query[PaginationIn]) -> ApiResponse[ListPaginatedResponse[RoomSchema]]:
+    container = get_container()
+    service = container.resolve(BaseRoomService)
     try:
-        room_list = room_service.get_room_list(filters=SearchFilterEntity(search=filters.search),
-                                               pagination=pagination_in)
-        room_count = room_service.get_room_count(filters=filters)
+        room_list = service.get_room_list(filters=SearchFilterEntity(search=filters.search),
+                                          pagination=pagination_in)
+        room_count = service.get_room_count(filters=filters)
 
         items = [RoomSchema.from_entity(obj) for obj in room_list]
 
@@ -49,8 +52,10 @@ def get_room_list(request: HttpRequest,
              operation_id="get_or_create_room",
              auth=jwt_bearer)
 def get_or_create_room(request: HttpRequest, schema: RoomNumberInSchema) -> ApiResponse[RoomSchema]:
+    container = get_container()
+    service = container.resolve(BaseRoomService)
     try:
-        room = room_service.get_or_create(number=schema.number)
+        room = service.get_or_create(number=schema.number)
     except ServiceException as e:
         raise HttpError(
             status_code=401,
@@ -70,8 +75,10 @@ def get_or_create_room(request: HttpRequest, schema: RoomNumberInSchema) -> ApiR
 def update_room_number(request: HttpRequest,
                        room_number: str,
                        schema: RoomNumberInSchema) -> ApiResponse[RoomSchema]:
+    container = get_container()
+    service = container.resolve(BaseRoomService)
     try:
-        room = room_service.update_room_number(number=room_number, new_number=schema.number)
+        room = service.update_room_number(number=room_number, new_number=schema.number)
     except ServiceException as e:
         raise HttpError(
             status_code=401,
@@ -91,8 +98,10 @@ def update_room_number(request: HttpRequest,
 def update_room_description(request: HttpRequest,
                             room_number: str,
                             schema: RoomDescriptionUpdateInSchema) -> ApiResponse[RoomSchema]:
+    container = get_container()
+    service = container.resolve(BaseRoomService)
     try:
-        room = room_service.update_room_description(number=room_number, description=schema.description)
+        room = service.update_room_description(number=room_number, description=schema.description)
     except ServiceException as e:
         raise HttpError(
             status_code=401,
@@ -109,8 +118,10 @@ def update_room_description(request: HttpRequest,
                operation_id="delete_room_by_number",
                auth=jwt_bearer)
 def delete_room(request: HttpRequest, room_number: str) -> ApiResponse[StatusResponse]:
+    container = get_container()
+    service = container.resolve(BaseRoomService)
     try:
-        room_service.delete_room_by_number(number=room_number)
+        service.delete_room_by_number(number=room_number)
     except ServiceException as e:
         raise HttpError(
             status_code=401,
