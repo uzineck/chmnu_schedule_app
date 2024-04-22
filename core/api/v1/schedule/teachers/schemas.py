@@ -12,7 +12,6 @@ class TeacherSchema(Schema):
     first_name: str
     middle_name: str
     rank: TeachersDegree
-    subjects: list[SubjectSchema]
 
     @staticmethod
     def from_entity(entity: TeacherEntity) -> 'TeacherSchema':
@@ -22,7 +21,6 @@ class TeacherSchema(Schema):
             first_name=entity.first_name,
             middle_name=entity.middle_name,
             rank=entity.rank,
-            subjects=entity.subjects
         )
 
 

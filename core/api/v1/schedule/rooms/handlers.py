@@ -63,6 +63,7 @@ def get_or_create_room(request: HttpRequest, schema: RoomNumberInSchema) -> ApiR
         )
 
     return ApiResponse(data=RoomSchema(
+        id=room.id,
         number=room.number,
         description=room.description
     ))
@@ -86,6 +87,7 @@ def update_room_number(request: HttpRequest,
         )
 
     return ApiResponse(data=RoomSchema(
+        id=room.id,
         number=room.number,
         description=room.description
     ))
@@ -109,6 +111,7 @@ def update_room_description(request: HttpRequest,
         )
 
     return ApiResponse(data=RoomSchema(
+        id=room.id,
         number=room.number,
         description=room.description
     ))

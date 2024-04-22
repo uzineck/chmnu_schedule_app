@@ -16,7 +16,7 @@ class GroupAdmin(admin.ModelAdmin):
 
 @admin.register(Lesson)
 class LessonAdmin(admin.ModelAdmin):
-    list_display = ('type', 'subject', 'teacher', 'room', 'timeslot', 'subgroup', 'created_at', 'updated_at',)
+    list_display = ('id', 'subject', 'teacher', 'room', 'timeslot', 'type', 'subgroup', 'created_at', 'updated_at',)
 
 
 @admin.register(Teacher)

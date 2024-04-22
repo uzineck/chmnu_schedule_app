@@ -29,7 +29,7 @@ app-logs:
 
 .PHONY: app-down
 app-down:
-		${DC} -f ${APP_FILE} -f ${STORAGES_FILE} down
+		${DC} -f ${APP_FILE} -f ${STORAGES_FILE} -f ${MONITORING_FILE} down
 
 
 .PHONY: storages
@@ -62,6 +62,10 @@ monitoring:
 .PHONY: monitoring-logs
 monitoring-logs:
 	${DC} -f ${MONITORING_FILE} ${ENV} logs -f
+
+.PHONY: monitoring-down
+monitoring-down:
+	${DC} -f ${MONITORING_FILE} down
 
 
 .PHONY: migrate

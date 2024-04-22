@@ -25,6 +25,14 @@ class BaseRoomService(ABC):
         ...
 
     @abstractmethod
+    def get_room_by_number(self, number: str) -> RoomEntity:
+        ...
+
+    @abstractmethod
+    def get_room_by_id(self, room_id: int) -> RoomEntity:
+        ...
+
+    @abstractmethod
     def update_room_number(self, number: str, new_number: str) -> RoomEntity:
         ...
 
@@ -63,6 +71,22 @@ class ORMRoomService(BaseRoomService):
         query = self._build_room_query(filters)
 
         return RoomModel.objects.filter(query).count()
+
+    def get_room_by_number(self, number: str) -> RoomEntity:
+        try:
+            room = RoomModel.objects.get(number=number)
+        except RoomModel.DoesNotExist:
+            raise RoomNotFoundException(number=number)
+
+        return room.to_entity()
+
+    def get_room_by_id(self, room_id: int) -> RoomEntity:
+        try:
+            room = RoomModel.objects.get(id=room_id)
+        except RoomModel.DoesNotExist:
+            raise RoomNotFoundException(number=str(room_id))
+
+        return room.to_entity()
 
     def update_room_number(self, number: str,
                            new_number: str,

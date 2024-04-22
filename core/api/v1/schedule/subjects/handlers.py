@@ -110,3 +110,4 @@ def delete_subject(request: HttpRequest, subject_id: int) -> ApiResponse[StatusR
     return ApiResponse(data=StatusResponse(
         status=f"Subject deleted successfully"
     ))
+

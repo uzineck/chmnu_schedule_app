@@ -2,6 +2,7 @@ from django.db import models
 
 from core.apps.common.models import TimedBaseModel
 from core.apps.common.models import TeachersDegree
+from core.apps.schedule.entities.subject import Subject as SubjectEntity
 from core.apps.schedule.entities.teacher import Teacher as TeacherEntity
 from core.apps.schedule.models.subjects import Subject
 

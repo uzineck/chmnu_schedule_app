@@ -10,6 +10,7 @@ from core.apps.common.authentication.bearer import jwt_bearer
 from core.apps.common.exceptions import ServiceException
 from core.api.v1.schedule.teachers.filters import TeacherFilter
 from core.apps.schedule.filters.teacher import TeacherFilter as TeacherFilterEntity
+from core.apps.schedule.models import Teacher
 from core.apps.schedule.services.teachers import BaseTeacherService
 from core.project.containers import get_container
 

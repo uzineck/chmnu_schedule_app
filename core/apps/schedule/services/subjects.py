@@ -26,7 +26,7 @@ class BaseSubjectService(ABC):
         ...
 
     @abstractmethod
-    def get_subject_by_id(self, subject_id: str) -> SubjectEntity:
+    def get_subject_by_id(self, subject_id: int) -> SubjectEntity:
         ...
 
     @abstractmethod
@@ -36,6 +36,7 @@ class BaseSubjectService(ABC):
     @abstractmethod
     def delete_subject_by_id(self, subject_id: int) -> None:
         ...
+
 
 
 class ORMSubjectService(BaseSubjectService):
@@ -68,11 +69,11 @@ class ORMSubjectService(BaseSubjectService):
 
         return SubjectModel.objects.filter(query).count()
 
-    def get_subject_by_id(self, subject_id: str) -> SubjectEntity:
+    def get_subject_by_id(self, subject_id: int) -> SubjectEntity:
         try:
             subject = SubjectModel.objects.get(id=subject_id)
         except SubjectModel.DoesNotExist:
-            raise SubjectNotFoundException(subject_info=subject_id)
+            raise SubjectNotFoundException(subject_info=str(subject_id))
         return subject.to_entity()
 
     def update_subject_by_id(self, subject_id: int, title: str) -> SubjectEntity:

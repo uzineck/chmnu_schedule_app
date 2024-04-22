@@ -1,6 +1,11 @@
 import datetime as dt
 from django.db import models
 
+from core.apps.schedule.entities.lesson import Lesson as LessonEntity
+from core.apps.schedule.entities.room import Room as RoomEntity
+from core.apps.schedule.entities.subject import Subject as SubjectEntity
+from core.apps.schedule.entities.teacher import Teacher as TeacherEntity
+from core.apps.schedule.entities.timeslot import Timeslot as TimeslotEntity
 from core.apps.schedule.models.rooms import Room
 from core.apps.schedule.models.subjects import Subject
 from core.apps.schedule.models.teachers import Teacher
@@ -43,6 +48,33 @@ class Lesson(TimedBaseModel):
         choices=Subgroup,
         null=True,
     )
+
+    def to_entity(self) -> LessonEntity:
+        return LessonEntity(
+            id=self.id,
+            subject=self.subject,
+            teacher=self.teacher,
+            type=self.type,
+            room=self.room,
+            timeslot=self.timeslot,
+            subgroup=self.subgroup,
+            created_at=self.created_at,
+            updated_at=self.updated_at
+        )
+
+    @classmethod
+    def from_entity(cls, lesson: LessonEntity) -> 'Lesson':
+        return cls(
+            id=lesson.id,
+            subject_id=lesson.subject.id,
+            teacher_id=lesson.teacher.id,
+            room_id=lesson.room.id,
+            timeslot_id=lesson.timeslot.id,
+            type=lesson.type,
+            subgroup=lesson.subgroup,
+            created_at=lesson.created_at,
+            updated_at=lesson.updated_at
+        )
 
     def __str__(self):
         return (f"Lesson: {self.type} {self.subject}, "
