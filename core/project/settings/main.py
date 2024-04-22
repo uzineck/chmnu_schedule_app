@@ -41,13 +41,17 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-
+    # first party
     'core.apps.schedule.apps.ScheduleConfig',
-    'core.apps.clients.apps.ClientsConfig'
+    'core.apps.clients.apps.ClientsConfig',
+
+    # third party
+    'elasticapm.contrib.django'
 
 ]
 
 MIDDLEWARE = [
+    'core.project.middlewares.ElasticApmMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -134,3 +138,12 @@ STATIC_ROOT = BASE_DIR / 'static'
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+ELASTIC_APM = {
+    'SERVICE_NAME': 'Schedule',
+    'SERVER_URL': env('APM_URL', default='http://apm-server:8200'),
+    'DEBUG': DEBUG,
+    'CAPTURE_BODY': 'all',
+    "ENVIRONMENT": 'DEV',
+    'USE_ELASTIC_EXCEPTHOOK': True,
+}

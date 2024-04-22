@@ -44,9 +44,7 @@ class ORMSubjectService(BaseSubjectService):
         query = Q()
 
         if filters.search is not None:
-            query &= Q(title__icontains=filters.search) | Q(
-                slug__icontains=filters.search,
-            )
+            query &= Q(title__icontains=filters.search) | Q(slug__icontains=filters.search)
 
         return query
 

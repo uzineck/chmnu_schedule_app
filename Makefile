@@ -2,6 +2,8 @@ DC = docker-compose
 
 STORAGES_FILE = docker_compose/storages.yaml
 APP_FILE = docker_compose/app.yaml
+MONITORING_FILE = docker_compose/monitoring.yaml
+
 APP_CONTAINER = main-app
 
 EXEC = docker exec -it
@@ -50,6 +52,16 @@ db-logs:
 .PHONY: postgres
 postgres:
 		${EXEC} ${DB_CONTAINER} psql -U ${DB_USER} -d ${DB_NAME}
+
+
+.PHONY: monitoring
+monitoring:
+	${DC} -f ${MONITORING_FILE} ${ENV} up --build -d
+
+
+.PHONY: monitoring-logs
+monitoring-logs:
+	${DC} -f ${MONITORING_FILE} ${ENV} logs -f
 
 
 .PHONY: migrate

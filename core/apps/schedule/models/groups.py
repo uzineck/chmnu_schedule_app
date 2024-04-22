@@ -5,6 +5,7 @@ from core.apps.schedule.models.lessons import Lesson
 from core.apps.clients.models.sophomors import Sophomore
 from core.apps.schedule.entities.group import Group as GroupEntity
 
+
 class Group(TimedBaseModel):
     number = models.CharField(
         verbose_name="Group Number",
