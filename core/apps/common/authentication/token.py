@@ -21,6 +21,10 @@ class BaseTokenService(ABC):
     def get_user_id_from_token(self, token: str) -> int:
         ...
 
+    # @abstractmethod
+    # def get_sophomore_group_from_token(self, token: str) -> str:
+    #     ...
+
 
 class JWTTokenService(BaseTokenService):
     JWT_SECRET_KEY: ClassVar[str] = env("JWT_SECRET_KEY")

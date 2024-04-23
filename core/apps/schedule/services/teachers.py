@@ -56,7 +56,7 @@ class BaseTeacherService(ABC):
 
 class ORMTeacherService(BaseTeacherService):
     def _build_teacher_query(self, filters: TeacherFilter) -> Q:
-        query = Q()
+        query = Q(is_active=True)
 
         if filters.name is not None:
             query &= (Q(first_name__icontains=filters.name) |

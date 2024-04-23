@@ -21,7 +21,7 @@ class CreateLessonUseCase:
                 subject_id: int,
                 teacher_id: int,
                 room_id: int,
-                timeslot_id: id) -> LessonEntity:
+                timeslot_id: int) -> LessonEntity:
 
         subject = self.subject_service.get_subject_by_id(subject_id=subject_id)
         teacher = self.teacher_service.get_teacher_by_id(teacher_id=teacher_id)
@@ -34,7 +34,6 @@ class CreateLessonUseCase:
                                      timeslot=timeslot,
                                      type=lesson.type,
                                      subgroup=lesson.subgroup)
-        print(lesson_entity)
 
         saved_lesson = self.lesson_service.save_lesson(lesson=lesson_entity)
 

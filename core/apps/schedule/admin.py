@@ -21,7 +21,7 @@ class LessonAdmin(admin.ModelAdmin):
 
 @admin.register(Teacher)
 class TeacherAdmin(admin.ModelAdmin):
-    list_display = ('last_name', 'first_name', 'middle_name', 'rank', 'created_at', 'updated_at',)
+    list_display = ('id', 'last_name', 'first_name', 'middle_name', 'rank', 'created_at', 'updated_at',)
     search_fields = ('last_name', 'first_name', 'middle_name',)
 
 
@@ -34,11 +34,11 @@ class SubjectAdmin(admin.ModelAdmin):
 
 @admin.register(Room)
 class RoomAdmin(admin.ModelAdmin):
-    list_display = ('number', 'description', 'created_at', 'updated_at',)
+    list_display = ('id', 'number', 'description', 'created_at', 'updated_at',)
     list_filter = ('number',)
     search_fields = ('number',)
 
 
 @admin.register(Timeslot)
 class TimeslotAdmin(admin.ModelAdmin):
-    list_display = ('day', 'ord_number', 'is_even')
+    list_display = ('id', 'day', 'ord_number', 'is_even')

@@ -29,8 +29,8 @@ class ORMLessonService(BaseLessonService):
         return lesson.to_entity()
 
     def save_lesson(self, lesson: LessonEntity) -> LessonEntity:
-        lesson_dto = LessonModel.from_entity(lesson=lesson)
-        lesson_dto.save()
+        lesson_model = LessonModel.from_entity(lesson=lesson)
+        lesson_model.save()
 
-        return lesson_dto.to_entity()
+        return lesson_model.to_entity()
 

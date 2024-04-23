@@ -8,6 +8,7 @@ from core.apps.clients.services.sophomore import BaseSophomoreService, ORMSophom
 from core.apps.clients.services.update import BaseUpdateUserService, UpdateUserService
 from core.apps.common.authentication.password import BasePasswordService, BcryptPasswordService
 from core.apps.common.authentication.token import BaseTokenService, JWTTokenService
+from core.apps.schedule.services.groups import BaseGroupService, ORMGroupService
 from core.apps.schedule.services.lessons import BaseLessonService, ORMLessonService
 from core.apps.schedule.services.rooms import BaseRoomService, ORMRoomService
 from core.apps.schedule.services.subjects import BaseSubjectService, ORMSubjectService
@@ -45,6 +46,10 @@ def _initialize_container() -> punq.Container:
     # Lesson containers
     container.register(BaseLessonService, ORMLessonService)
     container.register(CreateLessonUseCase)
+
+    # Group containers
+    container.register(BaseGroupService, ORMGroupService)
+
     return container
 
 

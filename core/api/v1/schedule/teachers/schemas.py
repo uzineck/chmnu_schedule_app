@@ -1,6 +1,5 @@
 from ninja import Schema
 
-from core.apps.common.constants import EntityStatus
 from core.apps.common.models import TeachersDegree
 from core.api.v1.schedule.subjects.schemas import SubjectSchema
 from core.apps.schedule.entities.teacher import Teacher as TeacherEntity
