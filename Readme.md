@@ -27,12 +27,15 @@ This is the backend part of the schedule app for CHMNU students and teachers.
 4. #### Open WSL Ubuntu in your terminal and go to cloned application folder
 5. #### Implemented Commands
 
-    - `make app` - up application and database/infrastructure
+    - `make app` - up application and database/infrastructure/monitoring
     - `make app-logs` - follow the logs in app container
     - `make app-down` - down application and all infrastructure
     - `make storages` - up only storages. you should run your application locally for debugging/developing purposes
     - `make storages-logs` - follow the logs in storages containers
     - `make storages-down` - down all infrastructure
+    - `make monitoring` - up monitoring docker compose(kibana, apm, elastic)
+    - `make monitoring-logs` - show monitoring logs
+    - `make monitoring-down` - down monitoring docker containers
 6. #### Django Specific Commands
 
     - `make migrations` - make migrations to models
