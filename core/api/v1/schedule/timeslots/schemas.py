@@ -1,6 +1,9 @@
 from ninja import Schema
 
-from core.apps.common.models import Day, OrdinaryNumber
+from core.apps.common.models import (
+    Day,
+    OrdinaryNumber,
+)
 
 
 class CreateTimeslotSchema(Schema):

@@ -1,9 +1,9 @@
-from uuid import uuid4
-
 from django.db import models
 
-from core.apps.common.models import TimedBaseModel
+from uuid import uuid4
+
 from core.apps.clients.entities.sophomore import Sophomore as SophomoreEntity
+from core.apps.common.models import TimedBaseModel
 
 
 class Sophomore(TimedBaseModel):
@@ -27,7 +27,7 @@ class Sophomore(TimedBaseModel):
     password = models.CharField(
         max_length=250,
         blank=False,
-        null=False
+        null=False,
     )
     token = models.CharField(
         verbose_name="Sophomore's Token",
@@ -45,7 +45,7 @@ class Sophomore(TimedBaseModel):
             email=self.email,
             password=self.password,
             created_at=self.created_at,
-            updated_at=self.updated_at
+            updated_at=self.updated_at,
         )
 
     def __str__(self):

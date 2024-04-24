@@ -1,14 +1,15 @@
-from abc import ABC, abstractmethod
-from typing import Iterable
-
 from django.db.models import Q
-from django.db.utils import IntegrityError
+
+from abc import (
+    ABC,
+    abstractmethod,
+)
+from typing import Iterable
 
 from core.api.filters import PaginationIn
 from core.apps.common.models import TeachersDegree
-from core.apps.schedule.entities.subject import Subject as SubjectEntity
 from core.apps.schedule.entities.teacher import Teacher as TeacherEntity
-from core.apps.schedule.exceptions.subject import SubjectNotFoundException, SubjectIdNotFoundException
+from core.apps.schedule.exceptions.subject import SubjectIdNotFoundException
 from core.apps.schedule.exceptions.teacher import TeacherNotFoundException
 from core.apps.schedule.filters.teacher import TeacherFilter
 from core.apps.schedule.models import Subject as SubjectModel
@@ -17,11 +18,13 @@ from core.apps.schedule.models.teachers import Teacher as TeacherModel
 
 class BaseTeacherService(ABC):
     @abstractmethod
-    def get_or_create(self,
-                      first_name: str,
-                      last_name: str,
-                      middle_name: str,
-                      rank: TeachersDegree, ) -> TeacherEntity:
+    def get_or_create(
+            self,
+            first_name: str,
+            last_name: str,
+            middle_name: str,
+            rank: TeachersDegree,
+    ) -> TeacherEntity:
         ...
 
     @abstractmethod
@@ -37,12 +40,14 @@ class BaseTeacherService(ABC):
         ...
 
     @abstractmethod
-    def update_teacher_by_id(self,
-                             teacher_id: int,
-                             first_name: str,
-                             last_name: str,
-                             middle_name: str,
-                             rank: str) -> TeacherEntity:
+    def update_teacher_by_id(
+            self,
+            teacher_id: int,
+            first_name: str,
+            last_name: str,
+            middle_name: str,
+            rank: str,
+    ) -> TeacherEntity:
         ...
 
     @abstractmethod
@@ -59,23 +64,29 @@ class ORMTeacherService(BaseTeacherService):
         query = Q(is_active=True)
 
         if filters.name is not None:
-            query &= (Q(first_name__icontains=filters.name) |
-                      Q(last_name__icontains=filters.name) |
-                      Q(middle_name__icontains=filters.name))
+            query &= (
+                Q(first_name__icontains=filters.name) |
+                Q(last_name__icontains=filters.name) |
+                Q(middle_name__icontains=filters.name)
+            )
         if filters.rank is not None:
             query &= (Q(rank__icontains=filters.rank))
 
         return query
 
-    def get_or_create(self,
-                      first_name: str,
-                      last_name: str,
-                      middle_name: str,
-                      rank: str, ) -> TeacherEntity:
-        teacher, _ = TeacherModel.objects.get_or_create(first_name=first_name,
-                                                        last_name=last_name,
-                                                        middle_name=middle_name,
-                                                        rank=rank)
+    def get_or_create(
+            self,
+            first_name: str,
+            last_name: str,
+            middle_name: str,
+            rank: str,
+    ) -> TeacherEntity:
+        teacher, _ = TeacherModel.objects.get_or_create(
+            first_name=first_name,
+            last_name=last_name,
+            middle_name=middle_name,
+            rank=rank,
+        )
 
         return teacher.to_entity()
 
@@ -89,9 +100,7 @@ class ORMTeacherService(BaseTeacherService):
 
     def get_teacher_list(self, filters: TeacherFilter, pagination: PaginationIn) -> Iterable[TeacherEntity]:
         query = self._build_teacher_query(filters)
-        qs = TeacherModel.objects.filter(query)[
-             pagination.offset:pagination.offset + pagination.limit
-             ]
+        qs = TeacherModel.objects.filter(query)[pagination.offset:pagination.offset + pagination.limit]
         return [teacher.to_entity() for teacher in qs]
 
     def get_teacher_count(self, filters: TeacherFilter) -> int:
@@ -99,17 +108,21 @@ class ORMTeacherService(BaseTeacherService):
 
         return TeacherModel.objects.filter(query).count()
 
-    def update_teacher_by_id(self,
-                             teacher_id: int,
-                             first_name: str,
-                             last_name: str,
-                             middle_name: str,
-                             rank: str) -> TeacherEntity:
+    def update_teacher_by_id(
+            self,
+            teacher_id: int,
+            first_name: str,
+            last_name: str,
+            middle_name: str,
+            rank: str,
+    ) -> TeacherEntity:
 
-        TeacherModel.objects.filter(id=teacher_id).update(first_name=first_name,
-                                                          last_name=last_name,
-                                                          middle_name=middle_name,
-                                                          rank=rank)
+        TeacherModel.objects.filter(id=teacher_id).update(
+            first_name=first_name,
+            last_name=last_name,
+            middle_name=middle_name,
+            rank=rank,
+        )
         try:
             teacher = TeacherModel.objects.get(id=teacher_id)
         except TeacherModel.DoesNotExist:
@@ -144,4 +157,3 @@ class ORMTeacherService(BaseTeacherService):
 
         teacher.subjects.remove(subject)
         return teacher.to_entity()
-

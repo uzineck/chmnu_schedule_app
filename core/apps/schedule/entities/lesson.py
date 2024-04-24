@@ -1,11 +1,17 @@
-from dataclasses import dataclass, field
+from dataclasses import (
+    dataclass,
+    field,
+)
 from datetime import datetime
 
 from core.apps.common.constants import EntityStatus
-from core.apps.common.models import LessonType, Subgroup
-from core.apps.schedule.entities.teacher import Teacher
+from core.apps.common.models import (
+    LessonType,
+    Subgroup,
+)
 from core.apps.schedule.entities.room import Room
 from core.apps.schedule.entities.subject import Subject
+from core.apps.schedule.entities.teacher import Teacher
 from core.apps.schedule.entities.timeslot import Timeslot
 
 

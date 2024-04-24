@@ -1,8 +1,11 @@
-from abc import ABC, abstractmethod
+from abc import (
+    ABC,
+    abstractmethod,
+)
 
+from core.apps.schedule.entities.timeslot import Timeslot as TimeslotEntity
 from core.apps.schedule.exceptions.timeslot import TimeslotNotFoundException
 from core.apps.schedule.models import Timeslot as TimeslotModel
-from core.apps.schedule.entities.timeslot import Timeslot as TimeslotEntity
 
 
 class BaseTimeslotService(ABC):
@@ -23,7 +26,7 @@ class ORMTimeslotService(BaseTimeslotService):
     def get_timeslot_by_id(self, timeslot_id: int) -> TimeslotEntity:
         try:
             timeslot = TimeslotModel.objects.get(id=timeslot_id)
-        except:
+        except TimeslotModel.DoesNotExist:
             raise TimeslotNotFoundException(timeslot_id=timeslot_id)
 
         return timeslot.to_entity()

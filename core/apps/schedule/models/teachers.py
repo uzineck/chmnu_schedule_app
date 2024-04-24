@@ -1,8 +1,9 @@
 from django.db import models
 
-from core.apps.common.models import TimedBaseModel
-from core.apps.common.models import TeachersDegree
-from core.apps.schedule.entities.subject import Subject as SubjectEntity
+from core.apps.common.models import (
+    TeachersDegree,
+    TimedBaseModel,
+)
 from core.apps.schedule.entities.teacher import Teacher as TeacherEntity
 from core.apps.schedule.models.subjects import Subject
 
@@ -27,11 +28,11 @@ class Teacher(TimedBaseModel):
     subjects = models.ManyToManyField(
         Subject,
         related_name='teacher_subjects',
-        blank=True
+        blank=True,
     )
     is_active = models.BooleanField(
         verbose_name="Is teacher still teaching",
-        default=True
+        default=True,
     )
 
     def to_entity(self) -> TeacherEntity:
@@ -43,7 +44,7 @@ class Teacher(TimedBaseModel):
             rank=self.rank,
             subjects=self.subjects,
             created_at=self.created_at,
-            updated_at=self.updated_at
+            updated_at=self.updated_at,
         )
 
     def __str__(self):

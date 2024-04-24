@@ -1,14 +1,16 @@
-from datetime import datetime
+from ninja import Schema
 
-from ninja import Schema, ModelSchema
+from datetime import datetime
 
 from core.api.v1.schedule.rooms.schemas import RoomSchema
 from core.api.v1.schedule.subjects.schemas import SubjectSchema
 from core.api.v1.schedule.teachers.schemas import TeacherSchema
 from core.api.v1.schedule.timeslots.schemas import TimeslotSchema
-from core.apps.common.models import Subgroup, LessonType
+from core.apps.common.models import (
+    LessonType,
+    Subgroup,
+)
 from core.apps.schedule.entities.lesson import Lesson as LessonEntity
-from core.apps.schedule.models import Lesson as LessonModel
 
 
 class LessonInSchema(Schema):

@@ -1,7 +1,12 @@
 import jwt
-
-from abc import ABC, abstractmethod
-from typing import ClassVar, Any
+from abc import (
+    ABC,
+    abstractmethod,
+)
+from typing import (
+    Any,
+    ClassVar,
+)
 
 from core.apps.clients.entities.sophomore import Sophomore as SophomoreEntity
 from core.apps.common.exceptions import JWTKeyParsingException

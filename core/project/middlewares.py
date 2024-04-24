@@ -1,6 +1,3 @@
-import json
-from typing import Callable
-
 from django.http import (
     HttpRequest,
     HttpResponse,
@@ -11,6 +8,8 @@ from django.urls import (
 )
 
 import elasticapm
+import json
+from typing import Callable
 
 
 class ElasticApmMiddleware:

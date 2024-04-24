@@ -1,14 +1,20 @@
-from abc import ABC, abstractmethod
-from typing import Iterable
-
 from django.db import IntegrityError
 from django.db.models import Q
 
+from abc import (
+    ABC,
+    abstractmethod,
+)
+from typing import Iterable
+
 from core.api.filters import PaginationIn
 from core.apps.common.filters import SearchFilter as SearchFiltersEntity
-from core.apps.schedule.exceptions.room import RoomNotFoundException, RoomAlreadyExistException
-from core.apps.schedule.models import Room as RoomModel
 from core.apps.schedule.entities.room import Room as RoomEntity
+from core.apps.schedule.exceptions.room import (
+    RoomAlreadyExistException,
+    RoomNotFoundException,
+)
+from core.apps.schedule.models import Room as RoomModel
 
 
 class BaseRoomService(ABC):
@@ -62,9 +68,7 @@ class ORMRoomService(BaseRoomService):
 
     def get_room_list(self, filters: SearchFiltersEntity, pagination: PaginationIn) -> list[RoomEntity]:
         query = self._build_room_query(filters)
-        qs = RoomModel.objects.filter(query)[
-             pagination.offset:pagination.offset + pagination.limit
-             ]
+        qs = RoomModel.objects.filter(query)[pagination.offset:pagination.offset + pagination.limit]
         return [room.to_entity() for room in qs]
 
     def get_room_count(self, filters: SearchFiltersEntity) -> int:
@@ -88,9 +92,10 @@ class ORMRoomService(BaseRoomService):
 
         return room.to_entity()
 
-    def update_room_number(self, number: str,
-                           new_number: str,
-                           ) -> RoomEntity:
+    def update_room_number(
+        self, number: str,
+        new_number: str,
+    ) -> RoomEntity:
         try:
             RoomModel.objects.filter(number=number).update(number=new_number)
         except IntegrityError:

@@ -1,10 +1,9 @@
-from abc import ABC, abstractmethod
+from abc import (
+    ABC,
+    abstractmethod,
+)
 
 from core.apps.schedule.entities.lesson import Lesson as LessonEntity
-from core.apps.schedule.entities.room import Room as RoomEntity
-from core.apps.schedule.entities.subject import Subject as SubjectEntity
-from core.apps.schedule.entities.teacher import Teacher as TeacherEntity
-from core.apps.schedule.entities.timeslot import Timeslot as TimeslotEntity
 from core.apps.schedule.exceptions.lesson import LessonNotFoundException
 from core.apps.schedule.models import Lesson as LessonModel
 

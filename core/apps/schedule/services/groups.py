@@ -1,7 +1,10 @@
-from abc import ABC, abstractmethod
-from typing import Iterable
-
 from django.db.models import Q
+
+from abc import (
+    ABC,
+    abstractmethod,
+)
+from typing import Iterable
 
 from core.apps.schedule.entities.group import Group as GroupEntity
 from core.apps.schedule.entities.lesson import Lesson as LessonEntity
@@ -14,11 +17,12 @@ from core.apps.schedule.models.groups import Group as GroupModel
 
 class BaseGroupService(ABC):
     @abstractmethod
-    def get_or_create(self,
-                      group_number: str,
-                      has_subgroups: bool,
-                      sophomore_id: int,
-                      ) -> GroupEntity:
+    def get_or_create(
+        self,
+        group_number: str,
+        has_subgroups: bool,
+        sophomore_id: int,
+    ) -> GroupEntity:
         ...
 
     @abstractmethod
@@ -59,14 +63,17 @@ class ORMGroupService(BaseGroupService):
 
         return query
 
-    def get_or_create(self,
-                      group_number: str,
-                      has_subgroups: bool,
-                      sophomore_id: int
-                      ) -> GroupEntity:
-        group, _ = GroupModel.objects.get_or_create(number=group_number,
-                                                    has_subgroups=has_subgroups,
-                                                    sophomore_id=sophomore_id)
+    def get_or_create(
+        self,
+        group_number: str,
+        has_subgroups: bool,
+        sophomore_id: int,
+    ) -> GroupEntity:
+        group, _ = GroupModel.objects.get_or_create(
+            number=group_number,
+            has_subgroups=has_subgroups,
+            sophomore_id=sophomore_id,
+        )
 
         return group.to_entity()
 

@@ -1,15 +1,21 @@
-from abc import ABC, abstractmethod
+from django.db import IntegrityError
+from django.db.models import Q
+
+from abc import (
+    ABC,
+    abstractmethod,
+)
+from pytils.translit import slugify
 from typing import Iterable
 
-from pytils.translit import slugify
-from django.db.models import Q
-from django.db import IntegrityError
-
 from core.api.filters import PaginationIn
-from core.apps.schedule.exceptions.subject import SubjectNotFoundException, SubjectAlreadyExistException
 from core.apps.common.filters import SearchFilter as SearchFiltersEntity
-from core.apps.schedule.models import Subject as SubjectModel
 from core.apps.schedule.entities.subject import Subject as SubjectEntity
+from core.apps.schedule.exceptions.subject import (
+    SubjectAlreadyExistException,
+    SubjectNotFoundException,
+)
+from core.apps.schedule.models import Subject as SubjectModel
 
 
 class BaseSubjectService(ABC):
@@ -18,7 +24,7 @@ class BaseSubjectService(ABC):
         ...
 
     @abstractmethod
-    def get_subject_list(self, filters: SearchFiltersEntity,  pagination: PaginationIn) -> Iterable[SubjectEntity]:
+    def get_subject_list(self, filters: SearchFiltersEntity, pagination: PaginationIn) -> Iterable[SubjectEntity]:
         ...
 
     @abstractmethod
@@ -36,7 +42,6 @@ class BaseSubjectService(ABC):
     @abstractmethod
     def delete_subject_by_id(self, subject_id: int) -> None:
         ...
-
 
 
 class ORMSubjectService(BaseSubjectService):

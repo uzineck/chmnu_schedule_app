@@ -1,9 +1,9 @@
 from django.db import models
 
-from core.apps.common.models import TimedBaseModel
-from core.apps.schedule.models.lessons import Lesson
 from core.apps.clients.models.sophomors import Sophomore
+from core.apps.common.models import TimedBaseModel
 from core.apps.schedule.entities.group import Group as GroupEntity
+from core.apps.schedule.models.lessons import Lesson
 
 
 class Group(TimedBaseModel):
@@ -11,7 +11,7 @@ class Group(TimedBaseModel):
         verbose_name="Group Number",
         primary_key=True,
         max_length=10,
-        unique=True
+        unique=True,
     )
     has_subgroups = models.BooleanField(
         verbose_name="Does group has subgroups",
@@ -29,7 +29,7 @@ class Group(TimedBaseModel):
         Lesson,
         verbose_name="Group lessons",
         related_name='group_lessons',
-        blank=True
+        blank=True,
     )
 
     def to_entity(self):
@@ -39,7 +39,7 @@ class Group(TimedBaseModel):
             sophomore=self.sophomore,
             lessons=self.lessons,
             created_at=self.created_at,
-            updated_at=self.updated_at
+            updated_at=self.updated_at,
         )
 
     def __str__(self):

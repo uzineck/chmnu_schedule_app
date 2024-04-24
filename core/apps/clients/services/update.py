@@ -1,4 +1,7 @@
-from abc import ABC, abstractmethod
+from abc import (
+    ABC,
+    abstractmethod,
+)
 from dataclasses import dataclass
 
 from core.apps.clients.entities.sophomore import Sophomore as SophomoreEntity
@@ -34,10 +37,12 @@ class UpdateUserService(BaseUpdateUserService):
 
     def change_credentials(self, email: str, first_name: str, last_name: str, middle_name: str) -> SophomoreEntity:
         sophomore = self.client_service.get_by_email(email=email)
-        updated_sophomore = self.client_service.update_credentials(sophomore=sophomore,
-                                                                   first_name=first_name,
-                                                                   last_name=last_name,
-                                                                   middle_name=middle_name)
+        updated_sophomore = self.client_service.update_credentials(
+            sophomore=sophomore,
+            first_name=first_name,
+            last_name=last_name,
+            middle_name=middle_name,
+        )
 
         return updated_sophomore
 

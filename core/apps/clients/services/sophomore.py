@@ -1,13 +1,18 @@
-from dataclasses import dataclass
-from uuid import uuid4
-from abc import ABC, abstractmethod
-
 from django.db.utils import IntegrityError
 
+from abc import (
+    ABC,
+    abstractmethod,
+)
+from dataclasses import dataclass
+
 from core.apps.clients.entities.sophomore import Sophomore as SophomoreEntity
-from core.apps.clients.models.sophomors import Sophomore as SophomoreModel
-from core.apps.clients.exceptions.sophomores import SophomoreEmailNotFoundException, SophomoreAlreadyExistsException
 from core.apps.clients.exceptions.auth import InvalidAuthDataException
+from core.apps.clients.exceptions.sophomores import (
+    SophomoreAlreadyExistsException,
+    SophomoreEmailNotFoundException,
+)
+from core.apps.clients.models.sophomors import Sophomore as SophomoreModel
 from core.apps.common.authentication.password import BasePasswordService
 from core.apps.common.authentication.token import BaseTokenService
 
@@ -18,12 +23,14 @@ class BaseSophomoreService(ABC):
     token_service: BaseTokenService
 
     @abstractmethod
-    def create(self,
-               first_name: str,
-               last_name: str,
-               middle_name: str,
-               email: str,
-               password: str) -> SophomoreEntity:
+    def create(
+        self,
+        first_name: str,
+        last_name: str,
+        middle_name: str,
+        email: str,
+        password: str,
+    ) -> SophomoreEntity:
         ...
 
     @abstractmethod
@@ -35,8 +42,10 @@ class BaseSophomoreService(ABC):
         ...
 
     @abstractmethod
-    def update_credentials(self, sophomore: SophomoreEntity,
-                           first_name: str, last_name: str, middle_name: str) -> SophomoreEntity:
+    def update_credentials(
+        self, sophomore: SophomoreEntity,
+        first_name: str, last_name: str, middle_name: str,
+    ) -> SophomoreEntity:
         ...
 
     @abstractmethod
@@ -61,19 +70,23 @@ class BaseSophomoreService(ABC):
 
 
 class ORMSophomoreService(BaseSophomoreService):
-    def create(self,
-               first_name: str,
-               last_name: str,
-               middle_name: str,
-               email: str,
-               password: str) -> SophomoreEntity:
+    def create(
+        self,
+        first_name: str,
+        last_name: str,
+        middle_name: str,
+        email: str,
+        password: str,
+    ) -> SophomoreEntity:
         hashed_password = self.password_service.hash_password(plain_password=password)
         try:
-            sophomore: SophomoreModel = SophomoreModel.objects.create(first_name=first_name,
-                                                                      last_name=last_name,
-                                                                      middle_name=middle_name,
-                                                                      email=email,
-                                                                      password=hashed_password)
+            sophomore: SophomoreModel = SophomoreModel.objects.create(
+                first_name=first_name,
+                last_name=last_name,
+                middle_name=middle_name,
+                email=email,
+                password=hashed_password,
+            )
             return sophomore.to_entity()
         except IntegrityError:
             raise SophomoreAlreadyExistsException(email=email)
@@ -92,14 +105,18 @@ class ORMSophomoreService(BaseSophomoreService):
             raise SophomoreEmailNotFoundException(email=email)
         return updated_sophomore.to_entity()
 
-    def update_credentials(self,
-                           sophomore: SophomoreEntity,
-                           first_name: str,
-                           last_name: str,
-                           middle_name: str) -> SophomoreEntity:
-        SophomoreModel.objects.filter(email=sophomore.email).update(first_name=first_name,
-                                                                    last_name=last_name,
-                                                                    middle_name=middle_name)
+    def update_credentials(
+        self,
+        sophomore: SophomoreEntity,
+        first_name: str,
+        last_name: str,
+        middle_name: str,
+    ) -> SophomoreEntity:
+        SophomoreModel.objects.filter(email=sophomore.email).update(
+            first_name=first_name,
+            last_name=last_name,
+            middle_name=middle_name,
+        )
         updated_sophomore = SophomoreModel.objects.get(email=sophomore.email)
         return updated_sophomore.to_entity()
 

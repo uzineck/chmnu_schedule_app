@@ -1,6 +1,6 @@
-from typing import Optional
-
 from ninja import Schema
+
+from typing import Optional
 
 from core.apps.schedule.entities.room import Room as RoomEntity
 
@@ -15,7 +15,7 @@ class RoomSchema(Schema):
         return RoomSchema(
             id=entity.id,
             number=entity.number,
-            description=entity.description
+            description=entity.description,
         )
 
 

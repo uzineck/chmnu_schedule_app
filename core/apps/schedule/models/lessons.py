@@ -1,16 +1,15 @@
-import datetime as dt
 from django.db import models
 
+from core.apps.common.models import (
+    LessonType,
+    Subgroup,
+    TimedBaseModel,
+)
 from core.apps.schedule.entities.lesson import Lesson as LessonEntity
-from core.apps.schedule.entities.room import Room as RoomEntity
-from core.apps.schedule.entities.subject import Subject as SubjectEntity
-from core.apps.schedule.entities.teacher import Teacher as TeacherEntity
-from core.apps.schedule.entities.timeslot import Timeslot as TimeslotEntity
 from core.apps.schedule.models.rooms import Room
 from core.apps.schedule.models.subjects import Subject
 from core.apps.schedule.models.teachers import Teacher
 from core.apps.schedule.models.timeslots import Timeslot
-from core.apps.common.models import TimedBaseModel, LessonType, Subgroup
 
 
 class Lesson(TimedBaseModel):
@@ -59,7 +58,7 @@ class Lesson(TimedBaseModel):
             type=self.type,
             subgroup=self.subgroup,
             created_at=self.created_at,
-            updated_at=self.updated_at
+            updated_at=self.updated_at,
         )
 
     @classmethod
@@ -73,15 +72,17 @@ class Lesson(TimedBaseModel):
             type=lesson.type,
             subgroup=lesson.subgroup,
             created_at=lesson.created_at,
-            updated_at=lesson.updated_at
+            updated_at=lesson.updated_at,
         )
 
     def __str__(self):
-        return (f"Lesson: {self.type} {self.subject}, "
-                f"Teacher: {self.teacher}, "
-                f"Day: {self.timeslot.day}, "
-                f"Number: {self.timeslot.ord_number}, "
-                f"Subgroup: {self.subgroup}")
+        return (
+            f"Lesson: {self.type} {self.subject}, "
+            f"Teacher: {self.teacher}, "
+            f"Day: {self.timeslot.day}, "
+            f"Number: {self.timeslot.ord_number}, "
+            f"Subgroup: {self.subgroup}"
+        )
 
     class Meta:
         verbose_name = "Lesson"

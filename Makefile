@@ -17,78 +17,61 @@ DB_NAME = chmnu_schedule
 
 MANAGE_PY = python manage.py
 
+.PHONY: app, app-logs, app-down, # main app on docker commands
+.PHONY: storages, storages-logs, storages-down,  # storages in docker commands
+.PHONY: monitoring, monitoring-logs, monitoring-down, # elastic apm in docker commands
+.PHONY: postgres, db-logs, # postgres in docker commands
+.PHONY: migrations, migrate, superuser, loaddata, dumpdata, collectstatic # django manage.py commands
 
-.PHONY: app
+
 app:
 		${DC} ${ENV} -f ${APP_FILE} -f ${STORAGES_FILE} up --build -d
 
-
-.PHONY: app-logs
 app-logs:
 		${LOGS} ${APP_CONTAINER} -f
 
-.PHONY: app-down
 app-down:
 		${DC} -f ${APP_FILE} -f ${STORAGES_FILE} -f ${MONITORING_FILE} down
 
-
-.PHONY: storages
 storages:
 		${DC} -f ${STORAGES_FILE} ${ENV} up -d
 
-.PHONY: storages-down
 storages-down:
 		${DC} -f ${STORAGES_FILE} down
 
-.PHONY: storages-logs
 storages-logs:
 		${LOGS} ${DB_CONTAINER} -f
 
-.PHONY: db-logs
 db-logs:
 		${DC} -f ${STORAGES_FILE} logs -f
 
-
-.PHONY: postgres
 postgres:
 		${EXEC} ${DB_CONTAINER} psql -U ${DB_USER} -d ${DB_NAME}
 
-
-.PHONY: monitoring
 monitoring:
 	${DC} -f ${MONITORING_FILE} ${ENV} up --build -d
 
-
-.PHONY: monitoring-logs
 monitoring-logs:
 	${DC} -f ${MONITORING_FILE} ${ENV} logs -f
 
-.PHONY: monitoring-down
 monitoring-down:
 	${DC} -f ${MONITORING_FILE} down
 
-
-.PHONY: migrate
 migrate:
 		${EXEC} ${APP_CONTAINER} ${MANAGE_PY} migrate
 
-.PHONY: migrations
 migrations:
 		${EXEC} ${APP_CONTAINER} ${MANAGE_PY} makemigrations
 
-.PHONY: superuser
 superuser:
 		${EXEC} ${APP_CONTAINER} ${MANAGE_PY} createsuperuser --username admin --email admin@admin.com
 
-.PHONY: collectstatic
 collectstatic:
 		${EXEC} ${APP_CONTAINER} ${MANAGE_PY} collectstatic
 
-.PHONY: dumpdata
 dumpdata:
 		${EXEC} ${APP_CONTAINER} ${MANAGE_PY} dumpdata schedule --indent=4 -o data.json
 
-.PHONY: loaddata
 loaddata:
 		${EXEC} ${APP_CONTAINER} ${MANAGE_PY} loaddata --app=schedule --format=json
 
