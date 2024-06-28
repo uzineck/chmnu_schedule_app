@@ -1,1 +1,1 @@
-from .sophomors import Sophomore
+from .client import Client

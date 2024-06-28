@@ -8,7 +8,7 @@ from typing import (
     ClassVar,
 )
 
-from core.apps.clients.entities.sophomore import Sophomore as SophomoreEntity
+from core.apps.clients.entities.client import Sophomore as SophomoreEntity
 from core.apps.common.exceptions import JWTKeyParsingException
 from core.project.settings.main import env
 
@@ -36,6 +36,7 @@ class JWTTokenService(BaseTokenService):
     ALGORITHM: ClassVar[str] = "HS256"
     USER_ID_KEY: ClassVar[str] = "user_id"
     USER_EMAIL_KEY: ClassVar[str] = "user_email"
+    SOPHOMORE_GROUP_KEY: ClassVar[str] = 'sophomore_group'
     ACCESS_TOKEN_EXPIRATION_DELTA: ClassVar[int] = 600  # 10 minutes expiration
     REFRESH_TOKEN_EXPIRATION_DELTA: ClassVar[int] = 864000  # 10 days expiration
 

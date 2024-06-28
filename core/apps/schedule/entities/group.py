@@ -5,7 +5,7 @@ from dataclasses import (
 from datetime import datetime
 from typing import Iterable
 
-from core.apps.clients.entities.sophomore import Sophomore
+from core.apps.clients.entities.client import Sophomore
 from core.apps.common.constants import EntityStatus
 from core.apps.schedule.entities.lesson import Lesson as LessonEntity
 

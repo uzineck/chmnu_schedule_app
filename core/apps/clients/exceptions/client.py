@@ -4,21 +4,21 @@ from core.apps.common.exceptions import ServiceException
 
 
 @dataclass(eq=False)
-class SophomoreEmailNotFoundException(ServiceException):
+class ClientEmailNotFoundException(ServiceException):
     email: str
 
     @property
     def message(self):
-        return 'A sophomore with provided email not found'
+        return 'Clients\' with provided email not found'
 
 
 @dataclass(eq=False)
-class SophomoreAlreadyExistsException(ServiceException):
+class ClientAlreadyExistsException(ServiceException):
     email: str
 
     @property
     def message(self):
-        return 'A sophomore with provided email is already registered'
+        return 'Client with provided email is already registered'
 
 
 

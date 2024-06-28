@@ -33,10 +33,10 @@ class CreateLessonInSchema(Schema):
 
 class LessonOutSchema(Schema):
     id: int
-    subject: SubjectSchema
-    teacher: TeacherSchema
     type: LessonType
     subgroup: Subgroup
+    subject: SubjectSchema
+    teacher: TeacherSchema
     room: RoomSchema
     timeslot: TimeslotSchema
     created_at: datetime

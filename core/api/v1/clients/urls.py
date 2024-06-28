@@ -1,6 +1,6 @@
 from ninja import Router
 
-from core.api.v1.clients.sophomores.handlers import router as sophomore_router
+from core.api.v1.clients.clients.handlers import router as sophomore_router
 
 
 router = Router(tags=['Clients'])

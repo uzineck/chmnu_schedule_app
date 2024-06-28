@@ -77,7 +77,7 @@ class ORMGroupService(BaseGroupService):
 
         return group.to_entity()
 
-    def get_group_by_number(self, group_number: str) -> list[LessonEntity]:
+    def get_group_by_number(self, group_number: str) -> GroupEntity:
         try:
             group = GroupModel.objects.get(number=group_number)
         except GroupModel.DoesNotExist:
@@ -87,7 +87,7 @@ class ORMGroupService(BaseGroupService):
 
     def get_group_lessons(self, group_number: str, filters: GroupFilter) -> Iterable[LessonEntity]:
         query = self._build_lesson_query(filters)
-        qs = LessonModel.objects .filter(Q(group_lessons__number=group_number) & query)
+        qs = LessonModel.objects.filter(Q(group_lessons__number=group_number) & query)
 
         return [lesson.to_entity() for lesson in qs]
 

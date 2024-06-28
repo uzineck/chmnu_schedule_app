@@ -1,8 +1,8 @@
 from django.contrib import admin
 
-from core.apps.clients.models.sophomors import Sophomore
+from core.apps.clients.models.client import Client
 
 
-@admin.register(Sophomore)
-class SophomoreAdmin(admin.ModelAdmin):
-    list_display = ('last_name', 'first_name', 'middle_name', 'email', 'created_at', 'updated_at',)
+@admin.register(Client)
+class ClientAdmin(admin.ModelAdmin):
+    list_display = ('id', 'last_name', 'first_name', 'middle_name', 'role', 'email', 'created_at', 'updated_at')

@@ -2,25 +2,33 @@ from django.db import models
 
 from uuid import uuid4
 
-from core.apps.clients.entities.sophomore import Sophomore as SophomoreEntity
-from core.apps.common.models import TimedBaseModel
+from core.apps.clients.entities.client import Sophomore as SophomoreEntity
+from core.apps.common.models import (
+    ClientRole,
+    TimedBaseModel,
+)
 
 
-class Sophomore(TimedBaseModel):
+class Client(TimedBaseModel):
     first_name = models.CharField(
-        verbose_name="Sophomore's First Name",
+        verbose_name="Client's First Name",
         max_length=100,
     )
     last_name = models.CharField(
-        verbose_name="Sophomore's Last name",
+        verbose_name="Client's Last name",
         max_length=100,
     )
     middle_name = models.CharField(
-        verbose_name="Sophomore's Middle Name",
+        verbose_name="Client's Middle Name",
         max_length=100,
     )
+    role = models.CharField(
+        verbose_name="Client's role",
+        choices=ClientRole,
+        default=ClientRole.DEFAULT,
+    )
     email = models.EmailField(
-        verbose_name="Sophomore`s email for auth",
+        verbose_name="Client's email for auth",
         unique=True,
         blank=False,
     )
@@ -30,7 +38,7 @@ class Sophomore(TimedBaseModel):
         null=False,
     )
     token = models.CharField(
-        verbose_name="Sophomore's Token",
+        verbose_name="Client's Token",
         max_length=255,
         default=uuid4,
         unique=True,
@@ -52,5 +60,5 @@ class Sophomore(TimedBaseModel):
         return f"{self.last_name} {self.first_name} {self.middle_name}"
 
     class Meta:
-        verbose_name = "Sophomore"
-        verbose_name_plural = "Sophomores"
+        verbose_name = "Client"
+        verbose_name_plural = "Clients"

@@ -30,9 +30,9 @@ router = Router(tags=['Group'])
     operation_id="get_group_lessons",
 )
 def get_group_lessons(
-    request: HttpRequest,
-    group_number: str,
-    filters: Query[GroupFilter],
+        request: HttpRequest,
+        group_number: str,
+        filters: Query[GroupFilter],
 ) -> ApiResponse[GroupLessonsOutSchema]:
     container = get_container()
     service: BaseGroupService = container.resolve(BaseGroupService)
@@ -67,8 +67,8 @@ def get_group_lessons(
     auth=django_auth_superuser,
 )
 def get_group_info(
-    request: HttpRequest,
-    group_number: str,
+        request: HttpRequest,
+        group_number: str,
 ) -> ApiResponse[GroupSchema]:
     container = get_container()
     service: BaseGroupService = container.resolve(BaseGroupService)

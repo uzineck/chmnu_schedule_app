@@ -1,8 +1,5 @@
 from django.http import HttpRequest
-from ninja import (
-    Form,
-    Router,
-)
+from ninja import Router
 from ninja.errors import HttpError
 from ninja.security import django_auth_superuser
 
@@ -10,7 +7,7 @@ from core.api.schemas import (
     ApiResponse,
     StatusResponse,
 )
-from core.api.v1.clients.sophomores.schemas import (
+from core.api.v1.clients.clients.schemas import (
     LogInSchema,
     SignUpInSchema,
     SophomoreSchema,
@@ -19,9 +16,12 @@ from core.api.v1.clients.sophomores.schemas import (
     UpdateEmailInSchema,
     UpdatePwInSchema,
 )
-from core.apps.clients.services.auth import BaseAuthService
-from core.apps.clients.services.sophomore import BaseSophomoreService
-from core.apps.clients.services.update import BaseUpdateUserService
+from core.apps.clients.services.client import BaseClientService
+from core.apps.clients.usecases.client.create import CreateClientUseCase
+from core.apps.clients.usecases.client.login import LoginClientUseCase
+from core.apps.clients.usecases.client.update_credentials import UpdateClientCredentialsUseCase
+from core.apps.clients.usecases.client.update_email import UpdateClientEmailUseCase
+from core.apps.clients.usecases.client.update_password import UpdateClientPasswordUseCase
 from core.apps.common.authentication.bearer import jwt_bearer
 from core.apps.common.exceptions import (
     JWTKeyParsingException,
@@ -34,11 +34,11 @@ router = Router(tags=["Sophomores"])
 
 
 @router.post("sign-up", response=ApiResponse[SophomoreSchema], operation_id='sign_up', auth=django_auth_superuser)
-def sign_up_handler(request: HttpRequest, schema: Form[SignUpInSchema]) -> ApiResponse[SophomoreSchema]:
+def sign_up_handler(request: HttpRequest, schema: SignUpInSchema) -> ApiResponse[SophomoreSchema]:
     container = get_container()
-    service = container.resolve(BaseAuthService)
+    use_case = container.resolve(CreateClientUseCase)
     try:
-        sophomore = service.sign_up(
+        sophomore = use_case.execute(
             first_name=schema.first_name,
             last_name=schema.last_name,
             middle_name=schema.middle_name,
@@ -64,9 +64,9 @@ def sign_up_handler(request: HttpRequest, schema: Form[SignUpInSchema]) -> ApiRe
 @router.post("log-in", response=ApiResponse[TokenOutSchema], operation_id='login')
 def login_handler(request: HttpRequest, schema: LogInSchema) -> ApiResponse[TokenOutSchema]:
     container = get_container()
-    service = container.resolve(BaseAuthService)
+    use_case = container.resolve(LoginClientUseCase)
     try:
-        sophomore, jwt_token = service.login(email=schema.email, password=schema.password)
+        sophomore, jwt_token = use_case.execute(email=schema.email, password=schema.password)
     except ServiceException as e:
         raise HttpError(
             status_code=400,
@@ -91,8 +91,8 @@ def login_handler(request: HttpRequest, schema: LogInSchema) -> ApiResponse[Toke
 )
 def update_password(request: HttpRequest, schema: UpdatePwInSchema) -> ApiResponse[StatusResponse]:
     container = get_container()
-    client_service = container.resolve(BaseSophomoreService)
-    update_service = container.resolve(BaseUpdateUserService)
+    client_service = container.resolve(BaseClientService)
+    use_case = container.resolve(UpdateClientPasswordUseCase)
     try:
         user_email: str = client_service.get_user_email_from_token(token=request.auth)
     except JWTKeyParsingException as e:
@@ -102,7 +102,7 @@ def update_password(request: HttpRequest, schema: UpdatePwInSchema) -> ApiRespon
         )
 
     try:
-        update_service.change_password(
+        use_case.execute(
             email=user_email,
             old_password=schema.old_password,
             new_password=schema.new_password,
@@ -128,8 +128,8 @@ def update_password(request: HttpRequest, schema: UpdatePwInSchema) -> ApiRespon
 )
 def update_email(request: HttpRequest, schema: UpdateEmailInSchema) -> ApiResponse[TokenOutSchema]:
     container = get_container()
-    client_service = container.resolve(BaseSophomoreService)
-    update_service = container.resolve(BaseUpdateUserService)
+    client_service = container.resolve(BaseClientService)
+    use_case = container.resolve(UpdateClientEmailUseCase)
     try:
         user_email: str = client_service.get_user_email_from_token(token=request.auth)
     except JWTKeyParsingException as e:
@@ -139,7 +139,7 @@ def update_email(request: HttpRequest, schema: UpdateEmailInSchema) -> ApiRespon
         )
 
     try:
-        sophomore, jwt_token = update_service.change_email(
+        sophomore, jwt_token = use_case.execute(
             old_email=user_email,
             new_email=schema.email,
             password=schema.password,
@@ -171,8 +171,8 @@ def update_credentials(
     schema: UpdateCredentialsInSchema,
 ) -> ApiResponse[SophomoreSchema]:
     container = get_container()
-    client_service = container.resolve(BaseSophomoreService)
-    update_service = container.resolve(BaseUpdateUserService)
+    client_service = container.resolve(BaseClientService)
+    use_case = container.resolve(UpdateClientCredentialsUseCase)
     try:
         user_email: str = client_service.get_user_email_from_token(token=request.auth)
     except JWTKeyParsingException as e:
@@ -182,7 +182,7 @@ def update_credentials(
         )
 
     try:
-        sophomore = update_service.change_credentials(
+        sophomore = use_case.execute(
             email=user_email,
             first_name=schema.first_name,
             last_name=schema.last_name,

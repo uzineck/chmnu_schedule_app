@@ -1,18 +1,15 @@
 import punq
 from functools import lru_cache
 
-from core.apps.clients.services.auth import (
-    AuthService,
-    BaseAuthService,
+from core.apps.clients.services.client import (
+    BaseClientService,
+    ORMClientService,
 )
-from core.apps.clients.services.sophomore import (
-    BaseSophomoreService,
-    ORMSophomoreService,
-)
-from core.apps.clients.services.update import (
-    BaseUpdateUserService,
-    UpdateUserService,
-)
+from core.apps.clients.usecases.client.create import CreateClientUseCase
+from core.apps.clients.usecases.client.login import LoginClientUseCase
+from core.apps.clients.usecases.client.update_credentials import UpdateClientCredentialsUseCase
+from core.apps.clients.usecases.client.update_email import UpdateClientEmailUseCase
+from core.apps.clients.usecases.client.update_password import UpdateClientPasswordUseCase
 from core.apps.common.authentication.password import (
     BasePasswordService,
     BcryptPasswordService,
@@ -56,11 +53,14 @@ def get_container() -> punq.Container:
 def _initialize_container() -> punq.Container:
     container = punq.Container()
     # Client containers
-    container.register(BaseSophomoreService, ORMSophomoreService)
+    container.register(BaseClientService, ORMClientService)
     container.register(BasePasswordService, BcryptPasswordService)
     container.register(BaseTokenService, JWTTokenService)
-    container.register(BaseAuthService, AuthService)
-    container.register(BaseUpdateUserService, UpdateUserService)
+    container.register(CreateClientUseCase)
+    container.register(LoginClientUseCase)
+    container.register(UpdateClientEmailUseCase)
+    container.register(UpdateClientPasswordUseCase)
+    container.register(UpdateClientCredentialsUseCase)
 
     # Subject containers
     container.register(BaseSubjectService, ORMSubjectService)

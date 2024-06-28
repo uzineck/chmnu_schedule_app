@@ -1,6 +1,6 @@
 from ninja import Schema
 
-from core.api.v1.clients.sophomores.schemas import SophomoreSchema
+from core.api.v1.clients.clients.schemas import SophomoreSchema
 from core.api.v1.schedule.lessons.schema import LessonOutSchema
 
 

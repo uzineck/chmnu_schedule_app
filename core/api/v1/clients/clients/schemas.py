@@ -1,7 +1,5 @@
 from ninja import Schema
 
-from core.apps.clients.entities.sophomore import Sophomore as SophomoreEntity
-
 
 class SophomoreSchema(Schema):
     last_name: str

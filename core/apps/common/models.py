@@ -4,11 +4,13 @@ from django.db import models
 class TimedBaseModel(models.Model):
     created_at = models.DateTimeField(
         verbose_name='Created date',
-        auto_now_add=True)
+        auto_now_add=True,
+    )
 
     updated_at = models.DateTimeField(
         verbose_name='Updated date',
-        auto_now=True)
+        auto_now=True,
+    )
 
     class Meta:
         abstract = True
@@ -50,3 +52,10 @@ class OrdinaryNumber(models.IntegerChoices):
     FOURTH = 4, "4"
     FIFTH = 5, "5"
     SIXTH = 6, "6"
+
+
+class ClientRole(models.TextChoices):
+    ADMIN = "admin", "Admin"
+    HEADMAN = "headman", "Headman"
+    DEFAULT = "default", "Default"
+
