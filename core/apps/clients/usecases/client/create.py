@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from core.apps.clients.entities.client import Sophomore as SophomoreEntity
+from core.apps.clients.entities.client import Client as ClientEntity
 from core.apps.clients.services.client import BaseClientService
 from core.apps.common.authentication.password import BasePasswordService
 
@@ -15,14 +15,16 @@ class CreateClientUseCase:
         first_name: str,
         last_name: str,
         middle_name: str,
+        role: str,
         email: str,
         password: str,
-    ) -> SophomoreEntity:
+    ) -> ClientEntity:
         hashed_password = self.password_service.hash_password(plain_password=password)
         return self.client_service.create(
             first_name=first_name,
             last_name=last_name,
             middle_name=middle_name,
+            role=role,
             email=email,
             hashed_password=hashed_password,
         )

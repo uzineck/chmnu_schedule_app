@@ -1,23 +1,20 @@
 from django.http import HttpRequest
 from ninja import Router
 from ninja.errors import HttpError
-from ninja.security import django_auth_superuser
 
 from core.api.schemas import (
     ApiResponse,
     StatusResponse,
 )
-from core.api.v1.clients.clients.schemas import (
+from core.api.v1.clients.schemas import (
+    ClientSchema,
     LogInSchema,
-    SignUpInSchema,
-    SophomoreSchema,
     TokenOutSchema,
     UpdateCredentialsInSchema,
     UpdateEmailInSchema,
     UpdatePwInSchema,
 )
 from core.apps.clients.services.client import BaseClientService
-from core.apps.clients.usecases.client.create import CreateClientUseCase
 from core.apps.clients.usecases.client.login import LoginClientUseCase
 from core.apps.clients.usecases.client.update_credentials import UpdateClientCredentialsUseCase
 from core.apps.clients.usecases.client.update_email import UpdateClientEmailUseCase
@@ -30,35 +27,7 @@ from core.apps.common.exceptions import (
 from core.project.containers import get_container
 
 
-router = Router(tags=["Sophomores"])
-
-
-@router.post("sign-up", response=ApiResponse[SophomoreSchema], operation_id='sign_up', auth=django_auth_superuser)
-def sign_up_handler(request: HttpRequest, schema: SignUpInSchema) -> ApiResponse[SophomoreSchema]:
-    container = get_container()
-    use_case = container.resolve(CreateClientUseCase)
-    try:
-        sophomore = use_case.execute(
-            first_name=schema.first_name,
-            last_name=schema.last_name,
-            middle_name=schema.middle_name,
-            email=schema.email,
-            password=schema.password,
-        )
-    except ServiceException as e:
-        raise HttpError(
-            status_code=401,
-            message=e.message,
-        )
-
-    return ApiResponse(
-        data=SophomoreSchema(
-            last_name=sophomore.last_name,
-            first_name=sophomore.first_name,
-            middle_name=sophomore.middle_name,
-            email=sophomore.email,
-        ),
-    )
+router = Router(tags=["Client"])
 
 
 @router.post("log-in", response=ApiResponse[TokenOutSchema], operation_id='login')
@@ -66,7 +35,7 @@ def login_handler(request: HttpRequest, schema: LogInSchema) -> ApiResponse[Toke
     container = get_container()
     use_case = container.resolve(LoginClientUseCase)
     try:
-        sophomore, jwt_token = use_case.execute(email=schema.email, password=schema.password)
+        client, jwt_token = use_case.execute(email=schema.email, password=schema.password)
     except ServiceException as e:
         raise HttpError(
             status_code=400,
@@ -74,10 +43,11 @@ def login_handler(request: HttpRequest, schema: LogInSchema) -> ApiResponse[Toke
         )
     return ApiResponse(
         data=TokenOutSchema(
-            last_name=sophomore.last_name,
-            first_name=sophomore.first_name,
-            middle_name=sophomore.middle_name,
-            email=sophomore.email,
+            last_name=client.last_name,
+            first_name=client.first_name,
+            middle_name=client.middle_name,
+            role=client.role,
+            email=client.email,
             token=jwt_token,
         ),
     )
@@ -139,7 +109,7 @@ def update_email(request: HttpRequest, schema: UpdateEmailInSchema) -> ApiRespon
         )
 
     try:
-        sophomore, jwt_token = use_case.execute(
+        client, jwt_token = use_case.execute(
             old_email=user_email,
             new_email=schema.email,
             password=schema.password,
@@ -151,10 +121,11 @@ def update_email(request: HttpRequest, schema: UpdateEmailInSchema) -> ApiRespon
         )
     return ApiResponse(
         data=TokenOutSchema(
-            last_name=sophomore.last_name,
-            first_name=sophomore.first_name,
-            middle_name=sophomore.middle_name,
-            email=sophomore.email,
+            last_name=client.last_name,
+            first_name=client.first_name,
+            middle_name=client.middle_name,
+            role=client.role,
+            email=client.email,
             token=jwt_token,
         ),
     )
@@ -162,14 +133,14 @@ def update_email(request: HttpRequest, schema: UpdateEmailInSchema) -> ApiRespon
 
 @router.patch(
     "update_credentials",
-    response=ApiResponse[SophomoreSchema],
+    response=ApiResponse[ClientSchema],
     operation_id='update_credentials',
     auth=jwt_bearer,
 )
 def update_credentials(
     request: HttpRequest,
     schema: UpdateCredentialsInSchema,
-) -> ApiResponse[SophomoreSchema]:
+) -> ApiResponse[ClientSchema]:
     container = get_container()
     client_service = container.resolve(BaseClientService)
     use_case = container.resolve(UpdateClientCredentialsUseCase)
@@ -182,7 +153,7 @@ def update_credentials(
         )
 
     try:
-        sophomore = use_case.execute(
+        client = use_case.execute(
             email=user_email,
             first_name=schema.first_name,
             last_name=schema.last_name,
@@ -194,10 +165,11 @@ def update_credentials(
             message=e.message,
         )
     return ApiResponse(
-        data=SophomoreSchema(
-            last_name=sophomore.last_name,
-            first_name=sophomore.first_name,
-            middle_name=sophomore.middle_name,
-            email=sophomore.email,
+        data=ClientSchema(
+            last_name=client.last_name,
+            first_name=client.first_name,
+            middle_name=client.middle_name,
+            role=client.role,
+            email=client.email,
         ),
     )

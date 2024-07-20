@@ -2,7 +2,7 @@ from django.db import models
 
 from uuid import uuid4
 
-from core.apps.clients.entities.client import Sophomore as SophomoreEntity
+from core.apps.clients.entities.client import Client as ClientEntity
 from core.apps.common.models import (
     ClientRole,
     TimedBaseModel,
@@ -44,12 +44,13 @@ class Client(TimedBaseModel):
         unique=True,
     )
 
-    def to_entity(self) -> SophomoreEntity:
-        return SophomoreEntity(
+    def to_entity(self) -> ClientEntity:
+        return ClientEntity(
             id=self.id,
             first_name=self.first_name,
             last_name=self.last_name,
             middle_name=self.middle_name,
+            role=self.role,
             email=self.email,
             password=self.password,
             created_at=self.created_at,

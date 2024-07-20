@@ -1,10 +1,13 @@
 from ninja import Schema
 
+from core.apps.common.models import ClientRole
 
-class SophomoreSchema(Schema):
+
+class ClientSchema(Schema):
     last_name: str
     first_name: str
     middle_name: str
+    role: ClientRole
     email: str
 
 
@@ -12,6 +15,7 @@ class SignUpInSchema(Schema):
     last_name: str
     first_name: str
     middle_name: str
+    role: ClientRole
     email: str
     password: str
 
@@ -21,7 +25,7 @@ class LogInSchema(Schema):
     password: str
 
 
-class TokenOutSchema(SophomoreSchema):
+class TokenOutSchema(ClientSchema):
     token: str
 
 
@@ -39,3 +43,8 @@ class UpdateCredentialsInSchema(Schema):
     last_name: str
     first_name: str
     middle_name: str
+
+
+class UpdateRoleInSchema(Schema):
+    email: str
+    role: ClientRole

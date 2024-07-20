@@ -8,14 +8,14 @@ from typing import (
     ClassVar,
 )
 
-from core.apps.clients.entities.client import Sophomore as SophomoreEntity
+from core.apps.clients.entities.client import Client as ClientEntity
 from core.apps.common.exceptions import JWTKeyParsingException
 from core.project.settings.main import env
 
 
 class BaseTokenService(ABC):
     @abstractmethod
-    def create_token(self, sophomore: SophomoreEntity):
+    def create_token(self, client: ClientEntity):
         ...
 
     @abstractmethod
@@ -24,6 +24,10 @@ class BaseTokenService(ABC):
 
     @abstractmethod
     def get_user_id_from_token(self, token: str) -> int:
+        ...
+
+    @abstractmethod
+    def get_user_role_from_token(self, token: str) -> str:
         ...
 
     # @abstractmethod
@@ -36,7 +40,7 @@ class JWTTokenService(BaseTokenService):
     ALGORITHM: ClassVar[str] = "HS256"
     USER_ID_KEY: ClassVar[str] = "user_id"
     USER_EMAIL_KEY: ClassVar[str] = "user_email"
-    SOPHOMORE_GROUP_KEY: ClassVar[str] = 'sophomore_group'
+    USER_ROLE_KEY: ClassVar[str] = "user_role"
     ACCESS_TOKEN_EXPIRATION_DELTA: ClassVar[int] = 600  # 10 minutes expiration
     REFRESH_TOKEN_EXPIRATION_DELTA: ClassVar[int] = 864000  # 10 days expiration
 
@@ -46,10 +50,11 @@ class JWTTokenService(BaseTokenService):
     def _decode_jwt_token(self, token: str) -> dict[str, Any]:
         return jwt.decode(jwt=token, key=self.JWT_SECRET_KEY, algorithms=self.ALGORITHM)
 
-    def create_token(self, sophomore: SophomoreEntity):
+    def create_token(self, client: ClientEntity):
         payload: dict[str, Any] = {
-            self.USER_ID_KEY: sophomore.id,
-            self.USER_EMAIL_KEY: sophomore.email,
+            self.USER_ID_KEY: client.id,
+            self.USER_EMAIL_KEY: client.email,
+            self.USER_ROLE_KEY: client.role,
         }
 
         return self._encode_jwt(payload=payload)
@@ -67,3 +72,10 @@ class JWTTokenService(BaseTokenService):
         if not user_id:
             raise JWTKeyParsingException
         return user_id
+
+    def get_user_role_from_token(self, token: str) -> str:
+        payload: dict[str, Any] = self._decode_jwt_token(token=token)
+        user_role: str = payload.get(self.USER_ROLE_KEY)
+        if not user_role:
+            raise JWTKeyParsingException
+        return user_role

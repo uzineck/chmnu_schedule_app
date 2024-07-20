@@ -10,6 +10,7 @@ from core.apps.clients.usecases.client.login import LoginClientUseCase
 from core.apps.clients.usecases.client.update_credentials import UpdateClientCredentialsUseCase
 from core.apps.clients.usecases.client.update_email import UpdateClientEmailUseCase
 from core.apps.clients.usecases.client.update_password import UpdateClientPasswordUseCase
+from core.apps.clients.usecases.client.update_role import UpdateClientRoleUseCase
 from core.apps.common.authentication.password import (
     BasePasswordService,
     BcryptPasswordService,
@@ -61,6 +62,7 @@ def _initialize_container() -> punq.Container:
     container.register(UpdateClientEmailUseCase)
     container.register(UpdateClientPasswordUseCase)
     container.register(UpdateClientCredentialsUseCase)
+    container.register(UpdateClientRoleUseCase)
 
     # Subject containers
     container.register(BaseSubjectService, ORMSubjectService)

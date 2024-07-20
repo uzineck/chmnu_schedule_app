@@ -6,7 +6,7 @@ from abc import (
 )
 from dataclasses import dataclass
 
-from core.apps.clients.entities.client import Sophomore as SophomoreEntity
+from core.apps.clients.entities.client import Client as ClientEntity
 from core.apps.clients.exceptions.auth import InvalidAuthDataException
 from core.apps.clients.exceptions.client import (
     ClientAlreadyExistsException,
@@ -28,36 +28,47 @@ class BaseClientService(ABC):
         first_name: str,
         last_name: str,
         middle_name: str,
+        role: str,
         email: str,
         hashed_password: str,
-    ) -> SophomoreEntity:
+    ) -> ClientEntity:
         ...
 
     @abstractmethod
-    def update_password(self, sophomore: SophomoreEntity, hashed_password: str) -> SophomoreEntity:
+    def update_password(self, client: ClientEntity, hashed_password: str) -> ClientEntity:
         ...
 
     @abstractmethod
-    def update_email(self, sophomore: SophomoreEntity, email: str) -> SophomoreEntity:
+    def update_email(self, client: ClientEntity, email: str) -> ClientEntity:
         ...
 
     @abstractmethod
     def update_credentials(
-        self, sophomore: SophomoreEntity,
-        first_name: str, last_name: str, middle_name: str,
-    ) -> SophomoreEntity:
+        self,
+        client: ClientEntity,
+        first_name: str,
+        last_name: str,
+        middle_name: str,
+    ) -> ClientEntity:
+        ...
+
+    def update_role(
+            self,
+            client: ClientEntity,
+            new_role: str,
+    ) -> ClientEntity:
         ...
 
     @abstractmethod
-    def get_by_email(self, email: str) -> SophomoreEntity:
+    def get_by_email(self, email: str) -> ClientEntity:
         ...
 
     @abstractmethod
-    def generate_token(self, sophomore: SophomoreEntity) -> str:
+    def generate_token(self, client: ClientEntity) -> str:
         ...
 
     @abstractmethod
-    def validate_user(self, email: str, password: str) -> SophomoreEntity:
+    def validate_user(self, email: str, password: str) -> ClientEntity:
         ...
 
     @abstractmethod
@@ -75,79 +86,95 @@ class ORMClientService(BaseClientService):
         first_name: str,
         last_name: str,
         middle_name: str,
+        role: str,
         email: str,
         hashed_password: str,
-    ) -> SophomoreEntity:
+    ) -> ClientEntity:
         try:
-            sophomore: ClientModel = ClientModel.objects.create(
+            client: ClientModel = ClientModel.objects.create(
                 first_name=first_name,
                 last_name=last_name,
                 middle_name=middle_name,
+                role=role,
                 email=email,
                 password=hashed_password,
             )
         except IntegrityError:
             raise ClientAlreadyExistsException(email=email)
 
-        return sophomore.to_entity()
+        return client.to_entity()
 
-    def update_password(self, sophomore: SophomoreEntity, hashed_password: str) -> SophomoreEntity:
-        ClientModel.objects.filter(email=sophomore.email).update(password=hashed_password)
-        updated_sophomore = ClientModel.objects.get(email=sophomore.email)
+    def update_password(self, client: ClientEntity, hashed_password: str) -> ClientEntity:
+        ClientModel.objects.filter(email=client.email).update(password=hashed_password)
+        updated_sophomore = ClientModel.objects.get(email=client.email)
 
         return updated_sophomore.to_entity()
 
-    def update_email(self, sophomore: SophomoreEntity, email: str) -> SophomoreEntity:
-        ClientModel.objects.filter(email=sophomore.email).update(email=email)
+    def update_email(self, client: ClientEntity, email: str) -> ClientEntity:
+        ClientModel.objects.filter(email=client.email).update(email=email)
         try:
-            updated_sophomore = ClientModel.objects.get(email=email)
+            updated_client = ClientModel.objects.get(email=email)
         except ClientModel.DoesNotExist:
             raise ClientEmailNotFoundException(email=email)
 
-        return updated_sophomore.to_entity()
+        return updated_client.to_entity()
 
     def update_credentials(
         self,
-        sophomore: SophomoreEntity,
+        client: ClientEntity,
         first_name: str,
         last_name: str,
         middle_name: str,
-    ) -> SophomoreEntity:
-        ClientModel.objects.filter(email=sophomore.email).update(
+    ) -> ClientEntity:
+        ClientModel.objects.filter(email=client.email).update(
             first_name=first_name,
             last_name=last_name,
             middle_name=middle_name,
         )
-        updated_sophomore = ClientModel.objects.get(email=sophomore.email)
+        updated_client = ClientModel.objects.get(email=client.email)
 
-        return updated_sophomore.to_entity()
+        return updated_client.to_entity()
 
-    def get_by_email(self, email: str) -> SophomoreEntity:
+    def update_role(
+            self,
+            client: ClientEntity,
+            new_role: str,
+    ) -> ClientEntity:
+        ClientModel.objects.filter(email=client.email).update(
+            role=new_role,
+        )
+        updated_client = ClientModel.objects.get(email=client.email)
+        return updated_client.to_entity()
+
+    def get_by_email(self, email: str) -> ClientEntity:
         try:
-            sophomore: ClientModel = ClientModel.objects.get(email=email)
+            client: ClientModel = ClientModel.objects.get(email=email)
         except ClientModel.DoesNotExist:
             raise ClientEmailNotFoundException(email=email)
 
-        return sophomore.to_entity()
+        return client.to_entity()
 
-    def generate_token(self, sophomore: SophomoreEntity) -> str:
-        jwt = self.token_service.create_token(sophomore=sophomore)
-        ClientModel.objects.filter(email=sophomore.email).update(token=jwt)
+    def generate_token(self, client: ClientEntity) -> str:
+        jwt = self.token_service.create_token(client=client)
+        ClientModel.objects.filter(email=client.email).update(token=jwt)
         return jwt
 
-    def validate_user(self, email: str, password: str) -> SophomoreEntity:
+    def validate_user(self, email: str, password: str) -> ClientEntity:
         try:
-            sophomore = ClientModel.objects.get(email=email)
+            client = ClientModel.objects.get(email=email)
         except ClientModel.DoesNotExist:
             raise InvalidAuthDataException(email=email)
 
-        if not self.password_service.verify_password(plain_password=password, hashed_password=sophomore.password):
+        if not self.password_service.verify_password(plain_password=password, hashed_password=client.password):
             raise InvalidAuthDataException(email=email)
 
-        return sophomore.to_entity()
+        return client.to_entity()
 
     def get_user_email_from_token(self, token: str) -> str:
         return self.token_service.get_user_email_from_token(token=token)
 
     def get_user_id_from_token(self, token: str) -> int:
         return self.token_service.get_user_id_from_token(token=token)
+
+    def get_user_role_from_token(self, token: str) -> str:
+        return self.token_service.get_user_role_from_token(token=token)
