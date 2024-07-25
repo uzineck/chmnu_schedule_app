@@ -31,7 +31,7 @@ class BaseTokenService(ABC):
         ...
 
     # @abstractmethod
-    # def get_sophomore_group_from_token(self, token: str) -> str:
+    # def get_headman_group_from_token(self, token: str) -> str:
     #     ...
 
 

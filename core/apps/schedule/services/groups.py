@@ -77,7 +77,7 @@ class ORMGroupService(BaseGroupService):
         group, _ = GroupModel.objects.get_or_create(
             number=group_number,
             has_subgroups=has_subgroups,
-            sophomore_id=headman_id,
+            headman_id=headman_id,
         )
 
         return group.to_entity()
@@ -91,7 +91,7 @@ class ORMGroupService(BaseGroupService):
         return group.to_entity()
 
     def update_group_headman(self, group: GroupEntity, headman: ClientEntity) -> GroupEntity:
-        GroupModel.objects.filter(number=group.number).update(sophomore_id=headman.id)
+        GroupModel.objects.filter(number=group.number).update(headman_id=headman.id)
         updated_group = GroupModel.objects.get(number=group.number)
         return updated_group.to_entity()
 

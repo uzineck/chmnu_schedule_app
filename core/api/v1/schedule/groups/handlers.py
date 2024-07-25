@@ -12,12 +12,15 @@ from core.api.v1.schedule.groups.schemas import (
     CreateGroupSchema,
     GroupLessonsOutSchema,
     GroupSchema,
+    UpdateGroupHeadmanSchema,
 )
 from core.api.v1.schedule.lessons.schema import LessonOutSchema
 from core.apps.common.authentication.bearer import jwt_bearer
 from core.apps.common.exceptions import ServiceException
 from core.apps.schedule.filters.group import GroupFilter as GroupFilterEntity
 from core.apps.schedule.services.groups import BaseGroupService
+from core.apps.schedule.use_cases.group.create_group import CreateGroupUseCase
+from core.apps.schedule.use_cases.group.update_headman import UpdateGroupHeadmanUseCase
 from core.project.containers import get_container
 
 
@@ -25,7 +28,7 @@ router = Router(tags=['Group'])
 
 
 @router.get(
-    "",
+    "lessons",
     response=ApiResponse[GroupLessonsOutSchema],
     operation_id="get_group_lessons",
 )
@@ -84,7 +87,7 @@ def get_group_info(
     return ApiResponse(
         data=GroupSchema(
             number=group.number,
-            sophomore=group.headman,
+            headman=group.headman,
             has_subgroups=group.has_subgroups,
         ),
     )
@@ -93,11 +96,11 @@ def get_group_info(
 @router.post('', response=ApiResponse[GroupSchema], operation_id='create_group', auth=django_auth_superuser)
 def get_or_create_group(request: HttpRequest, schema: CreateGroupSchema) -> ApiResponse[GroupSchema]:
     container = get_container()
-    service: BaseGroupService = container.resolve(BaseGroupService)
+    use_case: CreateGroupUseCase = container.resolve(CreateGroupUseCase)
     try:
-        group = service.get_or_create(
+        group = use_case.execute(
             group_number=schema.number,
-            headman_id=schema.headman_id,
+            headman_email=schema.headman_email,
             has_subgroups=schema.has_subgroups,
         )
 
@@ -112,7 +115,34 @@ def get_or_create_group(request: HttpRequest, schema: CreateGroupSchema) -> ApiR
             number=group.number,
             headman=group.headman,
             has_subgroups=group.has_subgroups,
-            lessons=group.lessons,
+        ),
+    )
+
+
+@router.patch(
+    "update_group_headman",
+    response=ApiResponse[GroupSchema],
+    operation_id='update_group_headman',
+    auth=django_auth_superuser,
+)
+def update_group_headman(request: HttpRequest, schema: UpdateGroupHeadmanSchema) -> ApiResponse[GroupSchema]:
+    container = get_container()
+    use_case: UpdateGroupHeadmanUseCase = container.resolve(UpdateGroupHeadmanUseCase)
+    try:
+        group = use_case.execute(
+            group_number=schema.group_number,
+            headman_email=schema.headman_email,
+        )
+    except ServiceException as e:
+        raise HttpError(
+            status_code=400,
+            message=e.message,
+        )
+    return ApiResponse(
+        data=GroupSchema(
+            number=group.number,
+            headman=group.headman,
+            has_subgroups=group.has_subgroups,
         ),
     )
 

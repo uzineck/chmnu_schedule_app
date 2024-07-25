@@ -112,9 +112,9 @@ class ORMClientService(BaseClientService):
 
     def update_password(self, client: ClientEntity, hashed_password: str) -> ClientEntity:
         ClientModel.objects.filter(email=client.email).update(password=hashed_password)
-        updated_sophomore = ClientModel.objects.get(email=client.email)
+        updated_client = ClientModel.objects.get(email=client.email)
 
-        return updated_sophomore.to_entity()
+        return updated_client.to_entity()
 
     def update_email(self, client: ClientEntity, email: str) -> ClientEntity:
         ClientModel.objects.filter(email=client.email).update(email=email)

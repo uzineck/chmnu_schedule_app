@@ -7,15 +7,12 @@ from core.api.schemas import ApiResponse
 from core.api.v1.clients.schemas import (
     ClientSchema,
     SignUpInSchema,
-    UpdateGroupHeadmanSchema,
     UpdateRoleInSchema,
 )
-from core.api.v1.schedule.groups.schemas import GroupSchema
 from core.apps.clients.services.client import BaseClientService
 from core.apps.clients.usecases.client.create import CreateClientUseCase
 from core.apps.clients.usecases.client.update_role import UpdateClientRoleUseCase
 from core.apps.common.exceptions import ServiceException
-from core.apps.schedule.use_cases.group.update_headman import UpdateGroupHeadmanUseCase
 from core.project.containers import get_container
 
 
@@ -79,33 +76,5 @@ def update_client_role(request: HttpRequest, schema: UpdateRoleInSchema) -> ApiR
             middle_name=client.middle_name,
             role=client.role,
             email=client.email,
-        ),
-    )
-
-
-@router.patch(
-    "update_group_headman",
-    response=ApiResponse[GroupSchema],
-    operation_id='update_group_headman',
-    auth=django_auth_superuser,
-)
-def update_group_headman(request: HttpRequest, schema: UpdateGroupHeadmanSchema) -> ApiResponse[GroupSchema]:
-    container = get_container()
-    use_case: UpdateGroupHeadmanUseCase = container.resolve(UpdateGroupHeadmanUseCase)
-    try:
-        group = use_case.execute(
-            group_number=schema.group_number,
-            headman_email=schema.headman_email,
-        )
-    except ServiceException as e:
-        raise HttpError(
-            status_code=400,
-            message=e.message,
-        )
-    return ApiResponse(
-        data=GroupSchema(
-            number=group.number,
-            headman=group.headman,
-            has_subgroups=group.has_subgroups,
         ),
     )

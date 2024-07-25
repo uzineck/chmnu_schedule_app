@@ -12,7 +12,7 @@ class GroupSchema(Schema):
 
 class CreateGroupSchema(Schema):
     number: str
-    headman_id: int
+    headman_email: str
     has_subgroups: bool
 
 
@@ -20,6 +20,10 @@ class GroupLessonsOutSchema(Schema):
     group_number: str
     lessons: list[LessonOutSchema] | None = None
 
+
+class UpdateGroupHeadmanSchema(Schema):
+    group_number: str
+    headman_email: str
 
 
 

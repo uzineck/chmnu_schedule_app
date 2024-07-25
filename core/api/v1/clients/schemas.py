@@ -48,8 +48,3 @@ class UpdateCredentialsInSchema(Schema):
 class UpdateRoleInSchema(Schema):
     email: str
     role: ClientRole
-
-
-class UpdateGroupHeadmanSchema(Schema):
-    group_number: str
-    headman_email: str
