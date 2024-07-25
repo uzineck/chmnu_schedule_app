@@ -14,7 +14,7 @@ from core.apps.schedule.entities.lesson import Lesson as LessonEntity
 class Group:
     number: str
     has_subgroups: bool = field(default=True, kw_only=True)
-    sophomore: Client = field(default=None, kw_only=True)
+    headman: Client = field(default=None, kw_only=True)
     lessons: Iterable[LessonEntity] | EntityStatus = field(default=EntityStatus.NOT_LOADED, kw_only=True)
     created_at: datetime
     updated_at: datetime

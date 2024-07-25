@@ -6,6 +6,7 @@ from abc import (
 )
 from typing import Iterable
 
+from core.apps.clients.entities.client import Client as ClientEntity
 from core.apps.schedule.entities.group import Group as GroupEntity
 from core.apps.schedule.entities.lesson import Lesson as LessonEntity
 from core.apps.schedule.exceptions.groups import GroupNotFoundException
@@ -21,7 +22,7 @@ class BaseGroupService(ABC):
         self,
         group_number: str,
         has_subgroups: bool,
-        sophomore_id: int,
+        headman_id: int,
     ) -> GroupEntity:
         ...
 
@@ -31,6 +32,10 @@ class BaseGroupService(ABC):
 
     @abstractmethod
     def get_all_groups(self) -> Iterable[GroupEntity]:
+        ...
+
+    @abstractmethod
+    def update_group_headman(self, group: GroupEntity, headman: ClientEntity) -> GroupEntity:
         ...
 
     @abstractmethod
@@ -67,12 +72,12 @@ class ORMGroupService(BaseGroupService):
         self,
         group_number: str,
         has_subgroups: bool,
-        sophomore_id: int,
+        headman_id: int,
     ) -> GroupEntity:
         group, _ = GroupModel.objects.get_or_create(
             number=group_number,
             has_subgroups=has_subgroups,
-            sophomore_id=sophomore_id,
+            sophomore_id=headman_id,
         )
 
         return group.to_entity()
@@ -84,6 +89,11 @@ class ORMGroupService(BaseGroupService):
             raise GroupNotFoundException(group_number=group_number)
 
         return group.to_entity()
+
+    def update_group_headman(self, group: GroupEntity, headman: ClientEntity) -> GroupEntity:
+        GroupModel.objects.filter(number=group.number).update(sophomore_id=headman.id)
+        updated_group = GroupModel.objects.get(number=group.number)
+        return updated_group.to_entity()
 
     def get_group_lessons(self, group_number: str, filters: GroupFilter) -> Iterable[LessonEntity]:
         query = self._build_lesson_query(filters)

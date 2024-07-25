@@ -84,7 +84,7 @@ def get_group_info(
     return ApiResponse(
         data=GroupSchema(
             number=group.number,
-            sophomore=group.sophomore,
+            sophomore=group.headman,
             has_subgroups=group.has_subgroups,
         ),
     )
@@ -97,7 +97,7 @@ def get_or_create_group(request: HttpRequest, schema: CreateGroupSchema) -> ApiR
     try:
         group = service.get_or_create(
             group_number=schema.number,
-            sophomore_id=schema.sophomore_id,
+            headman_id=schema.headman_id,
             has_subgroups=schema.has_subgroups,
         )
 
@@ -110,7 +110,7 @@ def get_or_create_group(request: HttpRequest, schema: CreateGroupSchema) -> ApiR
     return ApiResponse(
         data=GroupSchema(
             number=group.number,
-            sophomore=group.sophomore,
+            headman=group.headman,
             has_subgroups=group.has_subgroups,
             lessons=group.lessons,
         ),
@@ -138,7 +138,7 @@ def add_lesson_to_group(request: HttpRequest, group_number: str, lesson_id: int)
     return ApiResponse(
         data=GroupSchema(
             number=group.number,
-            sophomore=group.sophomore,
+            headman=group.headman,
             has_subgroups=group.has_subgroups,
             lessons=group.lessons,
         ),
@@ -166,7 +166,7 @@ def remove_lesson_from_group(request: HttpRequest, group_number: str, lesson_id:
     return ApiResponse(
         data=GroupSchema(
             number=group.number,
-            sophomore=group.sophomore,
+            headman=group.headman,
             has_subgroups=group.has_subgroups,
             lessons=group.lessons,
         ),

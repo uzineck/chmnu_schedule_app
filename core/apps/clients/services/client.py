@@ -11,6 +11,7 @@ from core.apps.clients.exceptions.auth import InvalidAuthDataException
 from core.apps.clients.exceptions.client import (
     ClientAlreadyExistsException,
     ClientEmailNotFoundException,
+    ClientRoleNotMatchingWithRequired,
 )
 from core.apps.clients.models.client import Client as ClientModel
 from core.apps.common.authentication.password import BasePasswordService
@@ -52,6 +53,7 @@ class BaseClientService(ABC):
     ) -> ClientEntity:
         ...
 
+    @abstractmethod
     def update_role(
             self,
             client: ClientEntity,
@@ -77,6 +79,10 @@ class BaseClientService(ABC):
 
     @abstractmethod
     def get_user_id_from_token(self, token: str) -> int:
+        ...
+
+    @abstractmethod
+    def check_user_role(self, user_role: str, required_role: str) -> bool:
         ...
 
 
@@ -178,3 +184,11 @@ class ORMClientService(BaseClientService):
 
     def get_user_role_from_token(self, token: str) -> str:
         return self.token_service.get_user_role_from_token(token=token)
+
+    def check_user_role(self, user_role: str, required_role: str) -> bool:
+        if user_role != required_role:
+            raise ClientRoleNotMatchingWithRequired(user_role=user_role)
+
+        return True
+
+

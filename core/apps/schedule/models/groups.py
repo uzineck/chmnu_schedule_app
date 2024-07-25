@@ -17,10 +17,10 @@ class Group(TimedBaseModel):
         verbose_name="Does group has subgroups",
         default=True,
     )
-    sophomore = models.ForeignKey(
+    headman = models.ForeignKey(
         Client,
-        verbose_name="Sophomore of the group",
-        related_name='group_sophomore',
+        verbose_name="Headman of the group",
+        related_name='group_headman',
         blank=True,
         null=True,
         on_delete=models.SET_NULL,
@@ -36,7 +36,7 @@ class Group(TimedBaseModel):
         return GroupEntity(
             number=self.number,
             has_subgroups=self.has_subgroups,
-            sophomore=self.sophomore,
+            headman=self.headman,
             lessons=self.lessons,
             created_at=self.created_at,
             updated_at=self.updated_at,

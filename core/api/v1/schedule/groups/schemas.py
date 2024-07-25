@@ -6,13 +6,13 @@ from core.api.v1.schedule.lessons.schema import LessonOutSchema
 
 class GroupSchema(Schema):
     number: str
-    sophomore: ClientSchema
+    headman: ClientSchema
     has_subgroups: bool
 
 
 class CreateGroupSchema(Schema):
     number: str
-    sophomore_id: int
+    headman_id: int
     has_subgroups: bool
 
 

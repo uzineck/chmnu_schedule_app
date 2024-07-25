@@ -10,7 +10,7 @@ from core.apps.schedule.models.timeslots import Timeslot
 
 @admin.register(Group)
 class GroupAdmin(admin.ModelAdmin):
-    list_display = ('number', 'has_subgroups', 'sophomore', 'created_at', 'updated_at')
+    list_display = ('number', 'has_subgroups', 'headman', 'created_at', 'updated_at')
     search_fields = ('number',)
 
 

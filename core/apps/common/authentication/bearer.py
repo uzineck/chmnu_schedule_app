@@ -26,3 +26,8 @@ class JWTBearer(HttpBearer):
 
 
 jwt_bearer = JWTBearer()
+
+
+class RoleBearer(HttpBearer):
+    def authenticate(self, request: HttpRequest, token: str) -> str:
+        ...
