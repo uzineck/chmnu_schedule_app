@@ -48,3 +48,7 @@ class UpdateCredentialsInSchema(Schema):
 class UpdateRoleInSchema(Schema):
     email: str
     role: ClientRole
+
+
+class ClientEmailInSchema(Schema):
+    email: str
