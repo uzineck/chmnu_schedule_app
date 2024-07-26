@@ -1,7 +1,10 @@
+from django.db.models import Q
+
 from abc import (
     ABC,
     abstractmethod,
 )
+from typing import Iterable
 
 from core.apps.schedule.entities.lesson import Lesson as LessonEntity
 from core.apps.schedule.exceptions.lesson import LessonNotFoundException
@@ -15,6 +18,10 @@ class BaseLessonService(ABC):
 
     @abstractmethod
     def save_lesson(self, lesson: LessonEntity) -> LessonEntity:
+        ...
+
+    @abstractmethod
+    def get_lessons_for_group(self, group_number: str, group_query: Q) -> Iterable[LessonEntity]:
         ...
 
 
@@ -32,4 +39,9 @@ class ORMLessonService(BaseLessonService):
         lesson_model.save()
 
         return lesson_model.to_entity()
+
+    def get_lessons_for_group(self, group_number: str, group_query: Q) -> Iterable[LessonEntity]:
+        query = LessonModel.objects.filter(Q(group_lessons__number=group_number) & group_query)
+
+        return [lesson.to_entity() for lesson in query]
 

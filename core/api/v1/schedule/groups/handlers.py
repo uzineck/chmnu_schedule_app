@@ -20,6 +20,7 @@ from core.apps.common.exceptions import ServiceException
 from core.apps.schedule.filters.group import GroupFilter as GroupFilterEntity
 from core.apps.schedule.services.groups import BaseGroupService
 from core.apps.schedule.use_cases.group.create_group import CreateGroupUseCase
+from core.apps.schedule.use_cases.group.get_group_lessons import GetGroupLessonsUseCase
 from core.apps.schedule.use_cases.group.update_headman import UpdateGroupHeadmanUseCase
 from core.project.containers import get_container
 
@@ -38,16 +39,16 @@ def get_group_lessons(
         filters: Query[GroupFilter],
 ) -> ApiResponse[GroupLessonsOutSchema]:
     container = get_container()
-    service: BaseGroupService = container.resolve(BaseGroupService)
+    use_case: GetGroupLessonsUseCase = container.resolve(GetGroupLessonsUseCase)
     try:
-        group_lessons = service.get_group_lessons(
+        group, lessons = use_case.execute(
             group_number=group_number,
             filters=GroupFilterEntity(
                 subgroup=filters.subgroup,
                 is_even=filters.is_even,
             ),
         )
-        items = [LessonOutSchema.from_entity(obj) for obj in group_lessons]
+        items = [LessonOutSchema.from_entity(obj) for obj in lessons]
 
     except ServiceException as e:
         raise HttpError(
@@ -57,7 +58,9 @@ def get_group_lessons(
 
     return ApiResponse(
         data=GroupLessonsOutSchema(
-            group_number=group_number,
+            number=group.number,
+            headman=group.headman,
+            has_subgroups=group.has_subgroups,
             lessons=items,
         ),
     )

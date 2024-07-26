@@ -8,7 +8,6 @@ from typing import Iterable
 
 from core.apps.clients.entities.client import Client as ClientEntity
 from core.apps.schedule.entities.group import Group as GroupEntity
-from core.apps.schedule.entities.lesson import Lesson as LessonEntity
 from core.apps.schedule.exceptions.groups import GroupNotFoundException
 from core.apps.schedule.exceptions.lesson import LessonNotFoundException
 from core.apps.schedule.filters.group import GroupFilter
@@ -43,7 +42,7 @@ class BaseGroupService(ABC):
         ...
 
     @abstractmethod
-    def get_group_lessons(self, group_number: str, filters: GroupFilter) -> Iterable[LessonEntity]:
+    def get_qs_for_group(self, filters: GroupFilter) -> Q:
         ...
 
     @abstractmethod
@@ -104,11 +103,10 @@ class ORMGroupService(BaseGroupService):
 
         return group
 
-    def get_group_lessons(self, group_number: str, filters: GroupFilter) -> Iterable[LessonEntity]:
+    def get_qs_for_group(self, filters: GroupFilter) -> Q:
         query = self._build_lesson_query(filters)
-        qs = LessonModel.objects.filter(Q(group_lessons__number=group_number) & query)
 
-        return [lesson.to_entity() for lesson in qs]
+        return query
 
     def get_all_groups(self) -> Iterable[GroupEntity]:
         groups = GroupModel.objects.all()

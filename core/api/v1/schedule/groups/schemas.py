@@ -16,8 +16,7 @@ class CreateGroupSchema(Schema):
     has_subgroups: bool
 
 
-class GroupLessonsOutSchema(Schema):
-    group_number: str
+class GroupLessonsOutSchema(GroupSchema):
     lessons: list[LessonOutSchema] | None = None
 
 

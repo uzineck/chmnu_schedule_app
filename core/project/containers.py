@@ -45,6 +45,7 @@ from core.apps.schedule.services.timeslots import (
     ORMTimeslotService,
 )
 from core.apps.schedule.use_cases.group.create_group import CreateGroupUseCase
+from core.apps.schedule.use_cases.group.get_group_lessons import GetGroupLessonsUseCase
 from core.apps.schedule.use_cases.group.update_headman import UpdateGroupHeadmanUseCase
 from core.apps.schedule.use_cases.lessons.create import CreateLessonUseCase
 
@@ -87,6 +88,7 @@ def _initialize_container() -> punq.Container:
     # Group containers
     container.register(BaseGroupService, ORMGroupService)
     container.register(CreateGroupUseCase)
+    container.register(GetGroupLessonsUseCase)
     container.register(UpdateGroupHeadmanUseCase)
 
     return container
