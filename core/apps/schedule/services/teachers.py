@@ -40,6 +40,10 @@ class BaseTeacherService(ABC):
         ...
 
     @abstractmethod
+    def get_qs_for_teacher(self, filters: TeacherFilter) -> Q:
+        ...
+
+    @abstractmethod
     def update_teacher_by_id(
             self,
             teacher_id: int,
@@ -107,6 +111,11 @@ class ORMTeacherService(BaseTeacherService):
         query = self._build_teacher_query(filters)
 
         return TeacherModel.objects.filter(query).count()
+
+    def get_qs_for_teacher(self, filters: TeacherFilter) -> Q:
+        query = self._build_teacher_query(filters)
+
+        return query
 
     def update_teacher_by_id(
             self,

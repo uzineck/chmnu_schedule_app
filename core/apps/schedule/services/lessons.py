@@ -24,6 +24,10 @@ class BaseLessonService(ABC):
     def get_lessons_for_group(self, group_number: str, group_query: Q) -> Iterable[LessonEntity]:
         ...
 
+    @abstractmethod
+    def get_lessons_for_teacher(self, teacher_id: int) -> Iterable[LessonEntity]:
+        ...
+
 
 class ORMLessonService(BaseLessonService):
     def get_lessons_by_id(self, lesson_id: int) -> LessonEntity:
@@ -45,3 +49,7 @@ class ORMLessonService(BaseLessonService):
 
         return [lesson.to_entity() for lesson in query]
 
+    def get_lessons_for_teacher(self, teacher_id: int) -> Iterable[LessonEntity]:
+        query = LessonModel.objects.filter(teacher_id=teacher_id)
+
+        return [lesson.to_entity() for lesson in query]

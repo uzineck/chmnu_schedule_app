@@ -14,7 +14,7 @@ from core.api.v1.schedule.groups.schemas import (
     GroupSchema,
     UpdateGroupHeadmanSchema,
 )
-from core.api.v1.schedule.lessons.schema import LessonOutSchema
+from core.api.v1.schedule.lessons.schema_for_groups import LessonForGroupOutSchema
 from core.apps.common.authentication.bearer import jwt_bearer
 from core.apps.common.exceptions import ServiceException
 from core.apps.schedule.filters.group import GroupFilter as GroupFilterEntity
@@ -48,7 +48,7 @@ def get_group_lessons(
                 is_even=filters.is_even,
             ),
         )
-        items = [LessonOutSchema.from_entity(obj) for obj in lessons]
+        items = [LessonForGroupOutSchema.from_entity(obj) for obj in lessons]
 
     except ServiceException as e:
         raise HttpError(

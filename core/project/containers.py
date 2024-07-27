@@ -48,6 +48,7 @@ from core.apps.schedule.use_cases.group.create_group import CreateGroupUseCase
 from core.apps.schedule.use_cases.group.get_group_lessons import GetGroupLessonsUseCase
 from core.apps.schedule.use_cases.group.update_headman import UpdateGroupHeadmanUseCase
 from core.apps.schedule.use_cases.lessons.create import CreateLessonUseCase
+from core.apps.schedule.use_cases.teacher.get_lessons_for_teacher import GetLessonsForTeacherUseCase
 
 
 @lru_cache(1)
@@ -80,6 +81,7 @@ def _initialize_container() -> punq.Container:
 
     # Teacher containers
     container.register(BaseTeacherService, ORMTeacherService)
+    container.register(GetLessonsForTeacherUseCase)
 
     # Lesson containers
     container.register(BaseLessonService, ORMLessonService)

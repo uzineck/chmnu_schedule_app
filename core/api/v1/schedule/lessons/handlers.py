@@ -6,10 +6,10 @@ from ninja import (
 from ninja.errors import HttpError
 
 from core.api.schemas import ApiResponse
-from core.api.v1.schedule.lessons.schema import (
+from core.api.v1.schedule.lessons.schema_for_groups import (
     CreateLessonInSchema,
+    LessonForGroupOutSchema,
     LessonInSchema,
-    LessonOutSchema,
 )
 from core.apps.common.authentication.bearer import jwt_bearer
 from core.apps.common.exceptions import ServiceException
@@ -20,12 +20,12 @@ from core.project.containers import get_container
 router = Router(tags=["Lessons"])
 
 
-@router.post("", response=ApiResponse[LessonOutSchema], operation_id="create_lesson", auth=jwt_bearer)
+@router.post("", response=ApiResponse[LessonForGroupOutSchema], operation_id="create_lesson", auth=jwt_bearer)
 def create_lesson(
     request: HttpRequest,
     schema: Query[CreateLessonInSchema],
     lesson_schema: Query[LessonInSchema],
-) -> ApiResponse[LessonOutSchema]:
+) -> ApiResponse[LessonForGroupOutSchema]:
     container = get_container()
     use_case: CreateLessonUseCase = container.resolve(CreateLessonUseCase)
 
@@ -43,4 +43,4 @@ def create_lesson(
             message=e.message,
         )
 
-    return ApiResponse(data=LessonOutSchema.from_entity(lesson))
+    return ApiResponse(data=LessonForGroupOutSchema.from_entity(lesson))

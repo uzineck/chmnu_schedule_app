@@ -10,9 +10,9 @@ class RoomSchema(Schema):
     number: str
     description: Optional[str] = None
 
-    @staticmethod
-    def from_entity(entity: RoomEntity) -> 'RoomSchema':
-        return RoomSchema(
+    @classmethod
+    def from_entity(cls, entity: RoomEntity) -> 'RoomSchema':
+        return cls(
             id=entity.id,
             number=entity.number,
             description=entity.description,

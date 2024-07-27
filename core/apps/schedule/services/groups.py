@@ -46,6 +46,10 @@ class BaseGroupService(ABC):
         ...
 
     @abstractmethod
+    def get_groups_from_lesson(self, lesson_id: int) -> Iterable[GroupEntity]:
+        ...
+
+    @abstractmethod
     def add_lesson(self, group_number: str, lesson_id: int) -> GroupEntity:
         ...
 
@@ -107,6 +111,11 @@ class ORMGroupService(BaseGroupService):
         query = self._build_lesson_query(filters)
 
         return query
+
+    def get_groups_from_lesson(self, lesson_id: int) -> Iterable[GroupEntity]:
+        groups = GroupModel.objects.filter(lessons__id=lesson_id)
+
+        return [group.to_entity() for group in groups]
 
     def get_all_groups(self) -> Iterable[GroupEntity]:
         groups = GroupModel.objects.all()

@@ -13,6 +13,10 @@ from core.api.schemas import (
     ApiResponse,
     ListPaginatedResponse,
 )
+from core.api.v1.schedule.lessons.schema_for_teachers import (
+    LessonForTeacherOutSchema,
+    TeacherLessonsOutSchema,
+)
 from core.api.v1.schedule.teachers.filters import TeacherFilter
 from core.api.v1.schedule.teachers.schemas import (
     TeacherInSchema,
@@ -23,6 +27,7 @@ from core.apps.common.authentication.bearer import jwt_bearer
 from core.apps.common.exceptions import ServiceException
 from core.apps.schedule.filters.teacher import TeacherFilter as TeacherFilterEntity
 from core.apps.schedule.services.teachers import BaseTeacherService
+from core.apps.schedule.use_cases.teacher.get_lessons_for_teacher import GetLessonsForTeacherUseCase
 from core.project.containers import get_container
 
 
@@ -35,9 +40,9 @@ router = Router(tags=["Teachers"])
     operation_id="get_teacher_list",
 )
 def get_teacher_list(
-    request: HttpRequest,
-    filters: Query[TeacherFilter],
-    pagination_in: Query[PaginationIn],
+        request: HttpRequest,
+        filters: Query[TeacherFilter],
+        pagination_in: Query[PaginationIn],
 ) -> ApiResponse[ListPaginatedResponse[TeacherSchema]]:
     container = get_container()
     service = container.resolve(BaseTeacherService)
@@ -101,7 +106,39 @@ def get_or_create_teacher(request: HttpRequest, schema: TeacherInSchema) -> ApiR
             first_name=teacher.first_name,
             middle_name=teacher.middle_name,
             rank=teacher.rank,
-            subjects=teacher.subjects,
+        ),
+    )
+
+
+@router.get(
+    "lessons/{teacher_id}",
+    response=ApiResponse[TeacherLessonsOutSchema],
+    operation_id="get_lessons_for_teacher",
+)
+def get_lessons_for_teacher(request: HttpRequest, teacher_id: Query[int]) -> ApiResponse[TeacherLessonsOutSchema]:
+    container = get_container()
+    use_case: GetLessonsForTeacherUseCase = container.resolve(GetLessonsForTeacherUseCase)
+    try:
+        teacher, lessons, groups = use_case.execute(
+            teacher_id=teacher_id,
+        )
+
+        items = []
+        for lesson in lessons:
+            group_entities = groups.get(lesson.id)
+            lesson_schema = LessonForTeacherOutSchema.from_entity(lesson, group_entities)
+            items.append(lesson_schema)
+
+    except ServiceException as e:
+        raise HttpError(
+            status_code=401,
+            message=e.message,
+        )
+
+    return ApiResponse(
+        data=TeacherLessonsOutSchema(
+            teacher=teacher,
+            lessons=items,
         ),
     )
 
@@ -113,9 +150,9 @@ def get_or_create_teacher(request: HttpRequest, schema: TeacherInSchema) -> ApiR
     auth=jwt_bearer,
 )
 def update_teacher(
-    request: HttpRequest,
-    teacher_id: int,
-    schema: TeacherInSchema,
+        request: HttpRequest,
+        teacher_id: int,
+        schema: TeacherInSchema,
 ) -> ApiResponse[TeacherSchema]:
     container = get_container()
     service = container.resolve(BaseTeacherService)
@@ -140,7 +177,6 @@ def update_teacher(
             first_name=teacher.first_name,
             middle_name=teacher.middle_name,
             rank=teacher.rank,
-            subjects=teacher.subjects,
         ),
     )
 
@@ -152,9 +188,9 @@ def update_teacher(
     auth=jwt_bearer,
 )
 def add_teacher_subjects(
-    request: HttpRequest,
-    teacher_id: int,
-    schema: TeacherUpdateSubjectsInSchema,
+        request: HttpRequest,
+        teacher_id: int,
+        schema: TeacherUpdateSubjectsInSchema,
 ) -> ApiResponse[TeacherSchema]:
     container = get_container()
     service = container.resolve(BaseTeacherService)
@@ -173,7 +209,6 @@ def add_teacher_subjects(
             first_name=teacher.first_name,
             middle_name=teacher.middle_name,
             rank=teacher.rank,
-            subjects=teacher.subjects,
         ),
     )
 
@@ -185,9 +220,9 @@ def add_teacher_subjects(
     auth=jwt_bearer,
 )
 def remove_teacher_subjects(
-    request: HttpRequest,
-    teacher_id: int,
-    schema: TeacherUpdateSubjectsInSchema,
+        request: HttpRequest,
+        teacher_id: int,
+        schema: TeacherUpdateSubjectsInSchema,
 ) -> ApiResponse[TeacherSchema]:
     container = get_container()
     service = container.resolve(BaseTeacherService)
@@ -206,6 +241,5 @@ def remove_teacher_subjects(
             first_name=teacher.first_name,
             middle_name=teacher.middle_name,
             rank=teacher.rank,
-            subjects=teacher.subjects,
         ),
     )

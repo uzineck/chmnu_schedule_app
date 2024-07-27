@@ -8,9 +8,9 @@ class SubjectSchema(Schema):
     title: str
     slug: str
 
-    @staticmethod
-    def from_entity(entity: SubjectEntity) -> 'SubjectSchema':
-        return SubjectSchema(
+    @classmethod
+    def from_entity(cls, entity: SubjectEntity) -> 'SubjectSchema':
+        return cls(
             id=entity.id,
             title=entity.title,
             slug=entity.slug,

@@ -11,9 +11,9 @@ class TeacherSchema(Schema):
     middle_name: str
     rank: TeachersDegree
 
-    @staticmethod
-    def from_entity(entity: TeacherEntity) -> 'TeacherSchema':
-        return TeacherSchema(
+    @classmethod
+    def from_entity(cls, entity: TeacherEntity) -> 'TeacherSchema':
+        return cls(
             id=entity.id,
             last_name=entity.last_name,
             first_name=entity.first_name,
@@ -31,5 +31,3 @@ class TeacherInSchema(Schema):
 
 class TeacherUpdateSubjectsInSchema(Schema):
     subject_id: int
-
-

@@ -31,7 +31,7 @@ class CreateLessonInSchema(Schema):
     timeslot_id: int
 
 
-class LessonOutSchema(Schema):
+class LessonForGroupOutSchema(Schema):
     id: int
     type: LessonType
     subgroup: Subgroup
@@ -43,7 +43,7 @@ class LessonOutSchema(Schema):
     updated_at: datetime
 
     @classmethod
-    def from_entity(cls, lesson: LessonEntity) -> 'LessonOutSchema':
+    def from_entity(cls, lesson: LessonEntity) -> 'LessonForGroupOutSchema':
         return cls(
             id=lesson.id,
             type=lesson.type,
@@ -55,4 +55,3 @@ class LessonOutSchema(Schema):
             created_at=lesson.created_at,
             updated_at=lesson.updated_at,
         )
-
