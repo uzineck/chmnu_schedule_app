@@ -100,13 +100,7 @@ def get_or_create_teacher(request: HttpRequest, schema: TeacherInSchema) -> ApiR
         )
 
     return ApiResponse(
-        data=TeacherSchema(
-            id=teacher.id,
-            last_name=teacher.last_name,
-            first_name=teacher.first_name,
-            middle_name=teacher.middle_name,
-            rank=teacher.rank,
-        ),
+        data=TeacherSchema.from_entity(entity=teacher),
     )
 
 
@@ -171,13 +165,7 @@ def update_teacher(
         )
 
     return ApiResponse(
-        data=TeacherSchema(
-            id=teacher.id,
-            last_name=teacher.last_name,
-            first_name=teacher.first_name,
-            middle_name=teacher.middle_name,
-            rank=teacher.rank,
-        ),
+        data=TeacherSchema.from_entity(entity=teacher),
     )
 
 
@@ -203,13 +191,7 @@ def add_teacher_subjects(
         )
 
     return ApiResponse(
-        data=TeacherSchema(
-            id=teacher.id,
-            last_name=teacher.last_name,
-            first_name=teacher.first_name,
-            middle_name=teacher.middle_name,
-            rank=teacher.rank,
-        ),
+        data=TeacherSchema.from_entity(entity=teacher),
     )
 
 
@@ -235,11 +217,5 @@ def remove_teacher_subjects(
         )
 
     return ApiResponse(
-        data=TeacherSchema(
-            id=teacher.id,
-            last_name=teacher.last_name,
-            first_name=teacher.first_name,
-            middle_name=teacher.middle_name,
-            rank=teacher.rank,
-        ),
+        data=TeacherSchema.from_entity(entity=teacher),
     )

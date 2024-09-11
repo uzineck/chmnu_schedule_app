@@ -16,26 +16,36 @@ class CreateLessonUseCase:
     room_service: BaseRoomService
     timeslot_service: BaseTimeslotService
 
-    def execute(self,
-                lesson: LessonEntity,
-                subject_id: int,
-                teacher_id: int,
-                room_id: int,
-                timeslot_id: int) -> LessonEntity:
+    def execute(
+        self,
+        lesson: LessonEntity,
+        subject_id: int,
+        teacher_id: int,
+        room_id: int,
+        timeslot_id: int,
+    ) -> LessonEntity:
 
         subject = self.subject_service.get_subject_by_id(subject_id=subject_id)
         teacher = self.teacher_service.get_teacher_by_id(teacher_id=teacher_id)
         room = self.room_service.get_room_by_id(room_id=room_id)
         timeslot = self.timeslot_service.get_timeslot_by_id(timeslot_id=timeslot_id)
 
-        lesson_entity = LessonEntity(subject=subject,
-                                     teacher=teacher,
-                                     room=room,
-                                     timeslot=timeslot,
-                                     type=lesson.type,
-                                     subgroup=lesson.subgroup)
+        lesson_entity = LessonEntity(
+            subject=subject,
+            teacher=teacher,
+            room=room,
+            timeslot=timeslot,
+            type=lesson.type,
+            subgroup=lesson.subgroup,
+        )
 
-        saved_lesson = self.lesson_service.save_lesson(lesson=lesson_entity)
+        existing_lesson: bool | LessonEntity = self.lesson_service.check_lesson_exists(lesson=lesson_entity)
 
-        return saved_lesson
+        if not existing_lesson:
+            saved_lesson = self.lesson_service.save_lesson(lesson=lesson_entity)
+            return saved_lesson
+        else:
+            return existing_lesson
+
+
 

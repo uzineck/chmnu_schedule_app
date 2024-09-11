@@ -1,8 +1,5 @@
 from django.http import HttpRequest
-from ninja import (
-    Query,
-    Router,
-)
+from ninja import Router
 from ninja.errors import HttpError
 
 from core.api.schemas import ApiResponse
@@ -23,8 +20,8 @@ router = Router(tags=["Lessons"])
 @router.post("", response=ApiResponse[LessonForGroupOutSchema], operation_id="create_lesson", auth=jwt_bearer)
 def create_lesson(
     request: HttpRequest,
-    schema: Query[CreateLessonInSchema],
-    lesson_schema: Query[LessonInSchema],
+    schema: CreateLessonInSchema,
+    lesson_schema: LessonInSchema,
 ) -> ApiResponse[LessonForGroupOutSchema]:
     container = get_container()
     use_case: CreateLessonUseCase = container.resolve(CreateLessonUseCase)

@@ -19,11 +19,17 @@ class ElasticApmMiddleware:
 
     """
 
+    forbidden_paths = ('/admin/',)
+
     def __init__(self, get_response: Callable):
         self.get_response = get_response
         self._client = elasticapm.get_client()
 
     def __call__(self, request: HttpRequest) -> HttpResponse:
+        if request.path.startswith(self.forbidden_paths):
+            print(request.path)
+            return self.get_response(request)
+
         transaction_name = self._create_transaction_name(request)
         self._start_new_transaction(transaction_name)
         response = self.get_response(request)

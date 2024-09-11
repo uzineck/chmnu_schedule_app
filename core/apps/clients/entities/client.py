@@ -4,6 +4,8 @@ from dataclasses import (
 )
 from datetime import datetime
 
+from core.apps.common.models import ClientRole
+
 
 @dataclass
 class Client:
@@ -11,7 +13,7 @@ class Client:
     first_name: str
     last_name: str
     middle_name: str
-    role: str
+    role: ClientRole
     email: str
     password: str
     created_at: datetime | None = field(default_factory=datetime.utcnow)

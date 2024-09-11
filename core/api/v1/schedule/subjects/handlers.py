@@ -87,11 +87,7 @@ def get_or_create_subject(request: HttpRequest, schema: SubjectInSchema) -> ApiR
         )
 
     return ApiResponse(
-        data=SubjectSchema(
-            id=subject.id,
-            title=subject.title,
-            slug=subject.slug,
-        ),
+        data=SubjectSchema.from_entity(entity=subject),
     )
 
 
@@ -113,11 +109,7 @@ def update_subject(request: HttpRequest, subject_id: int, schema: SubjectInSchem
         )
 
     return ApiResponse(
-        data=SubjectSchema(
-            id=subject.id,
-            title=subject.title,
-            slug=subject.slug,
-        ),
+        data=SubjectSchema.from_entity(entity=subject),
     )
 
 

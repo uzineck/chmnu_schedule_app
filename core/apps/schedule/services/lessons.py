@@ -20,6 +20,9 @@ class BaseLessonService(ABC):
     def save_lesson(self, lesson: LessonEntity) -> LessonEntity:
         ...
 
+    def check_lesson_exists(self, lesson: LessonEntity) -> bool:
+        ...
+
     @abstractmethod
     def get_lessons_for_group(self, group_number: str, group_query: Q) -> Iterable[LessonEntity]:
         ...
@@ -43,6 +46,19 @@ class ORMLessonService(BaseLessonService):
         lesson_model.save()
 
         return lesson_model.to_entity()
+
+    def check_lesson_exists(self, lesson: LessonEntity) -> bool | LessonEntity:
+        existing_lesson = LessonModel.objects.filter(
+            subject_id=lesson.subject.id,
+            teacher_id=lesson.teacher.id,
+            room_id=lesson.room.id,
+            timeslot_id=lesson.timeslot.id,
+            type=lesson.type,
+        ).first()
+        if existing_lesson:
+            return existing_lesson.to_entity()
+
+        return False
 
     def get_lessons_for_group(self, group_number: str, group_query: Q) -> Iterable[LessonEntity]:
         query = LessonModel.objects.filter(Q(group_lessons__number=group_number) & group_query)

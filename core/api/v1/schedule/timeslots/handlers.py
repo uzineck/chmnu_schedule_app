@@ -33,12 +33,7 @@ def get_timeslot_by_id(request: HttpRequest, schema: Query[TimeslotInSchema]) ->
             message=e.message,
         )
     return ApiResponse(
-        data=TimeslotSchema(
-            id=timeslot.id,
-            day=timeslot.day,
-            ord_number=timeslot.ord_number,
-            is_even=timeslot.is_even,
-        ),
+        data=TimeslotSchema.from_entity(entity=timeslot),
     )
 
 
@@ -54,12 +49,7 @@ def get_or_create_timeslot(request: HttpRequest, schema: Form[CreateTimeslotSche
             message=e.message,
         )
     return ApiResponse(
-        data=TimeslotSchema(
-            id=timeslot.id,
-            day=timeslot.day,
-            ord_number=timeslot.ord_number,
-            is_even=timeslot.is_even,
-        ),
+        data=TimeslotSchema.from_entity(entity=timeslot),
     )
 
 

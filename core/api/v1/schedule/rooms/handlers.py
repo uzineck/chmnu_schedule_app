@@ -88,11 +88,7 @@ def get_or_create_room(request: HttpRequest, schema: RoomNumberInSchema) -> ApiR
         )
 
     return ApiResponse(
-        data=RoomSchema(
-            id=room.id,
-            number=room.number,
-            description=room.description,
-        ),
+        data=RoomSchema.from_entity(entity=room),
     )
 
 
@@ -118,11 +114,7 @@ def update_room_number(
         )
 
     return ApiResponse(
-        data=RoomSchema(
-            id=room.id,
-            number=room.number,
-            description=room.description,
-        ),
+        data=RoomSchema.from_entity(entity=room),
     )
 
 
@@ -148,11 +140,7 @@ def update_room_description(
         )
 
     return ApiResponse(
-        data=RoomSchema(
-            id=room.id,
-            number=room.number,
-            description=room.description,
-        ),
+        data=RoomSchema.from_entity(entity=room),
     )
 
 

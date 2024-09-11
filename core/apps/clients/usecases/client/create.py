@@ -18,6 +18,7 @@ class CreateClientUseCase:
         role: str,
         email: str,
         password: str,
+        verify_password: str,
     ) -> ClientEntity:
         hashed_password = self.password_service.hash_password(plain_password=password)
         return self.client_service.create(

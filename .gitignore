@@ -1,6 +1,7 @@
 .idea/
 *.pyc
 .env
+.env.prod
 static/*
 !static/.gitkeep
 exmp.mwb

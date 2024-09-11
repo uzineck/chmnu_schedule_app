@@ -42,14 +42,7 @@ def login_handler(request: HttpRequest, schema: LogInSchema) -> ApiResponse[Toke
             message=e.message,
         )
     return ApiResponse(
-        data=TokenOutSchema(
-            last_name=client.last_name,
-            first_name=client.first_name,
-            middle_name=client.middle_name,
-            role=client.role,
-            email=client.email,
-            token=jwt_token,
-        ),
+        data=TokenOutSchema.from_entity_with_token(client=client, token=jwt_token),
     )
 
 
@@ -120,14 +113,7 @@ def update_email(request: HttpRequest, schema: UpdateEmailInSchema) -> ApiRespon
             message=e.message,
         )
     return ApiResponse(
-        data=TokenOutSchema(
-            last_name=client.last_name,
-            first_name=client.first_name,
-            middle_name=client.middle_name,
-            role=client.role,
-            email=client.email,
-            token=jwt_token,
-        ),
+        data=TokenOutSchema.from_entity_with_token(client=client, token=jwt_token),
     )
 
 
@@ -165,11 +151,5 @@ def update_credentials(
             message=e.message,
         )
     return ApiResponse(
-        data=ClientSchema(
-            last_name=client.last_name,
-            first_name=client.first_name,
-            middle_name=client.middle_name,
-            role=client.role,
-            email=client.email,
-        ),
+        data=ClientSchema.from_entity(client=client),
     )

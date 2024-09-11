@@ -9,9 +9,7 @@ from typing import Iterable
 from core.apps.clients.entities.client import Client as ClientEntity
 from core.apps.schedule.entities.group import Group as GroupEntity
 from core.apps.schedule.exceptions.groups import GroupNotFoundException
-from core.apps.schedule.exceptions.lesson import LessonNotFoundException
 from core.apps.schedule.filters.group import GroupFilter
-from core.apps.schedule.models import Lesson as LessonModel
 from core.apps.schedule.models.groups import Group as GroupModel
 
 
@@ -129,12 +127,7 @@ class ORMGroupService(BaseGroupService):
         except GroupModel.DoesNotExist:
             raise GroupNotFoundException(group_number=group_number)
 
-        try:
-            lesson = LessonModel.objects.get(id=lesson_id)
-        except LessonModel.DoesNotExist:
-            raise LessonNotFoundException(lesson_id=lesson_id)
-
-        group.lessons.add(lesson)
+        group.lessons.add(lesson_id)
 
         return group.to_entity()
 
@@ -144,11 +137,6 @@ class ORMGroupService(BaseGroupService):
         except GroupModel.DoesNotExist:
             raise GroupNotFoundException(group_number=group_number)
 
-        try:
-            lesson = LessonModel.objects.get(id=lesson_id)
-        except LessonModel.DoesNotExist:
-            raise LessonNotFoundException(lesson_id=lesson_id)
-
-        group.lessons.remove(lesson)
+        group.lessons.remove(lesson_id)
 
         return group.to_entity()
