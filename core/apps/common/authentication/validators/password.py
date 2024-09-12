@@ -6,9 +6,9 @@ from abc import (
 from dataclasses import dataclass
 
 from core.apps.common.authentication.exceptions import (
-    InvalidPasswordPattern,
-    OldAndNewPasswordsAreSimilar,
-    PasswordsNotMatching,
+    InvalidPasswordPatternException,
+    OldAndNewPasswordsAreSimilarException,
+    PasswordsNotMatchingException,
 )
 
 
@@ -32,20 +32,20 @@ class MatchingVerifyPasswordsValidatorService(BasePasswordValidatorService):
             **kwargs,
     ):
         if not (password == verify_password):
-            raise PasswordsNotMatching(password1=password, password2=verify_password)
+            raise PasswordsNotMatchingException(password1=password, password2=verify_password)
 
 
 class PasswordPatternValidatorService(BasePasswordValidatorService):
     def validate(self, password: str, *args, **kwargs):
         pattern = r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d@$!#%\^:;.,`~\'"*?&+=\-_]{8,}$'
         if not re.match(pattern, password):
-            raise InvalidPasswordPattern(password=password)
+            raise InvalidPasswordPatternException(password=password)
 
 
 class SimilarOldAndNewPasswordValidatorService(BasePasswordValidatorService):
     def validate(self, password: str, old_password: str | None = None, *args, **kwargs):
         if old_password == password:
-            raise OldAndNewPasswordsAreSimilar(old_password=old_password, new_password=password)
+            raise OldAndNewPasswordsAreSimilarException(old_password=old_password, new_password=password)
 
 
 @dataclass

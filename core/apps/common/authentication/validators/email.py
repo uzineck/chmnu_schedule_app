@@ -6,8 +6,8 @@ from abc import (
 from dataclasses import dataclass
 
 from core.apps.common.authentication.exceptions import (
-    InvalidEmailPattern,
-    OldAndNewEmailsAreSimilar,
+    InvalidEmailPatternException,
+    OldAndNewEmailsAreSimilarException,
 )
 
 
@@ -25,13 +25,13 @@ class EmailPatternValidatorService(BaseEmailValidatorService):
     def validate(self, email: str, *args, **kwargs):
         pattern = r'^[a-zA-Z0-9_.+-]+@gmail\.com$'
         if not re.match(pattern, email):
-            raise InvalidEmailPattern(email=email)
+            raise InvalidEmailPatternException(email=email)
 
 
 class SimilarOldAndNewEmailValidatorService(BaseEmailValidatorService):
     def validate(self, email: str, old_email: str | None = None, *args, **kwargs):
         if email == old_email:
-            raise OldAndNewEmailsAreSimilar(old_email=old_email, new_email=email)
+            raise OldAndNewEmailsAreSimilarException(old_email=old_email, new_email=email)
 
 
 @dataclass

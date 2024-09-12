@@ -67,6 +67,12 @@ from core.apps.schedule.use_cases.group.headman_remove_lesson_from_group import 
 from core.apps.schedule.use_cases.group.update_headman import UpdateGroupHeadmanUseCase
 from core.apps.schedule.use_cases.lessons.create import CreateLessonUseCase
 from core.apps.schedule.use_cases.teacher.get_lessons_for_teacher import GetLessonsForTeacherUseCase
+from core.apps.schedule.validators.group import (
+    BaseGroupValidatorService,
+    ComposedGroupValidatorService,
+    GroupAlreadyExistsValidatorService,
+    HeadmanAssignedToAnotherGroupValidatorService,
+)
 
 
 @lru_cache(1)
@@ -95,6 +101,14 @@ def _initialize_container() -> punq.Container:
             ],
         )
 
+    def build_group_validators() -> BaseGroupValidatorService:
+        return ComposedGroupValidatorService(
+            validators=[
+                container.resolve(GroupAlreadyExistsValidatorService),
+                container.resolve(HeadmanAssignedToAnotherGroupValidatorService),
+            ],
+        )
+
     # Password validator containers
     container.register(MatchingVerifyPasswordsValidatorService)
     container.register(PasswordPatternValidatorService)
@@ -107,6 +121,12 @@ def _initialize_container() -> punq.Container:
     container.register(SimilarOldAndNewEmailValidatorService)
 
     container.register(BaseEmailValidatorService, factory=build_email_validators)
+
+    # Group validator containers
+    container.register(GroupAlreadyExistsValidatorService)
+    container.register(HeadmanAssignedToAnotherGroupValidatorService)
+
+    container.register(BaseGroupValidatorService, factory=build_group_validators)
 
     # Client containers
     container.register(BaseClientService, ORMClientService)

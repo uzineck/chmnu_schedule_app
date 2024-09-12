@@ -79,7 +79,7 @@ def get_or_create_subject(request: HttpRequest, schema: SubjectInSchema) -> ApiR
     container = get_container()
     service = container.resolve(BaseSubjectService)
     try:
-        subject = service.get_or_create(title=schema.title)
+        subject = service.create(title=schema.title)
     except ServiceException as e:
         raise HttpError(
             status_code=401,

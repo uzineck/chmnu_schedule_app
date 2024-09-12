@@ -80,7 +80,7 @@ def get_or_create_room(request: HttpRequest, schema: RoomNumberInSchema) -> ApiR
     container = get_container()
     service = container.resolve(BaseRoomService)
     try:
-        room = service.get_or_create(number=schema.number)
+        room = service.create(number=schema.number)
     except ServiceException as e:
         raise HttpError(
             status_code=401,

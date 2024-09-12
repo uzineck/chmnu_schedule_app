@@ -15,7 +15,7 @@ from core.apps.schedule.models.groups import Group as GroupModel
 
 class BaseGroupService(ABC):
     @abstractmethod
-    def get_or_create(
+    def create(
         self,
         group_number: str,
         has_subgroups: bool,
@@ -25,6 +25,10 @@ class BaseGroupService(ABC):
 
     @abstractmethod
     def get_group_by_number(self, group_number: str) -> GroupEntity:
+        ...
+
+    @abstractmethod
+    def check_group_exists(self, group_number: str) -> bool:
         ...
 
     @abstractmethod
@@ -73,13 +77,13 @@ class ORMGroupService(BaseGroupService):
 
         return query
 
-    def get_or_create(
+    def create(
         self,
         group_number: str,
         has_subgroups: bool,
         headman_id: int,
     ) -> GroupEntity:
-        group, _ = GroupModel.objects.get_or_create(
+        group = GroupModel.objects.create(
             number=group_number,
             has_subgroups=has_subgroups,
             headman_id=headman_id,
@@ -94,6 +98,9 @@ class ORMGroupService(BaseGroupService):
             raise GroupNotFoundException(group_number=group_number)
 
         return group.to_entity()
+
+    def check_group_exists(self, group_number: str) -> bool:
+        return GroupModel.objects.filter(number=group_number).exists()
 
     def update_group_headman(self, group: GroupEntity, headman: ClientEntity) -> GroupEntity:
         GroupModel.objects.filter(number=group.number).update(headman_id=headman.id)

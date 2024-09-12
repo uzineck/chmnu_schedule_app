@@ -121,7 +121,7 @@ def get_headman_info(request: HttpRequest, schema: ClientEmailInSchema) -> ApiRe
 
 
 @router.post('', response=ApiResponse[GroupSchema], operation_id='create_group', auth=jwt_bearer_admin)
-def get_or_create_group(request: HttpRequest, schema: CreateGroupSchema) -> ApiResponse[GroupSchema]:
+def create_group(request: HttpRequest, schema: CreateGroupSchema) -> ApiResponse[GroupSchema]:
     container = get_container()
     use_case: CreateGroupUseCase = container.resolve(CreateGroupUseCase)
     try:

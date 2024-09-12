@@ -4,7 +4,7 @@ from core.apps.common.exceptions import ServiceException
 
 
 @dataclass(eq=False)
-class PasswordsNotMatching(ServiceException):
+class PasswordsNotMatchingException(ServiceException):
     password1: str
     password2: str
 
@@ -14,7 +14,7 @@ class PasswordsNotMatching(ServiceException):
 
 
 @dataclass(eq=False)
-class InvalidPasswordPattern(ServiceException):
+class InvalidPasswordPatternException(ServiceException):
     password: str
 
     @property
@@ -27,7 +27,7 @@ class InvalidPasswordPattern(ServiceException):
 
 
 @dataclass(eq=False)
-class OldAndNewPasswordsAreSimilar(ServiceException):
+class OldAndNewPasswordsAreSimilarException(ServiceException):
     old_password: str
     new_password: str
 
@@ -37,7 +37,7 @@ class OldAndNewPasswordsAreSimilar(ServiceException):
 
 
 @dataclass(eq=False)
-class InvalidEmailPattern(ServiceException):
+class InvalidEmailPatternException(ServiceException):
     email: str
 
     @property
@@ -46,7 +46,7 @@ class InvalidEmailPattern(ServiceException):
 
 
 @dataclass(eq=False)
-class OldAndNewEmailsAreSimilar(ServiceException):
+class OldAndNewEmailsAreSimilarException(ServiceException):
     old_email: str
     new_email: str
 

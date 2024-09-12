@@ -120,7 +120,7 @@ def get_or_create_teacher(request: HttpRequest, schema: TeacherInSchema) -> ApiR
     container = get_container()
     service = container.resolve(BaseTeacherService)
     try:
-        teacher = service.get_or_create(
+        teacher = service.create(
             first_name=schema.first_name,
             last_name=schema.last_name,
             middle_name=schema.middle_name,

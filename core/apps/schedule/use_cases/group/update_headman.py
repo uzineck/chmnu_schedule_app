@@ -13,9 +13,9 @@ class UpdateGroupHeadmanUseCase:
 
     def execute(self, group_number: str, new_headman_email: str) -> GroupEntity:
         group = self.group_service.get_group_by_number(group_number=group_number)
-        headman = self.client_service.get_by_email(email=new_headman_email)
-        self.client_service.check_user_role(headman.role, ClientRole.HEADMAN)
-        return self.group_service.update_group_headman(group=group, headman=headman)
+        client = self.client_service.get_by_email(email=new_headman_email)
+        self.client_service.check_user_role(client.role, ClientRole.HEADMAN)
+        return self.group_service.update_group_headman(group=group, headman=client)
 
 
 

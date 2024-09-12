@@ -48,7 +48,7 @@ def get_or_create_timeslot(request: HttpRequest, schema: Form[CreateTimeslotSche
     container = get_container()
     service = container.resolve(BaseTimeslotService)
     try:
-        timeslot = service.get_or_create(day=schema.day, ord_number=schema.ord_number, is_even=schema.is_even)
+        timeslot = service.create(day=schema.day, ord_number=schema.ord_number, is_even=schema.is_even)
     except ServiceException as e:
         raise HttpError(
             status_code=401,
