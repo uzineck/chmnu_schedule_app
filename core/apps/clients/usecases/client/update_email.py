@@ -13,7 +13,7 @@ class UpdateClientEmailUseCase:
     def execute(self, old_email: str, new_email: str, password: str) -> tuple[ClientEntity, str]:
         client = self.client_service.validate_user(email=old_email, password=password)
 
-        self.email_validator_service.validate(email=new_email)
+        self.email_validator_service.validate(email=new_email, old_email=old_email)
 
         updated_client = self.client_service.update_email(client=client, email=new_email)
 

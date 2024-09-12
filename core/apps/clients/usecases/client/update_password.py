@@ -14,10 +14,11 @@ class UpdateClientPasswordUseCase:
 
     def execute(self, email: str, old_password: str, new_password: str, verify_password: str) -> None:
         client = self.client_service.validate_user(email=email, password=old_password)
-        self.password_validator_service.validate(password=new_password, verify_password=verify_password)
+        self.password_validator_service.validate(
+            password=new_password,
+            verify_password=verify_password,
+            old_password=old_password,
+        )
         hashed_password = self.password_service.hash_password(plain_password=new_password)
 
         self.client_service.update_password(client=client, hashed_password=hashed_password)
-
-
-

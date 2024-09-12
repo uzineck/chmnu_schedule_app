@@ -7,18 +7,30 @@ from dataclasses import dataclass
 
 from core.apps.common.authentication.exceptions import (
     InvalidPasswordPattern,
+    OldAndNewPasswordsAreSimilar,
     PasswordsNotMatching,
 )
 
 
 class BasePasswordValidatorService(ABC):
     @abstractmethod
-    def validate(self, password: str, verify_password: str | None = None):
+    def validate(
+            self,
+            password: str,
+            verify_password: str | None = None,
+            old_password: str | None = None,
+    ):
         ...
 
 
-class MatchingPasswordsValidatorService(BasePasswordValidatorService):
-    def validate(self, password: str, verify_password: str | None = None):
+class MatchingVerifyPasswordsValidatorService(BasePasswordValidatorService):
+    def validate(
+            self,
+            password: str,
+            verify_password: str | None = None,
+            *args,
+            **kwargs,
+    ):
         if not (password == verify_password):
             raise PasswordsNotMatching(password1=password, password2=verify_password)
 
@@ -30,10 +42,21 @@ class PasswordPatternValidatorService(BasePasswordValidatorService):
             raise InvalidPasswordPattern(password=password)
 
 
+class SimilarOldAndNewPasswordValidatorService(BasePasswordValidatorService):
+    def validate(self, password: str, old_password: str | None = None, *args, **kwargs):
+        if old_password == password:
+            raise OldAndNewPasswordsAreSimilar(old_password=old_password, new_password=password)
+
+
 @dataclass
 class ComposedPasswordValidatorService(BasePasswordValidatorService):
     validators: list[BasePasswordValidatorService]
 
-    def validate(self, password: str, verify_password: str | None = None):
+    def validate(
+            self,
+            password: str,
+            verify_password: str | None = None,
+            old_password: str | None = None,
+    ):
         for validator in self.validators:
-            validator.validate(password=password, verify_password=verify_password)
+            validator.validate(password=password, verify_password=verify_password, old_password=old_password)

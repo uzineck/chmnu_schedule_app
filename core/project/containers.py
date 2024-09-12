@@ -24,12 +24,14 @@ from core.apps.common.authentication.validators.email import (
     BaseEmailValidatorService,
     ComposedEmailValidatorService,
     EmailPatternValidatorService,
+    SimilarOldAndNewEmailValidatorService,
 )
 from core.apps.common.authentication.validators.password import (
     BasePasswordValidatorService,
     ComposedPasswordValidatorService,
-    MatchingPasswordsValidatorService,
+    MatchingVerifyPasswordsValidatorService,
     PasswordPatternValidatorService,
+    SimilarOldAndNewPasswordValidatorService,
 )
 from core.apps.schedule.services.groups import (
     BaseGroupService,
@@ -79,8 +81,9 @@ def _initialize_container() -> punq.Container:
     def build_password_validators() -> BasePasswordValidatorService:
         return ComposedPasswordValidatorService(
             validators=[
-                container.resolve(MatchingPasswordsValidatorService),
+                container.resolve(MatchingVerifyPasswordsValidatorService),
                 container.resolve(PasswordPatternValidatorService),
+                container.resolve(SimilarOldAndNewPasswordValidatorService),
             ],
         )
 
@@ -88,17 +91,21 @@ def _initialize_container() -> punq.Container:
         return ComposedEmailValidatorService(
             validators=[
                 container.resolve(EmailPatternValidatorService),
+                container.resolve(SimilarOldAndNewEmailValidatorService),
             ],
         )
 
     # Password validator containers
-    container.register(MatchingPasswordsValidatorService)
+    container.register(MatchingVerifyPasswordsValidatorService)
     container.register(PasswordPatternValidatorService)
+    container.register(SimilarOldAndNewPasswordValidatorService)
 
     container.register(BasePasswordValidatorService, factory=build_password_validators)
 
     # Email validator containers
     container.register(EmailPatternValidatorService)
+    container.register(SimilarOldAndNewEmailValidatorService)
+
     container.register(BaseEmailValidatorService, factory=build_email_validators)
 
     # Client containers

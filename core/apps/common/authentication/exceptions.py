@@ -27,10 +27,32 @@ class InvalidPasswordPattern(ServiceException):
 
 
 @dataclass(eq=False)
+class OldAndNewPasswordsAreSimilar(ServiceException):
+    old_password: str
+    new_password: str
+
+    @property
+    def message(self):
+        return 'Old password and the new one are similar'
+
+
+@dataclass(eq=False)
 class InvalidEmailPattern(ServiceException):
     email: str
 
     @property
     def message(self):
         return 'The provided email does not meet the required email pattern: example@gmail.com (only @gmail.com)'
+
+
+@dataclass(eq=False)
+class OldAndNewEmailsAreSimilar(ServiceException):
+    old_email: str
+    new_email: str
+
+    @property
+    def message(self):
+        return 'Old email and the new one are similar'
+
+
 
