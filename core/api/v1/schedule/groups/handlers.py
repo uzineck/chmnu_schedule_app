@@ -14,15 +14,24 @@ from core.api.v1.schedule.groups.schemas import (
     GroupSchema,
     UpdateGroupHeadmanSchema,
 )
+from core.apps.clients.services.client import BaseClientService
 from core.apps.clients.usecases.headman.get_headman_info import GetHeadmanInfoUseCase
-from core.apps.common.authentication.bearer import jwt_bearer_admin
-from core.apps.common.exceptions import ServiceException
+from core.apps.common.authentication.bearer import (
+    jwt_bearer_admin,
+    jwt_bearer_headman,
+)
+from core.apps.common.exceptions import (
+    JWTKeyParsingException,
+    ServiceException,
+)
 from core.apps.schedule.filters.group import GroupFilter as GroupFilterEntity
-from core.apps.schedule.use_cases.group.add_lesson_to_group import AddLessonToGroupUseCase
+from core.apps.schedule.use_cases.group.admin_add_lesson_to_group import AdminAddLessonToGroupUseCase
+from core.apps.schedule.use_cases.group.admin_remove_lesson_from_group import AdminRemoveLessonFromGroupUseCase
 from core.apps.schedule.use_cases.group.create_group import CreateGroupUseCase
 from core.apps.schedule.use_cases.group.get_group_info import GetGroupInfoUseCase
 from core.apps.schedule.use_cases.group.get_group_lessons import GetGroupLessonsUseCase
-from core.apps.schedule.use_cases.group.remove_lesson_from_group import RemoveLessonFromGroupUseCase
+from core.apps.schedule.use_cases.group.headman_add_lesson_to_group import HeadmanAddLessonToGroupUseCase
+from core.apps.schedule.use_cases.group.headman_remove_lesson_from_group import HeadmanRemoveLessonFromGroupUseCase
 from core.apps.schedule.use_cases.group.update_headman import UpdateGroupHeadmanUseCase
 from core.project.containers import get_container
 
@@ -163,9 +172,13 @@ def update_group_headman(request: HttpRequest, schema: UpdateGroupHeadmanSchema)
     operation_id='add_lesson_to_group_admin',
     auth=jwt_bearer_admin,
 )
-def add_lesson_to_group(request: HttpRequest, group_number: str, lesson_id: int) -> ApiResponse[GroupLessonsOutSchema]:
+def add_lesson_to_group_admin(
+        request: HttpRequest,
+        group_number: str,
+        lesson_id: int,
+) -> ApiResponse[GroupLessonsOutSchema]:
     container = get_container()
-    use_case: AddLessonToGroupUseCase = container.resolve(AddLessonToGroupUseCase)
+    use_case: AdminAddLessonToGroupUseCase = container.resolve(AdminAddLessonToGroupUseCase)
     try:
         group = use_case.execute(group_number=group_number, lesson_id=lesson_id)
     except ServiceException as e:
@@ -185,16 +198,82 @@ def add_lesson_to_group(request: HttpRequest, group_number: str, lesson_id: int)
     operation_id='remove_lesson_from_group_admin',
     auth=jwt_bearer_admin,
 )
-def remove_lesson_from_group(
+def remove_lesson_from_group_admin(
         request: HttpRequest,
         group_number: str,
         lesson_id: int,
 ) -> ApiResponse[GroupLessonsOutSchema]:
     container = get_container()
-    use_case: RemoveLessonFromGroupUseCase = container.resolve(RemoveLessonFromGroupUseCase)
+    use_case: AdminRemoveLessonFromGroupUseCase = container.resolve(AdminRemoveLessonFromGroupUseCase)
 
     try:
         group = use_case.execute(group_number=group_number, lesson_id=lesson_id)
+    except ServiceException as e:
+        raise HttpError(
+            status_code=404,
+            message=e.message,
+        )
+
+    return ApiResponse(
+        data=GroupLessonsOutSchema.from_entity(entity=group),
+    )
+
+
+@router.patch(
+    'add/{lesson_id}',
+    response=ApiResponse[GroupLessonsOutSchema],
+    operation_id='add_lesson_to_group_headman',
+    auth=jwt_bearer_headman,
+)
+def add_lesson_to_group_headman(request: HttpRequest, lesson_id: int) -> ApiResponse[GroupLessonsOutSchema]:
+    container = get_container()
+    client_service = container.resolve(BaseClientService)
+    use_case: HeadmanAddLessonToGroupUseCase = container.resolve(HeadmanAddLessonToGroupUseCase)
+
+    try:
+        user_email: str = client_service.get_user_email_from_token(token=request.auth)
+
+    except JWTKeyParsingException as e:
+        raise HttpError(
+            status_code=401,
+            message=e.message,
+        )
+
+    try:
+        group = use_case.execute(headman_email=user_email, lesson_id=lesson_id)
+    except ServiceException as e:
+        raise HttpError(
+            status_code=404,
+            message=e.message,
+        )
+
+    return ApiResponse(
+        data=GroupLessonsOutSchema.from_entity(entity=group),
+    )
+
+
+@router.patch(
+    'remove/{lesson_id}',
+    response=ApiResponse[GroupLessonsOutSchema],
+    operation_id='remove_lesson_to_group_headman',
+    auth=jwt_bearer_headman,
+)
+def remove_lesson_to_group_headman(request: HttpRequest, lesson_id: int) -> ApiResponse[GroupLessonsOutSchema]:
+    container = get_container()
+    client_service = container.resolve(BaseClientService)
+    use_case: HeadmanRemoveLessonFromGroupUseCase = container.resolve(HeadmanRemoveLessonFromGroupUseCase)
+
+    try:
+        user_email: str = client_service.get_user_email_from_token(token=request.auth)
+
+    except JWTKeyParsingException as e:
+        raise HttpError(
+            status_code=401,
+            message=e.message,
+        )
+
+    try:
+        group = use_case.execute(headman_email=user_email, lesson_id=lesson_id)
     except ServiceException as e:
         raise HttpError(
             status_code=404,

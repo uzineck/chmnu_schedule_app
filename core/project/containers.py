@@ -55,11 +55,13 @@ from core.apps.schedule.services.timeslots import (
     BaseTimeslotService,
     ORMTimeslotService,
 )
-from core.apps.schedule.use_cases.group.add_lesson_to_group import AddLessonToGroupUseCase
+from core.apps.schedule.use_cases.group.admin_add_lesson_to_group import AdminAddLessonToGroupUseCase
+from core.apps.schedule.use_cases.group.admin_remove_lesson_from_group import AdminRemoveLessonFromGroupUseCase
 from core.apps.schedule.use_cases.group.create_group import CreateGroupUseCase
 from core.apps.schedule.use_cases.group.get_group_info import GetGroupInfoUseCase
 from core.apps.schedule.use_cases.group.get_group_lessons import GetGroupLessonsUseCase
-from core.apps.schedule.use_cases.group.remove_lesson_from_group import RemoveLessonFromGroupUseCase
+from core.apps.schedule.use_cases.group.headman_add_lesson_to_group import HeadmanAddLessonToGroupUseCase
+from core.apps.schedule.use_cases.group.headman_remove_lesson_from_group import HeadmanRemoveLessonFromGroupUseCase
 from core.apps.schedule.use_cases.group.update_headman import UpdateGroupHeadmanUseCase
 from core.apps.schedule.use_cases.lessons.create import CreateLessonUseCase
 from core.apps.schedule.use_cases.teacher.get_lessons_for_teacher import GetLessonsForTeacherUseCase
@@ -123,20 +125,25 @@ def _initialize_container() -> punq.Container:
 
     # Teacher containers
     container.register(BaseTeacherService, ORMTeacherService)
+
     container.register(GetLessonsForTeacherUseCase)
 
     # Lesson containers
     container.register(BaseLessonService, ORMLessonService)
+
     container.register(CreateLessonUseCase)
 
     # Group containers
     container.register(BaseGroupService, ORMGroupService)
+
     container.register(CreateGroupUseCase)
     container.register(GetGroupInfoUseCase)
     container.register(GetGroupLessonsUseCase)
     container.register(UpdateGroupHeadmanUseCase)
-    container.register(AddLessonToGroupUseCase)
-    container.register(RemoveLessonFromGroupUseCase)
+    container.register(AdminAddLessonToGroupUseCase)
+    container.register(AdminRemoveLessonFromGroupUseCase)
+    container.register(HeadmanAddLessonToGroupUseCase)
+    container.register(HeadmanRemoveLessonFromGroupUseCase)
 
     return container
 

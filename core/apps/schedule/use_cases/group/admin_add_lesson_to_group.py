@@ -6,7 +6,7 @@ from core.apps.schedule.services.lessons import BaseLessonService
 
 
 @dataclass
-class AddLessonToGroupUseCase:
+class AdminAddLessonToGroupUseCase:
     group_service: BaseGroupService
     lesson_service: BaseLessonService
 
