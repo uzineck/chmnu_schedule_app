@@ -14,7 +14,7 @@ class Room(TimedBaseModel):
         verbose_name="Description of the room",
         max_length=300,
         blank=True,
-        null=True
+        null=True,
     )
 
     def to_entity(self) -> RoomEntity:
@@ -23,7 +23,7 @@ class Room(TimedBaseModel):
             number=self.number,
             description=self.description,
             created_at=self.created_at,
-            updated_at=self.updated_at
+            updated_at=self.updated_at,
         )
 
     def __str__(self):

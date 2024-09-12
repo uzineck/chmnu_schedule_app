@@ -20,6 +20,17 @@ from core.apps.common.authentication.token import (
     BaseTokenService,
     JWTTokenService,
 )
+from core.apps.common.authentication.validators.email import (
+    BaseEmailValidatorService,
+    ComposedEmailValidatorService,
+    EmailPatternValidatorService,
+)
+from core.apps.common.authentication.validators.password import (
+    BasePasswordValidatorService,
+    ComposedPasswordValidatorService,
+    MatchingPasswordsValidatorService,
+    PasswordPatternValidatorService,
+)
 from core.apps.schedule.services.groups import (
     BaseGroupService,
     ORMGroupService,
@@ -61,10 +72,38 @@ def get_container() -> punq.Container:
 
 def _initialize_container() -> punq.Container:
     container = punq.Container()
+    # Validator containers
+
+    def build_password_validators() -> BasePasswordValidatorService:
+        return ComposedPasswordValidatorService(
+            validators=[
+                container.resolve(MatchingPasswordsValidatorService),
+                container.resolve(PasswordPatternValidatorService),
+            ],
+        )
+
+    def build_email_validators() -> BaseEmailValidatorService:
+        return ComposedEmailValidatorService(
+            validators=[
+                container.resolve(EmailPatternValidatorService),
+            ],
+        )
+
+    # Password validator containers
+    container.register(MatchingPasswordsValidatorService)
+    container.register(PasswordPatternValidatorService)
+
+    container.register(BasePasswordValidatorService, factory=build_password_validators)
+
+    # Email validator containers
+    container.register(EmailPatternValidatorService)
+    container.register(BaseEmailValidatorService, factory=build_email_validators)
+
     # Client containers
     container.register(BaseClientService, ORMClientService)
     container.register(BasePasswordService, BcryptPasswordService)
     container.register(BaseTokenService, JWTTokenService)
+
     container.register(CreateClientUseCase)
     container.register(LoginClientUseCase)
     container.register(UpdateClientEmailUseCase)

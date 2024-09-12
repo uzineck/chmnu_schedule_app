@@ -59,7 +59,7 @@ class UpdatePwInSchema(Schema):
 
 
 class UpdateEmailInSchema(Schema):
-    email: str
+    new_email: str
     password: str
 
 
@@ -70,9 +70,9 @@ class UpdateCredentialsInSchema(Schema):
 
 
 class UpdateRoleInSchema(Schema):
-    email: str
+    client_email: str
     role: ClientRole
 
 
 class ClientEmailInSchema(Schema):
-    email: str
+    headman_email: str

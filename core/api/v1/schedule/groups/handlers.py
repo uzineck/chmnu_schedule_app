@@ -100,7 +100,7 @@ def get_headman_info(request: HttpRequest, schema: ClientEmailInSchema) -> ApiRe
     use_case: GetHeadmanInfoUseCase = container.resolve(GetHeadmanInfoUseCase)
     try:
         group, headman = use_case.execute(
-            email=schema.email,
+            email=schema.headman_email,
         )
     except ServiceException as e:
         raise HttpError(

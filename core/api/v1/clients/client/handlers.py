@@ -69,6 +69,7 @@ def update_password(request: HttpRequest, schema: UpdatePwInSchema) -> ApiRespon
             email=user_email,
             old_password=schema.old_password,
             new_password=schema.new_password,
+            verify_password=schema.verify_password,
         )
     except ServiceException as e:
         raise HttpError(
@@ -104,7 +105,7 @@ def update_email(request: HttpRequest, schema: UpdateEmailInSchema) -> ApiRespon
     try:
         client, jwt_token = use_case.execute(
             old_email=user_email,
-            new_email=schema.email,
+            new_email=schema.new_email,
             password=schema.password,
         )
     except ServiceException as e:

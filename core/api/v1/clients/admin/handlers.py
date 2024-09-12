@@ -54,7 +54,7 @@ def update_client_role(request: HttpRequest, schema: UpdateRoleInSchema) -> ApiR
     use_case = container.resolve(UpdateClientRoleUseCase)
     try:
         client, jwt_token = use_case.execute(
-            client_email=schema.email,
+            client_email=schema.client_email,
             new_role=schema.role,
         )
     except ServiceException as e:
