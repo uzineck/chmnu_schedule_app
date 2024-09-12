@@ -23,7 +23,7 @@ from core.api.v1.schedule.teachers.schemas import (
     TeacherSchema,
     TeacherUpdateSubjectsInSchema,
 )
-from core.apps.common.authentication.bearer import jwt_bearer
+from core.apps.common.authentication.bearer import jwt_bearer_admin
 from core.apps.common.exceptions import ServiceException
 from core.apps.schedule.filters.teacher import TeacherFilter as TeacherFilterEntity
 from core.apps.schedule.services.teachers import BaseTeacherService
@@ -77,35 +77,8 @@ def get_teacher_list(
     )
 
 
-@router.post(
-    "",
-    response=ApiResponse[TeacherSchema],
-    operation_id="get_or_create_teacher",
-    auth=jwt_bearer,
-)
-def get_or_create_teacher(request: HttpRequest, schema: TeacherInSchema) -> ApiResponse[TeacherSchema]:
-    container = get_container()
-    service = container.resolve(BaseTeacherService)
-    try:
-        teacher = service.get_or_create(
-            first_name=schema.first_name,
-            last_name=schema.last_name,
-            middle_name=schema.middle_name,
-            rank=schema.rank,
-        )
-    except ServiceException as e:
-        raise HttpError(
-            status_code=401,
-            message=e.message,
-        )
-
-    return ApiResponse(
-        data=TeacherSchema.from_entity(entity=teacher),
-    )
-
-
 @router.get(
-    "lessons/{teacher_id}",
+    "{teacher_id}/lessons",
     response=ApiResponse[TeacherLessonsOutSchema],
     operation_id="get_lessons_for_teacher",
 )
@@ -137,11 +110,38 @@ def get_lessons_for_teacher(request: HttpRequest, teacher_id: Query[int]) -> Api
     )
 
 
+@router.post(
+    "",
+    response=ApiResponse[TeacherSchema],
+    operation_id="get_or_create_teacher",
+    auth=jwt_bearer_admin,
+)
+def get_or_create_teacher(request: HttpRequest, schema: TeacherInSchema) -> ApiResponse[TeacherSchema]:
+    container = get_container()
+    service = container.resolve(BaseTeacherService)
+    try:
+        teacher = service.get_or_create(
+            first_name=schema.first_name,
+            last_name=schema.last_name,
+            middle_name=schema.middle_name,
+            rank=schema.rank,
+        )
+    except ServiceException as e:
+        raise HttpError(
+            status_code=401,
+            message=e.message,
+        )
+
+    return ApiResponse(
+        data=TeacherSchema.from_entity(entity=teacher),
+    )
+
+
 @router.patch(
     "{teacher_id}/update",
     response=ApiResponse[TeacherSchema],
     operation_id="update_teacher",
-    auth=jwt_bearer,
+    auth=jwt_bearer_admin,
 )
 def update_teacher(
         request: HttpRequest,
@@ -173,7 +173,7 @@ def update_teacher(
     "{teacher_id}/add_subjects",
     response=ApiResponse[TeacherSchema],
     operation_id="add_teacher_subjects",
-    auth=jwt_bearer,
+    auth=jwt_bearer_admin,
 )
 def add_teacher_subjects(
         request: HttpRequest,
@@ -199,7 +199,7 @@ def add_teacher_subjects(
     "{teacher_id}/remove_subjects",
     response=ApiResponse[TeacherSchema],
     operation_id="remove_teacher_subjects",
-    auth=jwt_bearer,
+    auth=jwt_bearer_admin,
 )
 def remove_teacher_subjects(
         request: HttpRequest,

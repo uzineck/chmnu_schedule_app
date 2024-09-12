@@ -124,10 +124,7 @@ def update_email(request: HttpRequest, schema: UpdateEmailInSchema) -> ApiRespon
     operation_id='update_credentials',
     auth=jwt_bearer,
 )
-def update_credentials(
-    request: HttpRequest,
-    schema: UpdateCredentialsInSchema,
-) -> ApiResponse[ClientSchema]:
+def update_credentials(request: HttpRequest, schema: UpdateCredentialsInSchema) -> ApiResponse[ClientSchema]:
     container = get_container()
     client_service = container.resolve(BaseClientService)
     use_case = container.resolve(UpdateClientCredentialsUseCase)

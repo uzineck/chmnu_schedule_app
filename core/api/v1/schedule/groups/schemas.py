@@ -56,7 +56,7 @@ class GroupLessonsOutSchema(GroupSchema):
 
 class UpdateGroupHeadmanSchema(Schema):
     group_number: str
-    headman_email: str
+    new_headman_email: str
 
 
 

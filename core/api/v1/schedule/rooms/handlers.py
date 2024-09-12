@@ -20,7 +20,7 @@ from core.api.v1.schedule.rooms.schemas import (
     RoomNumberInSchema,
     RoomSchema,
 )
-from core.apps.common.authentication.bearer import jwt_bearer
+from core.apps.common.authentication.bearer import jwt_bearer_admin
 from core.apps.common.exceptions import ServiceException
 from core.apps.common.filters import SearchFilter as SearchFilterEntity
 from core.apps.schedule.services.rooms import BaseRoomService
@@ -74,7 +74,7 @@ def get_room_list(
     "",
     response=ApiResponse[RoomSchema],
     operation_id="get_or_create_room",
-    auth=jwt_bearer,
+    auth=jwt_bearer_admin,
 )
 def get_or_create_room(request: HttpRequest, schema: RoomNumberInSchema) -> ApiResponse[RoomSchema]:
     container = get_container()
@@ -96,7 +96,7 @@ def get_or_create_room(request: HttpRequest, schema: RoomNumberInSchema) -> ApiR
     "{room_number}/change_number",
     response=ApiResponse[RoomSchema],
     operation_id="update_room_number",
-    auth=jwt_bearer,
+    auth=jwt_bearer_admin,
 )
 def update_room_number(
     request: HttpRequest,
@@ -122,7 +122,7 @@ def update_room_number(
     "{room_number}/change_description",
     response=ApiResponse[RoomSchema],
     operation_id="update_room_description",
-    auth=jwt_bearer,
+    auth=jwt_bearer_admin,
 )
 def update_room_description(
     request: HttpRequest,
@@ -147,7 +147,7 @@ def update_room_description(
 @router.delete(
     "{room_number}", response=ApiResponse[StatusResponse],
     operation_id="delete_room_by_number",
-    auth=jwt_bearer,
+    auth=jwt_bearer_admin,
 )
 def delete_room(request: HttpRequest, room_number: str) -> ApiResponse[StatusResponse]:
     container = get_container()

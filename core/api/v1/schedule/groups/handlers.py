@@ -4,7 +4,6 @@ from ninja import (
     Router,
 )
 from ninja.errors import HttpError
-from ninja.security import django_auth_superuser
 
 from core.api.schemas import ApiResponse
 from core.api.v1.clients.schemas import ClientEmailInSchema
@@ -16,7 +15,7 @@ from core.api.v1.schedule.groups.schemas import (
     UpdateGroupHeadmanSchema,
 )
 from core.apps.clients.usecases.headman.get_headman_info import GetHeadmanInfoUseCase
-from core.apps.common.authentication.bearer import jwt_bearer
+from core.apps.common.authentication.bearer import jwt_bearer_admin
 from core.apps.common.exceptions import ServiceException
 from core.apps.schedule.filters.group import GroupFilter as GroupFilterEntity
 from core.apps.schedule.use_cases.group.add_lesson_to_group import AddLessonToGroupUseCase
@@ -67,7 +66,7 @@ def get_group_lessons(
     "info",
     response=ApiResponse[GroupSchema],
     operation_id="get_group_info",
-    auth=django_auth_superuser,
+    auth=jwt_bearer_admin,
 )
 def get_group_info(
         request: HttpRequest,
@@ -75,9 +74,9 @@ def get_group_info(
 ) -> ApiResponse[GroupSchema]:
     container = get_container()
     use_case: GetGroupInfoUseCase = container.resolve(GetGroupInfoUseCase)
+
     try:
         group = use_case.execute(group_number=group_number)
-
     except ServiceException as e:
         raise HttpError(
             status_code=401,
@@ -93,7 +92,7 @@ def get_group_info(
     "get_headman_info",
     response=ApiResponse[GroupSchema],
     operation_id='get_headman_info',
-    auth=django_auth_superuser,
+    auth=jwt_bearer_admin,
 )
 def get_headman_info(request: HttpRequest, schema: ClientEmailInSchema) -> ApiResponse[GroupSchema]:
     container = get_container()
@@ -112,7 +111,7 @@ def get_headman_info(request: HttpRequest, schema: ClientEmailInSchema) -> ApiRe
     )
 
 
-@router.post('', response=ApiResponse[GroupSchema], operation_id='create_group', auth=django_auth_superuser)
+@router.post('', response=ApiResponse[GroupSchema], operation_id='create_group', auth=jwt_bearer_admin)
 def get_or_create_group(request: HttpRequest, schema: CreateGroupSchema) -> ApiResponse[GroupSchema]:
     container = get_container()
     use_case: CreateGroupUseCase = container.resolve(CreateGroupUseCase)
@@ -138,7 +137,7 @@ def get_or_create_group(request: HttpRequest, schema: CreateGroupSchema) -> ApiR
     "update_group_headman",
     response=ApiResponse[GroupSchema],
     operation_id='update_group_headman',
-    auth=django_auth_superuser,
+    auth=jwt_bearer_admin,
 )
 def update_group_headman(request: HttpRequest, schema: UpdateGroupHeadmanSchema) -> ApiResponse[GroupSchema]:
     container = get_container()
@@ -146,7 +145,7 @@ def update_group_headman(request: HttpRequest, schema: UpdateGroupHeadmanSchema)
     try:
         group = use_case.execute(
             group_number=schema.group_number,
-            headman_email=schema.headman_email,
+            new_headman_email=schema.new_headman_email,
         )
     except ServiceException as e:
         raise HttpError(
@@ -161,8 +160,8 @@ def update_group_headman(request: HttpRequest, schema: UpdateGroupHeadmanSchema)
 @router.patch(
     '{group_number}/add/{lesson_id}',
     response=ApiResponse[GroupLessonsOutSchema],
-    operation_id='add_lesson_to_group',
-    auth=jwt_bearer,
+    operation_id='add_lesson_to_group_admin',
+    auth=jwt_bearer_admin,
 )
 def add_lesson_to_group(request: HttpRequest, group_number: str, lesson_id: int) -> ApiResponse[GroupLessonsOutSchema]:
     container = get_container()
@@ -183,13 +182,13 @@ def add_lesson_to_group(request: HttpRequest, group_number: str, lesson_id: int)
 @router.patch(
     '{group_number}/remove/{lesson_id}',
     response=ApiResponse[GroupLessonsOutSchema],
-    operation_id='remove_lesson_from_group',
-    auth=jwt_bearer,
+    operation_id='remove_lesson_from_group_admin',
+    auth=jwt_bearer_admin,
 )
 def remove_lesson_from_group(
-    request: HttpRequest,
-    group_number: str,
-    lesson_id: int,
+        request: HttpRequest,
+        group_number: str,
+        lesson_id: int,
 ) -> ApiResponse[GroupLessonsOutSchema]:
     container = get_container()
     use_case: RemoveLessonFromGroupUseCase = container.resolve(RemoveLessonFromGroupUseCase)

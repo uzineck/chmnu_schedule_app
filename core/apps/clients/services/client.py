@@ -16,6 +16,7 @@ from core.apps.clients.exceptions.client import (
 from core.apps.clients.models.client import Client as ClientModel
 from core.apps.common.authentication.password import BasePasswordService
 from core.apps.common.authentication.token import BaseTokenService
+from core.apps.common.models import ClientRole
 
 
 @dataclass(eq=False)
@@ -57,7 +58,7 @@ class BaseClientService(ABC):
     def update_role(
             self,
             client: ClientEntity,
-            new_role: str,
+            new_role: ClientRole,
     ) -> ClientEntity:
         ...
 
@@ -82,7 +83,11 @@ class BaseClientService(ABC):
         ...
 
     @abstractmethod
-    def check_user_role(self, user_role: str, required_role: str) -> bool:
+    def get_user_role_from_token(self, token: str) -> str:
+        ...
+
+    @abstractmethod
+    def check_user_role(self, user_role: ClientRole, required_role: ClientRole) -> None:
         ...
 
 
@@ -144,7 +149,7 @@ class ORMClientService(BaseClientService):
     def update_role(
             self,
             client: ClientEntity,
-            new_role: str,
+            new_role: ClientRole,
     ) -> ClientEntity:
         ClientModel.objects.filter(email=client.email).update(
             role=new_role,
@@ -185,10 +190,8 @@ class ORMClientService(BaseClientService):
     def get_user_role_from_token(self, token: str) -> str:
         return self.token_service.get_user_role_from_token(token=token)
 
-    def check_user_role(self, user_role: str, required_role: str) -> bool:
+    def check_user_role(self, user_role: str, required_role: ClientRole) -> None:
         if user_role != required_role:
             raise ClientRoleNotMatchingWithRequired(user_role=user_role)
-
-        return True
 
 

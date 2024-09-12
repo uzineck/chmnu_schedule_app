@@ -21,7 +21,13 @@ from core.project.containers import get_container
 router = Router(tags=["Timeslots"])
 
 
-@router.get("", response=ApiResponse[TimeslotSchema], operation_id="get_timeslot_by_id")
+@router.get(
+    "",
+    response=ApiResponse[TimeslotSchema],
+    operation_id="get_timeslot_by_id",
+    auth=jwt_bearer,
+    deprecated=True,
+)
 def get_timeslot_by_id(request: HttpRequest, schema: Query[TimeslotInSchema]) -> ApiResponse[TimeslotSchema]:
     container = get_container()
     service = container.resolve(BaseTimeslotService)

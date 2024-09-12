@@ -19,7 +19,7 @@ from core.api.v1.schedule.subjects.schemas import (
     SubjectInSchema,
     SubjectSchema,
 )
-from core.apps.common.authentication.bearer import jwt_bearer
+from core.apps.common.authentication.bearer import jwt_bearer_admin
 from core.apps.common.exceptions import ServiceException
 from core.apps.common.filters import SearchFilter as SearchFiltersEntity
 from core.apps.schedule.services.subjects import BaseSubjectService
@@ -73,7 +73,7 @@ def get_subject_list(
     "",
     response=ApiResponse[SubjectSchema],
     operation_id="get_or_create_subject",
-    auth=jwt_bearer,
+    auth=jwt_bearer_admin,
 )
 def get_or_create_subject(request: HttpRequest, schema: SubjectInSchema) -> ApiResponse[SubjectSchema]:
     container = get_container()
@@ -95,7 +95,7 @@ def get_or_create_subject(request: HttpRequest, schema: SubjectInSchema) -> ApiR
     "{subject_id}",
     response=ApiResponse[SubjectSchema],
     operation_id="update_subject_by_id",
-    auth=jwt_bearer,
+    auth=jwt_bearer_admin,
 )
 def update_subject(request: HttpRequest, subject_id: int, schema: SubjectInSchema) -> ApiResponse[SubjectSchema]:
     container = get_container()
@@ -117,7 +117,7 @@ def update_subject(request: HttpRequest, subject_id: int, schema: SubjectInSchem
     "{subject_id}",
     response=ApiResponse[StatusResponse],
     operation_id="delete_subject_by_id",
-    auth=jwt_bearer,
+    auth=jwt_bearer_admin,
 )
 def delete_subject(request: HttpRequest, subject_id: int) -> ApiResponse[StatusResponse]:
     container = get_container()

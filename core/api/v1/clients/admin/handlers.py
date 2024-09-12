@@ -1,16 +1,17 @@
 from django.http import HttpRequest
 from ninja import Router
 from ninja.errors import HttpError
-from ninja.security import django_auth_superuser
 
 from core.api.schemas import ApiResponse
 from core.api.v1.clients.schemas import (
     ClientSchema,
     SignUpInSchema,
+    TokenOutSchema,
     UpdateRoleInSchema,
 )
 from core.apps.clients.usecases.client.create import CreateClientUseCase
 from core.apps.clients.usecases.client.update_role import UpdateClientRoleUseCase
+from core.apps.common.authentication.bearer import jwt_bearer_admin
 from core.apps.common.exceptions import ServiceException
 from core.project.containers import get_container
 
@@ -18,7 +19,7 @@ from core.project.containers import get_container
 router = Router(tags=["Admin"])
 
 
-@router.post("sign-up", response=ApiResponse[ClientSchema], operation_id='sign_up', auth=django_auth_superuser)
+@router.post("sign-up", response=ApiResponse[ClientSchema], operation_id='sign_up', auth=jwt_bearer_admin)
 def sign_up_handler(request: HttpRequest, schema: SignUpInSchema) -> ApiResponse[ClientSchema]:
     container = get_container()
     use_case = container.resolve(CreateClientUseCase)
@@ -45,11 +46,11 @@ def sign_up_handler(request: HttpRequest, schema: SignUpInSchema) -> ApiResponse
 
 @router.patch(
     "update_client_role",
-    response=ApiResponse[ClientSchema],
+    response=ApiResponse[TokenOutSchema],
     operation_id='update_client_role',
-    auth=django_auth_superuser,
+    auth=jwt_bearer_admin,
 )
-def update_client_role(request: HttpRequest, schema: UpdateRoleInSchema) -> ApiResponse[ClientSchema]:
+def update_client_role(request: HttpRequest, schema: UpdateRoleInSchema) -> ApiResponse[TokenOutSchema]:
     container = get_container()
     use_case = container.resolve(UpdateClientRoleUseCase)
     try:
@@ -63,5 +64,5 @@ def update_client_role(request: HttpRequest, schema: UpdateRoleInSchema) -> ApiR
             message=e.message,
         )
     return ApiResponse(
-        data=ClientSchema.from_entity(client=client),
+        data=TokenOutSchema.from_entity_with_token(client=client, token=jwt_token),
     )

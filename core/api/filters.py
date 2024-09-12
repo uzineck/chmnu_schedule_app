@@ -9,7 +9,7 @@ class PaginationOut(Schema):
 
 class PaginationIn(Schema):
     offset: int = 0
-    limit: int = 20
+    limit: int = 50
 
 
 class SearchFilter(Schema):
