@@ -54,6 +54,7 @@ class ORMLessonService(BaseLessonService):
             room_id=lesson.room.id,
             timeslot_id=lesson.timeslot.id,
             type=lesson.type,
+            subgroup=lesson.subgroup,
         ).first()
         if existing_lesson:
             return existing_lesson.to_entity()
