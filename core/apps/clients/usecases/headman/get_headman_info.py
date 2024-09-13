@@ -12,7 +12,7 @@ class GetHeadmanInfoUseCase:
     client_service: BaseClientService
     group_service: BaseGroupService
 
-    def execute(self, email: str) -> tuple[GroupEntity, ClientEntity]:
+    def execute(self, email: str) -> tuple[GroupEntity, ClientEntity] | tuple[None, ClientEntity]:
         client = self.client_service.get_by_email(email=email)
 
         self.client_service.check_user_role(client.role, ClientRole.HEADMAN)
