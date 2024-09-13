@@ -118,9 +118,9 @@ def get_lessons_for_teacher(request: HttpRequest, teacher_id: Query[int]) -> Api
 )
 def get_or_create_teacher(request: HttpRequest, schema: TeacherInSchema) -> ApiResponse[TeacherSchema]:
     container = get_container()
-    service = container.resolve(BaseTeacherService)
+    service: BaseTeacherService = container.resolve(BaseTeacherService)
     try:
-        teacher = service.create(
+        teacher = service.get_or_create(
             first_name=schema.first_name,
             last_name=schema.last_name,
             middle_name=schema.middle_name,
