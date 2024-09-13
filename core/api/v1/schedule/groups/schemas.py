@@ -10,15 +10,27 @@ from core.apps.schedule.entities.lesson import Lesson as LessonEntity
 
 class GroupSchema(Schema):
     number: str
-    headman: ClientSchema
     has_subgroups: bool
 
     @classmethod
     def from_entity(cls, entity: GroupEntity) -> 'GroupSchema':
         return cls(
             number=entity.number,
-            headman=entity.headman,
             has_subgroups=entity.has_subgroups,
+        )
+
+
+class GroupSchemaWithHeadman(Schema):
+    number: str
+    headman: ClientSchema
+    has_subgroups: bool
+
+    @classmethod
+    def from_entity(cls, entity: GroupEntity) -> 'GroupSchemaWithHeadman':
+        return cls(
+            number=entity.number,
+            has_subgroups=entity.has_subgroups,
+            headman=entity.headman,
         )
 
 
@@ -39,7 +51,6 @@ class GroupLessonsOutSchema(GroupSchema):
     ) -> 'GroupLessonsOutSchema':
         return cls(
             number=group_entity.number,
-            headman=group_entity.headman,
             has_subgroups=group_entity.has_subgroups,
             lessons=[LessonForGroupOutSchema.from_entity(obj) for obj in lesson_entities] if lesson_entities else None,
         )
@@ -48,7 +59,6 @@ class GroupLessonsOutSchema(GroupSchema):
     def from_entity(cls, entity: GroupEntity) -> 'GroupLessonsOutSchema':
         return cls(
             number=entity.number,
-            headman=entity.headman,
             has_subgroups=entity.has_subgroups,
             lessons=entity.lessons if entity.lessons else None,
         )
@@ -57,6 +67,16 @@ class GroupLessonsOutSchema(GroupSchema):
 class UpdateGroupHeadmanSchema(Schema):
     group_number: str
     new_headman_email: str
+
+
+class GroupNumberOnlyOutSchema(Schema):
+    number: str
+
+    @classmethod
+    def from_entity(cls, entity: GroupEntity) -> 'GroupNumberOnlyOutSchema':
+        return cls(
+            number=entity.number,
+        )
 
 
 

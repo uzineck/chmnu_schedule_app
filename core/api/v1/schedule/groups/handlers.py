@@ -5,13 +5,19 @@ from ninja import (
 )
 from ninja.errors import HttpError
 
+from typing import Union
+
 from core.api.schemas import ApiResponse
-from core.api.v1.clients.schemas import ClientEmailInSchema
+from core.api.v1.clients.schemas import (
+    ClientEmailInSchema,
+    ClientSchema,
+)
 from core.api.v1.schedule.groups.filters import GroupFilter
 from core.api.v1.schedule.groups.schemas import (
     CreateGroupSchema,
     GroupLessonsOutSchema,
-    GroupSchema,
+    GroupNumberOnlyOutSchema,
+    GroupSchemaWithHeadman,
     UpdateGroupHeadmanSchema,
 )
 from core.apps.clients.services.client import BaseClientService
@@ -25,6 +31,7 @@ from core.apps.common.exceptions import (
     ServiceException,
 )
 from core.apps.schedule.filters.group import GroupFilter as GroupFilterEntity
+from core.apps.schedule.services.groups import BaseGroupService
 from core.apps.schedule.use_cases.group.admin_add_lesson_to_group import AdminAddLessonToGroupUseCase
 from core.apps.schedule.use_cases.group.admin_remove_lesson_from_group import AdminRemoveLessonFromGroupUseCase
 from core.apps.schedule.use_cases.group.create_group import CreateGroupUseCase
@@ -37,6 +44,23 @@ from core.project.containers import get_container
 
 
 router = Router(tags=['Group'])
+
+
+@router.get(
+    'all',
+    response=ApiResponse,
+    operation_id='get_all_groups',
+
+)
+def get_all_groups(request: HttpRequest) -> ApiResponse:
+    container = get_container()
+    service: BaseGroupService = container.resolve(BaseGroupService)
+    groups = service.get_all_groups()
+    items = [GroupNumberOnlyOutSchema.from_entity(group) for group in groups]
+
+    return ApiResponse(
+        data=items,
+    )
 
 
 @router.get(
@@ -73,14 +97,14 @@ def get_group_lessons(
 
 @router.get(
     "info",
-    response=ApiResponse[GroupSchema],
+    response=ApiResponse[GroupSchemaWithHeadman],
     operation_id="get_group_info",
     auth=jwt_bearer_admin,
 )
 def get_group_info(
         request: HttpRequest,
         group_number: Query[str],
-) -> ApiResponse[GroupSchema]:
+) -> ApiResponse[GroupSchemaWithHeadman]:
     container = get_container()
     use_case: GetGroupInfoUseCase = container.resolve(GetGroupInfoUseCase)
 
@@ -93,17 +117,20 @@ def get_group_info(
         )
 
     return ApiResponse(
-        data=GroupSchema.from_entity(group),
+        data=GroupSchemaWithHeadman.from_entity(group),
     )
 
 
 @router.post(
     "get_headman_info",
-    response=ApiResponse[GroupSchema],
+    response=ApiResponse[Union[GroupSchemaWithHeadman, ClientSchema]],
     operation_id='get_headman_info',
     auth=jwt_bearer_admin,
 )
-def get_headman_info(request: HttpRequest, schema: ClientEmailInSchema) -> ApiResponse[GroupSchema]:
+def get_headman_info(
+        request: HttpRequest,
+        schema: ClientEmailInSchema,
+) -> ApiResponse[Union[GroupSchemaWithHeadman, ClientSchema]]:
     container = get_container()
     use_case: GetHeadmanInfoUseCase = container.resolve(GetHeadmanInfoUseCase)
     try:
@@ -115,13 +142,18 @@ def get_headman_info(request: HttpRequest, schema: ClientEmailInSchema) -> ApiRe
             status_code=400,
             message=e.message,
         )
-    return ApiResponse(
-        data=GroupSchema.from_entity(group),
-    )
+    if group is None:
+        return ApiResponse(
+            data=ClientSchema.from_entity(client=headman),
+        )
+    else:
+        return ApiResponse(
+            data=GroupSchemaWithHeadman.from_entity(entity=group),
+        )
 
 
-@router.post('', response=ApiResponse[GroupSchema], operation_id='create_group', auth=jwt_bearer_admin)
-def create_group(request: HttpRequest, schema: CreateGroupSchema) -> ApiResponse[GroupSchema]:
+@router.post('', response=ApiResponse[GroupSchemaWithHeadman], operation_id='create_group', auth=jwt_bearer_admin)
+def create_group(request: HttpRequest, schema: CreateGroupSchema) -> ApiResponse[GroupSchemaWithHeadman]:
     container = get_container()
     use_case: CreateGroupUseCase = container.resolve(CreateGroupUseCase)
     try:
@@ -138,17 +170,17 @@ def create_group(request: HttpRequest, schema: CreateGroupSchema) -> ApiResponse
         )
 
     return ApiResponse(
-        data=GroupSchema.from_entity(group),
+        data=GroupSchemaWithHeadman.from_entity(entity=group),
     )
 
 
 @router.patch(
     "update_group_headman",
-    response=ApiResponse[GroupSchema],
+    response=ApiResponse[GroupSchemaWithHeadman],
     operation_id='update_group_headman',
     auth=jwt_bearer_admin,
 )
-def update_group_headman(request: HttpRequest, schema: UpdateGroupHeadmanSchema) -> ApiResponse[GroupSchema]:
+def update_group_headman(request: HttpRequest, schema: UpdateGroupHeadmanSchema) -> ApiResponse[GroupSchemaWithHeadman]:
     container = get_container()
     use_case: UpdateGroupHeadmanUseCase = container.resolve(UpdateGroupHeadmanUseCase)
     try:
@@ -162,7 +194,7 @@ def update_group_headman(request: HttpRequest, schema: UpdateGroupHeadmanSchema)
             message=e.message,
         )
     return ApiResponse(
-        data=GroupSchema.from_entity(group),
+        data=GroupSchemaWithHeadman.from_entity(entity=group),
     )
 
 

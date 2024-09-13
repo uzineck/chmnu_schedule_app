@@ -36,7 +36,8 @@ class HeadmanAssignedToAnotherGroupValidatorService(BaseGroupValidatorService):
     group_service: BaseGroupService
 
     def validate(self, group_number: str, headman: ClientEntity | None = None, *args, **kwargs):
-        if self.group_service.get_group_from_headman(headman=headman) != group_number:
+        headman_group = self.group_service.get_group_from_headman(headman=headman)
+        if (headman_group is not None) and (headman_group != group_number):
             raise HeadmanAssignedToAnotherGroupException(headman_email=headman.email, group_number=group_number)
 
 
