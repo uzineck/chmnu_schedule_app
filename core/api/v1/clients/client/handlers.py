@@ -7,7 +7,7 @@ from core.api.schemas import (
     StatusResponse,
 )
 from core.api.v1.clients.schemas import (
-    ClientSchema,
+    ClientSchemaPrivate,
     LogInSchema,
     TokenOutSchema,
     UpdateCredentialsInSchema,
@@ -120,11 +120,11 @@ def update_email(request: HttpRequest, schema: UpdateEmailInSchema) -> ApiRespon
 
 @router.patch(
     "update_credentials",
-    response=ApiResponse[ClientSchema],
+    response=ApiResponse[ClientSchemaPrivate],
     operation_id='update_credentials',
     auth=jwt_bearer,
 )
-def update_credentials(request: HttpRequest, schema: UpdateCredentialsInSchema) -> ApiResponse[ClientSchema]:
+def update_credentials(request: HttpRequest, schema: UpdateCredentialsInSchema) -> ApiResponse[ClientSchemaPrivate]:
     container = get_container()
     client_service = container.resolve(BaseClientService)
     use_case = container.resolve(UpdateClientCredentialsUseCase)
@@ -149,5 +149,5 @@ def update_credentials(request: HttpRequest, schema: UpdateCredentialsInSchema) 
             message=e.message,
         )
     return ApiResponse(
-        data=ClientSchema.from_entity(client=client),
+        data=ClientSchemaPrivate.from_entity(client=client),
     )

@@ -7,19 +7,15 @@ from core.api.v1.schedule.rooms.schemas import RoomSchema
 from core.api.v1.schedule.subjects.schemas import SubjectSchema
 from core.api.v1.schedule.teachers.schemas import TeacherSchema
 from core.api.v1.schedule.timeslots.schemas import TimeslotSchema
-from core.apps.common.models import (
-    LessonType,
-    Subgroup,
-)
+from core.apps.common.models import LessonType
 from core.apps.schedule.entities.group import Group as GroupEntity
 from core.apps.schedule.entities.lesson import Lesson as LessonEntity
 
 
 class LessonForTeacherOutSchema(Schema):
-    id: int
+    uuid: str
     type: LessonType
     groups: list[GroupSchema]
-    subgroup: Subgroup
     subject: SubjectSchema
     room: RoomSchema
     timeslot: TimeslotSchema
@@ -29,10 +25,9 @@ class LessonForTeacherOutSchema(Schema):
     @classmethod
     def from_entity(cls, lesson: LessonEntity, groups: list[GroupEntity]) -> 'LessonForTeacherOutSchema':
         return cls(
-            id=lesson.id,
+            uuid=lesson.uuid,
             type=lesson.type,
             groups=groups,
-            subgroup=lesson.subgroup,
             room=lesson.room,
             timeslot=lesson.timeslot,
             teacher=lesson.teacher,

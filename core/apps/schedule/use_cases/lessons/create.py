@@ -19,24 +19,23 @@ class CreateLessonUseCase:
     def execute(
         self,
         lesson: LessonEntity,
-        subject_id: int,
-        teacher_id: int,
-        room_id: int,
+        subject_uuid: str,
+        teacher_uuid: str,
+        room_uuid: str,
         timeslot_id: int,
     ) -> LessonEntity:
 
-        subject = self.subject_service.get_subject_by_id(subject_id=subject_id)
-        teacher = self.teacher_service.get_teacher_by_id(teacher_id=teacher_id)
-        room = self.room_service.get_room_by_id(room_id=room_id)
+        subject = self.subject_service.get_subject_by_uuid(subject_uuid=subject_uuid)
+        teacher = self.teacher_service.get_teacher_by_uuid(teacher_uuid=teacher_uuid)
+        room = self.room_service.get_room_by_uuid(room_uuid=room_uuid)
         timeslot = self.timeslot_service.get_timeslot_by_id(timeslot_id=timeslot_id)
 
         lesson_entity = LessonEntity(
+            type=lesson.type,
             subject=subject,
             teacher=teacher,
             room=room,
             timeslot=timeslot,
-            type=lesson.type,
-            subgroup=lesson.subgroup,
         )
 
         existing_lesson: bool | LessonEntity = self.lesson_service.check_lesson_exists(lesson=lesson_entity)
@@ -46,6 +45,3 @@ class CreateLessonUseCase:
             return saved_lesson
         else:
             return existing_lesson
-
-
-

@@ -5,9 +5,9 @@ from core.apps.common.exceptions import ServiceException
 
 @dataclass(eq=False)
 class TeacherNotFoundException(ServiceException):
-    id: int
+    uuid: str
 
     @property
     def message(self):
-        return 'Teacher with provided id not found'
+        return 'Teacher with provided uuid not found'
 

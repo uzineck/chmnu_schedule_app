@@ -25,6 +25,7 @@ class Subject(TimedBaseModel):
     def to_entity(self) -> SubjectEntity:
         return SubjectEntity(
             id=self.id,
+            uuid=str(self.subject_uuid),
             title=self.title,
             slug=self.slug,
             created_at=self.created_at,

@@ -17,6 +17,7 @@ class BaseGroupValidatorService(ABC):
     def validate(
             self,
             group_number: str,
+            uuid: str | None = None,
             headman: ClientEntity | None = None,
     ):
         ...
@@ -27,7 +28,7 @@ class GroupAlreadyExistsValidatorService(BaseGroupValidatorService):
     group_service: BaseGroupService
 
     def validate(self, group_number: str, *args, **kwargs):
-        if self.group_service.check_group_exists(group_number=group_number):
+        if self.group_service.check_group_exists_by_number(group_number=group_number):
             raise GroupAlreadyExistsException(group_number=group_number)
 
 
@@ -48,7 +49,8 @@ class ComposedGroupValidatorService(BaseGroupValidatorService):
     def validate(
             self,
             group_number: str,
+            uuid: str | None = None,
             headman: ClientEntity | None = None,
     ):
         for validator in self.validators:
-            validator.validate(group_number=group_number, headman=headman)
+            validator.validate(group_number=group_number, uuid=uuid, headman=headman)

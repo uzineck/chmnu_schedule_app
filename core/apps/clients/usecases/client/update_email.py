@@ -17,6 +17,3 @@ class UpdateClientEmailUseCase:
         updated_client = self.client_service.update_email(client=client, email=new_email)
 
         return updated_client, self.client_service.generate_token(client=updated_client)
-
-
-

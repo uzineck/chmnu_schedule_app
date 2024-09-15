@@ -5,8 +5,8 @@ from core.apps.common.exceptions import ServiceException
 
 @dataclass(eq=False)
 class LessonNotFoundException(ServiceException):
-    lesson_id: int
+    uuid: str
 
     @property
     def message(self):
-        return 'Lesson with provided id not found'
+        return f'Lesson with provided uuid not found ({self.uuid})'

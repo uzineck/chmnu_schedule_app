@@ -45,7 +45,7 @@ def get_teacher_list(
         pagination_in: Query[PaginationIn],
 ) -> ApiResponse[ListPaginatedResponse[TeacherSchema]]:
     container = get_container()
-    service = container.resolve(BaseTeacherService)
+    service: BaseTeacherService = container.resolve(BaseTeacherService)
     try:
         teacher_list = service.get_teacher_list(
             filters=TeacherFilterEntity(
@@ -78,16 +78,16 @@ def get_teacher_list(
 
 
 @router.get(
-    "{teacher_id}/lessons",
+    "{teacher_uuid}/lessons",
     response=ApiResponse[TeacherLessonsOutSchema],
     operation_id="get_lessons_for_teacher",
 )
-def get_lessons_for_teacher(request: HttpRequest, teacher_id: Query[int]) -> ApiResponse[TeacherLessonsOutSchema]:
+def get_lessons_for_teacher(request: HttpRequest, teacher_uuid: Query[str]) -> ApiResponse[TeacherLessonsOutSchema]:
     container = get_container()
     use_case: GetLessonsForTeacherUseCase = container.resolve(GetLessonsForTeacherUseCase)
     try:
         teacher, lessons, groups = use_case.execute(
-            teacher_id=teacher_id,
+            teacher_uuid=teacher_uuid,
         )
 
         items = []
@@ -138,21 +138,21 @@ def get_or_create_teacher(request: HttpRequest, schema: TeacherInSchema) -> ApiR
 
 
 @router.patch(
-    "{teacher_id}/update",
+    "{teacher_uuid}/update",
     response=ApiResponse[TeacherSchema],
     operation_id="update_teacher",
     auth=jwt_bearer_admin,
 )
 def update_teacher(
         request: HttpRequest,
-        teacher_id: int,
+        teacher_uuid: str,
         schema: TeacherInSchema,
 ) -> ApiResponse[TeacherSchema]:
     container = get_container()
     service = container.resolve(BaseTeacherService)
     try:
-        teacher = service.update_teacher_by_id(
-            teacher_id=teacher_id,
+        teacher = service.update_teacher_by_uuid(
+            teacher_uuid=teacher_uuid,
             first_name=schema.first_name,
             last_name=schema.last_name,
             middle_name=schema.middle_name,
@@ -170,20 +170,20 @@ def update_teacher(
 
 
 @router.patch(
-    "{teacher_id}/add_subjects",
+    "{teacher_uuid}/add_subjects",
     response=ApiResponse[TeacherSchema],
     operation_id="add_teacher_subjects",
     auth=jwt_bearer_admin,
 )
 def add_teacher_subjects(
         request: HttpRequest,
-        teacher_id: int,
+        teacher_uuid: str,
         schema: TeacherUpdateSubjectsInSchema,
 ) -> ApiResponse[TeacherSchema]:
     container = get_container()
     service = container.resolve(BaseTeacherService)
     try:
-        teacher = service.add_teacher_subject(teacher_id=teacher_id, subject_id=schema.subject_id)
+        teacher = service.add_teacher_subject(teacher_uuid=teacher_uuid, subject_uuid=schema.subject_id)
     except ServiceException as e:
         raise HttpError(
             status_code=401,
@@ -196,20 +196,20 @@ def add_teacher_subjects(
 
 
 @router.patch(
-    "{teacher_id}/remove_subjects",
+    "{teacher_uuid}/remove_subjects",
     response=ApiResponse[TeacherSchema],
     operation_id="remove_teacher_subjects",
     auth=jwt_bearer_admin,
 )
 def remove_teacher_subjects(
         request: HttpRequest,
-        teacher_id: int,
+        teacher_uuid: str,
         schema: TeacherUpdateSubjectsInSchema,
 ) -> ApiResponse[TeacherSchema]:
     container = get_container()
     service = container.resolve(BaseTeacherService)
     try:
-        teacher = service.remove_teacher_subject(teacher_id=teacher_id, subject_id=schema.subject_id)
+        teacher = service.remove_teacher_subject(teacher_uuid=teacher_uuid, subject_uuid=schema.subject_id)
     except ServiceException as e:
         raise HttpError(
             status_code=401,

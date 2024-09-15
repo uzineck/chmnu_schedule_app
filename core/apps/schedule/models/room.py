@@ -27,6 +27,7 @@ class Room(TimedBaseModel):
     def to_entity(self) -> RoomEntity:
         return RoomEntity(
             id=self.id,
+            uuid=str(self.room_uuid),
             number=self.number,
             description=self.description,
             created_at=self.created_at,

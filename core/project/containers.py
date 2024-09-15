@@ -37,6 +37,10 @@ from core.apps.schedule.services.group import (
     BaseGroupService,
     ORMGroupService,
 )
+from core.apps.schedule.services.group_lessons import (
+    BaseGroupLessonService,
+    ORMGroupLessonService,
+)
 from core.apps.schedule.services.lesson import (
     BaseLessonService,
     ORMLessonService,
@@ -172,6 +176,7 @@ def _initialize_container() -> punq.Container:
     container.register(HeadmanAddLessonToGroupUseCase)
     container.register(HeadmanRemoveLessonFromGroupUseCase)
 
+    # GroupLesson containers
+    container.register(BaseGroupLessonService, ORMGroupLessonService)
+
     return container
-
-

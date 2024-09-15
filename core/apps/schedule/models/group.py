@@ -31,11 +31,13 @@ class Group(TimedBaseModel):
         on_delete=models.SET_NULL,
     )
 
-    def to_entity(self):
+    def to_entity(self) -> GroupEntity:
         return GroupEntity(
+            id=self.id,
+            uuid=str(self.group_uuid),
             number=self.number,
             has_subgroups=self.has_subgroups,
-            headman=self.headman,
+            headman=self.headman.to_entity(),
             created_at=self.created_at,
             updated_at=self.updated_at,
         )

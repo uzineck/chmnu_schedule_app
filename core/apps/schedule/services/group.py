@@ -8,7 +8,10 @@ from typing import Iterable
 
 from core.apps.clients.entities.client import Client as ClientEntity
 from core.apps.schedule.entities.group import Group as GroupEntity
-from core.apps.schedule.exceptions.group import GroupNotFoundException
+from core.apps.schedule.exceptions.group import (
+    GroupNumberNotFoundException,
+    GroupUuidNotFoundException,
+)
 from core.apps.schedule.filters.group import GroupFilter
 from core.apps.schedule.models.group import Group as GroupModel
 
@@ -28,7 +31,15 @@ class BaseGroupService(ABC):
         ...
 
     @abstractmethod
-    def check_group_exists(self, group_number: str) -> bool:
+    def get_group_by_uuid(self, group_uuid: str) -> GroupEntity:
+        ...
+
+    @abstractmethod
+    def check_group_exists_by_number(self, group_number: str) -> bool:
+        ...
+
+    @abstractmethod
+    def check_group_exists_by_uuid(self, group_uuid: str) -> bool:
         ...
 
     @abstractmethod
@@ -51,29 +62,16 @@ class BaseGroupService(ABC):
     def get_groups_from_lesson(self, lesson_id: int) -> Iterable[GroupEntity]:
         ...
 
-    @abstractmethod
-    def add_lesson(self, group_number: str, lesson_id: int) -> GroupEntity:
-        ...
-
-    @abstractmethod
-    def remove_lesson(self, group_number: str, lesson_id: int) -> GroupEntity:
-        ...
-
 
 class ORMGroupService(BaseGroupService):
 
     def _build_lesson_query(self, filters: GroupFilter) -> Q:
         query = Q()
-        print(filters)
 
         if filters.subgroup is not None:
-            print(filters.subgroup)
-            query &= Q(subgroup=filters.subgroup)
-            print(query)
+            query &= Q(group_lessons_lesson__subgroup=filters.subgroup)
         if filters.is_even is not None:
-            print(filters.is_even)
             query &= Q(timeslot__is_even=filters.is_even)
-            print(query)
 
         return query
 
@@ -95,12 +93,23 @@ class ORMGroupService(BaseGroupService):
         try:
             group = GroupModel.objects.get(number=group_number)
         except GroupModel.DoesNotExist:
-            raise GroupNotFoundException(group_number=group_number)
+            raise GroupNumberNotFoundException(group_number=group_number)
 
         return group.to_entity()
 
-    def check_group_exists(self, group_number: str) -> bool:
+    def get_group_by_uuid(self, group_uuid: str) -> GroupEntity:
+        try:
+            group = GroupModel.objects.get(group_uuid=group_uuid)
+        except GroupModel.DoesNotExist:
+            raise GroupUuidNotFoundException(uuid=group_uuid)
+
+        return group.to_entity()
+
+    def check_group_exists_by_number(self, group_number: str) -> bool:
         return GroupModel.objects.filter(number=group_number).exists()
+
+    def check_group_exists_by_uuid(self, group_uuid: str) -> bool:
+        return GroupModel.objects.filter(group_uuid=group_uuid).exists()
 
     def update_group_headman(self, group: GroupEntity, headman: ClientEntity) -> GroupEntity:
         GroupModel.objects.filter(number=group.number).update(headman_id=headman.id)
@@ -110,7 +119,7 @@ class ORMGroupService(BaseGroupService):
     def get_group_from_headman(self, headman: ClientEntity) -> GroupEntity:
         group = GroupModel.objects.filter(headman__email=headman.email).first()
 
-        return group
+        return group.to_entity()
 
     def get_qs_for_group(self, filters: GroupFilter) -> Q:
         query = self._build_lesson_query(filters)
@@ -118,7 +127,7 @@ class ORMGroupService(BaseGroupService):
         return query
 
     def get_groups_from_lesson(self, lesson_id: int) -> Iterable[GroupEntity]:
-        groups = GroupModel.objects.filter(lessons__id=lesson_id)
+        groups = GroupModel.objects.filter(group_lessons_group__lesson_id=lesson_id)
 
         return [group.to_entity() for group in groups]
 
@@ -127,23 +136,3 @@ class ORMGroupService(BaseGroupService):
 
         for group in groups:
             yield group.to_entity()
-
-    def add_lesson(self, group_number: str, lesson_id: int) -> GroupEntity:
-        try:
-            group = GroupModel.objects.get(number=group_number)
-        except GroupModel.DoesNotExist:
-            raise GroupNotFoundException(group_number=group_number)
-
-        group.lessons.add(lesson_id)
-
-        return group.to_entity()
-
-    def remove_lesson(self, group_number: str, lesson_id: int) -> GroupEntity:
-        try:
-            group = GroupModel.objects.get(number=group_number)
-        except GroupModel.DoesNotExist:
-            raise GroupNotFoundException(group_number=group_number)
-
-        group.lessons.remove(lesson_id)
-
-        return group.to_entity()

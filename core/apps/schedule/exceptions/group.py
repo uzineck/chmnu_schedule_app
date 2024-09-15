@@ -4,12 +4,21 @@ from core.apps.common.exceptions import ServiceException
 
 
 @dataclass(eq=False)
-class GroupNotFoundException(ServiceException):
+class GroupNumberNotFoundException(ServiceException):
     group_number: str
 
     @property
     def message(self):
         return 'Group with provided number not found'
+
+
+@dataclass(eq=False)
+class GroupUuidNotFoundException(ServiceException):
+    uuid: str
+
+    @property
+    def message(self):
+        return 'Group with provided uuid not found'
 
 
 @dataclass(eq=False)

@@ -15,9 +15,9 @@ class GetLessonsForTeacherUseCase:
     group_service: BaseGroupService
     lesson_service: BaseLessonService
 
-    def execute(self, teacher_id: int) -> tuple[TeacherEntity, Iterable[LessonEntity], dict[int, [GroupEntity]]]:
-        teacher = self.teacher_service.get_teacher_by_id(teacher_id=teacher_id)
-        lessons = self.lesson_service.get_lessons_for_teacher(teacher_id=teacher_id)
+    def execute(self, teacher_uuid: str) -> tuple[TeacherEntity, Iterable[LessonEntity], dict[int, [GroupEntity]]]:
+        teacher = self.teacher_service.get_teacher_by_uuid(teacher_uuid=teacher_uuid)
+        lessons = self.lesson_service.get_lessons_for_teacher(teacher_id=teacher.id)
         groups = {}
         for lesson in lessons:
             groups[lesson.id] = self.group_service.get_groups_from_lesson(lesson_id=lesson.id)

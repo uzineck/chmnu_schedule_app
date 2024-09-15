@@ -6,35 +6,30 @@ from core.api.v1.schedule.rooms.schemas import RoomSchema
 from core.api.v1.schedule.subjects.schemas import SubjectSchema
 from core.api.v1.schedule.teachers.schemas import TeacherSchema
 from core.api.v1.schedule.timeslots.schemas import TimeslotSchema
-from core.apps.common.models import (
-    LessonType,
-    Subgroup,
-)
+from core.apps.common.models import LessonType
 from core.apps.schedule.entities.lesson import Lesson as LessonEntity
 
 
 class LessonInSchema(Schema):
     type: LessonType
-    subgroup: Subgroup
 
     def to_entity(self):
-        return LessonEntity(type=self.type, subgroup=self.subgroup)
+        return LessonEntity(type=self.type)
 
     class Config:
-        models = LessonType, Subgroup
+        models = LessonType
 
 
 class CreateLessonInSchema(Schema):
-    subject_id: int
-    teacher_id: int
-    room_id: int
+    subject_uuid: str
+    teacher_uuid: str
+    room_uuid: str
     timeslot_id: int
 
 
 class LessonForGroupOutSchema(Schema):
-    id: int
+    uuid: str
     type: LessonType
-    subgroup: Subgroup
     subject: SubjectSchema
     teacher: TeacherSchema
     room: RoomSchema
@@ -45,13 +40,12 @@ class LessonForGroupOutSchema(Schema):
     @classmethod
     def from_entity(cls, lesson: LessonEntity) -> 'LessonForGroupOutSchema':
         return cls(
-            id=lesson.id,
+            uuid=lesson.uuid,
             type=lesson.type,
-            subgroup=lesson.subgroup,
+            subject=lesson.subject,
+            teacher=lesson.teacher,
             room=lesson.room,
             timeslot=lesson.timeslot,
-            teacher=lesson.teacher,
-            subject=lesson.subject,
             created_at=lesson.created_at,
             updated_at=lesson.updated_at,
         )

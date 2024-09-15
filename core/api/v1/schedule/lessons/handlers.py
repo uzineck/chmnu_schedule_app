@@ -29,9 +29,9 @@ def create_lesson(
     try:
         lesson = use_case.execute(
             lesson=lesson_schema.to_entity(),
-            subject_id=schema.subject_id,
-            teacher_id=schema.teacher_id,
-            room_id=schema.room_id,
+            subject_uuid=schema.subject_uuid,
+            teacher_uuid=schema.teacher_uuid,
+            room_uuid=schema.room_uuid,
             timeslot_id=schema.timeslot_id,
         )
     except ServiceException as e:

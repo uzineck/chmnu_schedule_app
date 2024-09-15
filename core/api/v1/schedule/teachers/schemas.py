@@ -5,7 +5,7 @@ from core.apps.schedule.entities.teacher import Teacher as TeacherEntity
 
 
 class TeacherSchema(Schema):
-    id: int
+    uuid: str
     last_name: str
     first_name: str
     middle_name: str
@@ -14,7 +14,7 @@ class TeacherSchema(Schema):
     @classmethod
     def from_entity(cls, entity: TeacherEntity) -> 'TeacherSchema':
         return cls(
-            id=entity.id,
+            uuid=entity.uuid,
             last_name=entity.last_name,
             first_name=entity.first_name,
             middle_name=entity.middle_name,
@@ -30,4 +30,4 @@ class TeacherInSchema(Schema):
 
 
 class TeacherUpdateSubjectsInSchema(Schema):
-    subject_id: int
+    subject_uuid: str

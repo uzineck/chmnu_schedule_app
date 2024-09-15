@@ -13,21 +13,22 @@ class SubjectNotFoundException(ServiceException):
 
 
 @dataclass(eq=False)
-class SubjectIdNotFoundException(ServiceException):
-    subject_id: int
+class SubjectUuidNotFoundException(ServiceException):
+    uuid: str
 
     @property
     def message(self):
-        return f'Subject with provided id not found ID({self.subject_id})'
+        return f'Subject with provided id not found ID({self.uuid})'
 
 
 @dataclass(eq=False)
 class SubjectAlreadyExistException(ServiceException):
+    uuid: str
     title: str
 
     @property
     def message(self):
-        return 'Subject with provided title already exists'
+        return 'Subject with provided uuid(title) already exists'
 
 
 

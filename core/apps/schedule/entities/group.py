@@ -3,18 +3,19 @@ from dataclasses import (
     field,
 )
 from datetime import datetime
-from typing import Iterable
 
-from core.apps.clients.entities.client import Client
-from core.apps.common.constants import EntityStatus
-from core.apps.schedule.entities.lesson import Lesson as LessonEntity
+from core.apps.clients.entities.client import Client as ClientEntity
+from core.apps.common.factory import get_new_uuid
+from core.apps.common.models import Subgroup
 
 
 @dataclass
 class Group:
-    number: str
+    id: int | None = field(default=None, kw_only=True)  # noqa
+    uuid: str | None = field(default_factory=get_new_uuid, kw_only=True)
+    number: str | None = field(default=None, kw_only=True)
+    headman: ClientEntity | None = field(default=None, kw_only=True)
     has_subgroups: bool = field(default=True, kw_only=True)
-    headman: Client | None = field(default=None, kw_only=True)
-    lessons: Iterable[LessonEntity] | EntityStatus = field(default=EntityStatus.NOT_LOADED, kw_only=True)
-    created_at: datetime
-    updated_at: datetime
+    subgroup: Subgroup | None = field(default=None, kw_only=True)
+    created_at: datetime = field(default_factory=datetime.utcnow)
+    updated_at: datetime | None = field(default=None)

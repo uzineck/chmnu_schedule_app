@@ -13,10 +13,10 @@ class GetGroupLessonsUseCase:
     group_service: BaseGroupService
     lesson_service: BaseLessonService
 
-    def execute(self, group_number: str, filters: GroupFilter) -> tuple[GroupEntity, Iterable[LessonEntity]]:
-        group = self.group_service.get_group_by_number(group_number=group_number)
+    def execute(self, group_uuid: str, filters: GroupFilter) -> tuple[GroupEntity, Iterable[LessonEntity]]:
+        group = self.group_service.get_group_by_uuid(group_uuid=group_uuid)
         group_qs = self.group_service.get_qs_for_group(filters=filters)
-        lessons = self.lesson_service.get_lessons_for_group(group_number=group_number, group_query=group_qs)
+        lessons = self.lesson_service.get_lessons_for_group(group_id=group.id, group_query=group_qs)
         return group, lessons
 
 

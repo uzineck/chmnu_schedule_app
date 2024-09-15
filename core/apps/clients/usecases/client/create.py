@@ -38,5 +38,3 @@ class CreateClientUseCase:
             email=email,
             hashed_password=hashed_password,
         )
-
-

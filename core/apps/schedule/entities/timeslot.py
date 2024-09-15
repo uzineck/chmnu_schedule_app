@@ -1,13 +1,21 @@
-from dataclasses import dataclass
+from dataclasses import (
+    dataclass,
+    field,
+)
 from datetime import datetime
+
+from core.apps.common.models import (
+    Day,
+    OrdinaryNumber,
+)
 
 
 @dataclass
 class Timeslot:
-    id: int
-    day: str
-    ord_number: int
-    is_even: bool
-    created_at: datetime
-    updated_at: datetime
+    id: int | None = field(default=None, kw_only=True) # noqa
+    day: Day | None = field(default=None, kw_only=True)
+    ord_number: OrdinaryNumber | None = field(default=None, kw_only=True)
+    is_even: bool | None = field(default=None, kw_only=True)
+    created_at: datetime = field(default_factory=datetime.utcnow)
+    updated_at: datetime | None = field(default=None)
 

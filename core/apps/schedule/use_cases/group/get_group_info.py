@@ -8,5 +8,5 @@ from core.apps.schedule.services.group import BaseGroupService
 class GetGroupInfoUseCase:
     group_service: BaseGroupService
 
-    def execute(self, group_number: str) -> GroupEntity:
-        return self.group_service.get_group_by_number(group_number=group_number)
+    def execute(self, group_uuid: str) -> GroupEntity:
+        return self.group_service.get_group_by_uuid(group_uuid=group_uuid)

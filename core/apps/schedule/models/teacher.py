@@ -45,11 +45,13 @@ class Teacher(TimedBaseModel):
     def to_entity(self) -> TeacherEntity:
         return TeacherEntity(
             id=self.id,
+            uuid=str(self.teacher_uuid),
             first_name=self.first_name,
             last_name=self.last_name,
             middle_name=self.middle_name,
             rank=self.rank,
             subjects=self.subjects,
+            is_active=self.is_active,
             created_at=self.created_at,
             updated_at=self.updated_at,
         )
@@ -60,4 +62,3 @@ class Teacher(TimedBaseModel):
     class Meta:
         verbose_name = "Teacher"
         verbose_name_plural = "Teachers"
-

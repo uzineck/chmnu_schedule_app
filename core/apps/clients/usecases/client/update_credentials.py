@@ -18,5 +18,3 @@ class UpdateClientCredentialsUseCase:
         )
 
         return updated_client
-
-

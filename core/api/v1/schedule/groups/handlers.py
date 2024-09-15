@@ -7,17 +7,20 @@ from ninja.errors import HttpError
 
 from typing import Union
 
-from core.api.schemas import ApiResponse
+from core.api.schemas import (
+    ApiResponse,
+    StatusResponse,
+)
 from core.api.v1.clients.schemas import (
     ClientEmailInSchema,
-    ClientSchema,
+    ClientSchemaPrivate,
 )
 from core.api.v1.schedule.groups.filters import GroupFilter
 from core.api.v1.schedule.groups.schemas import (
     CreateGroupSchema,
     GroupLessonsOutSchema,
-    GroupNumberOnlyOutSchema,
     GroupSchemaWithHeadman,
+    GroupUuidNumberOutSchema,
     UpdateGroupHeadmanSchema,
 )
 from core.apps.clients.services.client import BaseClientService
@@ -30,6 +33,7 @@ from core.apps.common.exceptions import (
     JWTKeyParsingException,
     ServiceException,
 )
+from core.apps.common.models import Subgroup
 from core.apps.schedule.filters.group import GroupFilter as GroupFilterEntity
 from core.apps.schedule.services.group import BaseGroupService
 from core.apps.schedule.use_cases.group.admin_add_lesson_to_group import AdminAddLessonToGroupUseCase
@@ -56,7 +60,7 @@ def get_all_groups(request: HttpRequest) -> ApiResponse:
     container = get_container()
     service: BaseGroupService = container.resolve(BaseGroupService)
     groups = service.get_all_groups()
-    items = [GroupNumberOnlyOutSchema.from_entity(group) for group in groups]
+    items = [GroupUuidNumberOutSchema.from_entity(group) for group in groups]
 
     return ApiResponse(
         data=items,
@@ -70,14 +74,14 @@ def get_all_groups(request: HttpRequest) -> ApiResponse:
 )
 def get_group_lessons(
         request: HttpRequest,
-        group_number: str,
+        group_uuid: str,
         filters: Query[GroupFilter],
 ) -> ApiResponse[GroupLessonsOutSchema]:
     container = get_container()
     use_case: GetGroupLessonsUseCase = container.resolve(GetGroupLessonsUseCase)
     try:
         group, lessons = use_case.execute(
-            group_number=group_number,
+            group_uuid=group_uuid,
             filters=GroupFilterEntity(
                 subgroup=filters.subgroup,
                 is_even=filters.is_even,
@@ -96,20 +100,20 @@ def get_group_lessons(
 
 
 @router.get(
-    "info",
+    "{group_uuid}/info",
     response=ApiResponse[GroupSchemaWithHeadman],
     operation_id="get_group_info",
     auth=jwt_bearer_admin,
 )
 def get_group_info(
         request: HttpRequest,
-        group_number: Query[str],
+        group_uuid: Query[str],
 ) -> ApiResponse[GroupSchemaWithHeadman]:
     container = get_container()
     use_case: GetGroupInfoUseCase = container.resolve(GetGroupInfoUseCase)
 
     try:
-        group = use_case.execute(group_number=group_number)
+        group = use_case.execute(group_uuid=group_uuid)
     except ServiceException as e:
         raise HttpError(
             status_code=401,
@@ -123,14 +127,14 @@ def get_group_info(
 
 @router.post(
     "get_headman_info",
-    response=ApiResponse[Union[GroupSchemaWithHeadman, ClientSchema]],
+    response=ApiResponse[Union[GroupSchemaWithHeadman, ClientSchemaPrivate]],
     operation_id='get_headman_info',
     auth=jwt_bearer_admin,
 )
 def get_headman_info(
         request: HttpRequest,
         schema: ClientEmailInSchema,
-) -> ApiResponse[Union[GroupSchemaWithHeadman, ClientSchema]]:
+) -> ApiResponse[Union[GroupSchemaWithHeadman, ClientSchemaPrivate]]:
     container = get_container()
     use_case: GetHeadmanInfoUseCase = container.resolve(GetHeadmanInfoUseCase)
     try:
@@ -144,7 +148,7 @@ def get_headman_info(
         )
     if group is None:
         return ApiResponse(
-            data=ClientSchema.from_entity(client=headman),
+            data=ClientSchemaPrivate.from_entity(client=headman),
         )
     else:
         return ApiResponse(
@@ -199,47 +203,50 @@ def update_group_headman(request: HttpRequest, schema: UpdateGroupHeadmanSchema)
 
 
 @router.patch(
-    '{group_number}/add/{lesson_id}',
-    response=ApiResponse[GroupLessonsOutSchema],
+    '{group_uuid}/add/{lesson_uuid}',
+    response=ApiResponse[StatusResponse],
     operation_id='add_lesson_to_group_admin',
     auth=jwt_bearer_admin,
 )
 def add_lesson_to_group_admin(
         request: HttpRequest,
-        group_number: str,
-        lesson_id: int,
+        group_uuid: str,
+        subgroup: Subgroup,
+        lesson_uuid: str,
 ) -> ApiResponse[GroupLessonsOutSchema]:
     container = get_container()
     use_case: AdminAddLessonToGroupUseCase = container.resolve(AdminAddLessonToGroupUseCase)
     try:
-        group = use_case.execute(group_number=group_number, lesson_id=lesson_id)
+        group = use_case.execute(group_uuid=group_uuid, subgroup=subgroup, lesson_uuid=lesson_uuid)
     except ServiceException as e:
         raise HttpError(
             status_code=404,
             message=e.message,
         )
+    print(group)
 
     return ApiResponse(
-        data=GroupLessonsOutSchema.from_entity(entity=group),
+        data=StatusResponse(status='added successfully'),
     )
 
 
 @router.patch(
-    '{group_number}/remove/{lesson_id}',
-    response=ApiResponse[GroupLessonsOutSchema],
+    '{group_uuid}/remove/{lesson_uuid}',
+    response=ApiResponse[StatusResponse],
     operation_id='remove_lesson_from_group_admin',
     auth=jwt_bearer_admin,
 )
 def remove_lesson_from_group_admin(
         request: HttpRequest,
-        group_number: str,
-        lesson_id: int,
-) -> ApiResponse[GroupLessonsOutSchema]:
+        group_uuid: str,
+        subgroup: Subgroup,
+        lesson_uuid: str,
+) -> ApiResponse[StatusResponse]:
     container = get_container()
     use_case: AdminRemoveLessonFromGroupUseCase = container.resolve(AdminRemoveLessonFromGroupUseCase)
 
     try:
-        group = use_case.execute(group_number=group_number, lesson_id=lesson_id)
+        use_case.execute(group_uuid=group_uuid, subgroup=subgroup, lesson_uuid=lesson_uuid)
     except ServiceException as e:
         raise HttpError(
             status_code=404,
@@ -247,17 +254,17 @@ def remove_lesson_from_group_admin(
         )
 
     return ApiResponse(
-        data=GroupLessonsOutSchema.from_entity(entity=group),
+        data=StatusResponse(status="Object deleted successfully"),
     )
 
 
 @router.patch(
-    'add/{lesson_id}',
+    'add/{lesson_uuid}',
     response=ApiResponse[GroupLessonsOutSchema],
     operation_id='add_lesson_to_group_headman',
     auth=jwt_bearer_headman,
 )
-def add_lesson_to_group_headman(request: HttpRequest, lesson_id: int) -> ApiResponse[GroupLessonsOutSchema]:
+def add_lesson_to_group_headman(request: HttpRequest, lesson_uuid: str) -> ApiResponse[GroupLessonsOutSchema]:
     container = get_container()
     client_service = container.resolve(BaseClientService)
     use_case: HeadmanAddLessonToGroupUseCase = container.resolve(HeadmanAddLessonToGroupUseCase)
@@ -272,7 +279,7 @@ def add_lesson_to_group_headman(request: HttpRequest, lesson_id: int) -> ApiResp
         )
 
     try:
-        group = use_case.execute(headman_email=user_email, lesson_id=lesson_id)
+        group = use_case.execute(headman_email=user_email, lesson_uuid=lesson_uuid)
     except ServiceException as e:
         raise HttpError(
             status_code=404,
@@ -285,12 +292,12 @@ def add_lesson_to_group_headman(request: HttpRequest, lesson_id: int) -> ApiResp
 
 
 @router.patch(
-    'remove/{lesson_id}',
+    'remove/{lesson_uuid}',
     response=ApiResponse[GroupLessonsOutSchema],
     operation_id='remove_lesson_to_group_headman',
     auth=jwt_bearer_headman,
 )
-def remove_lesson_to_group_headman(request: HttpRequest, lesson_id: int) -> ApiResponse[GroupLessonsOutSchema]:
+def remove_lesson_to_group_headman(request: HttpRequest, lesson_uuid: str) -> ApiResponse[GroupLessonsOutSchema]:
     container = get_container()
     client_service = container.resolve(BaseClientService)
     use_case: HeadmanRemoveLessonFromGroupUseCase = container.resolve(HeadmanRemoveLessonFromGroupUseCase)
@@ -305,7 +312,7 @@ def remove_lesson_to_group_headman(request: HttpRequest, lesson_id: int) -> ApiR
         )
 
     try:
-        group = use_case.execute(headman_email=user_email, lesson_id=lesson_id)
+        group = use_case.execute(headman_email=user_email, lesson_uuid=lesson_uuid)
     except ServiceException as e:
         raise HttpError(
             status_code=404,

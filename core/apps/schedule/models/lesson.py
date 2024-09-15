@@ -52,11 +52,12 @@ class Lesson(TimedBaseModel):
     def to_entity(self) -> LessonEntity:
         return LessonEntity(
             id=self.id,
-            subject=self.subject,
-            teacher=self.teacher,
-            room=self.room,
-            timeslot=self.timeslot,
+            uuid=str(self.lesson_uuid),
             type=self.type,
+            subject=self.subject.to_entity(),
+            teacher=self.teacher.to_entity(),
+            room=self.room.to_entity(),
+            timeslot=self.timeslot.to_entity(),
             created_at=self.created_at,
             updated_at=self.updated_at,
         )
@@ -65,6 +66,7 @@ class Lesson(TimedBaseModel):
     def from_entity(cls, lesson: LessonEntity) -> 'Lesson':
         return cls(
             id=lesson.id,
+            lesson_uuid=lesson.uuid,
             subject_id=lesson.subject.id,
             teacher_id=lesson.teacher.id,
             timeslot_id=lesson.timeslot.id,

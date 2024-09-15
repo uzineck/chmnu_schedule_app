@@ -18,6 +18,7 @@ from core.api.schemas import (
 from core.api.v1.schedule.rooms.schemas import (
     RoomDescriptionUpdateInSchema,
     RoomNumberInSchema,
+    RoomNumberUpdateInSchema,
     RoomSchema,
 )
 from core.apps.common.authentication.bearer import jwt_bearer_admin
@@ -41,7 +42,7 @@ def get_room_list(
     pagination_in: Query[PaginationIn],
 ) -> ApiResponse[ListPaginatedResponse[RoomSchema]]:
     container = get_container()
-    service = container.resolve(BaseRoomService)
+    service: BaseRoomService = container.resolve(BaseRoomService)
     try:
         room_list = service.get_room_list(
             filters=SearchFilterEntity(search=filters.search),
@@ -78,9 +79,9 @@ def get_room_list(
 )
 def get_or_create_room(request: HttpRequest, schema: RoomNumberInSchema) -> ApiResponse[RoomSchema]:
     container = get_container()
-    service = container.resolve(BaseRoomService)
+    service: BaseRoomService = container.resolve(BaseRoomService)
     try:
-        room = service.create(number=schema.number)
+        room = service.get_or_create(number=schema.number)
     except ServiceException as e:
         raise HttpError(
             status_code=401,
@@ -100,13 +101,12 @@ def get_or_create_room(request: HttpRequest, schema: RoomNumberInSchema) -> ApiR
 )
 def update_room_number(
     request: HttpRequest,
-    room_number: str,
-    schema: RoomNumberInSchema,
+    schema: RoomNumberUpdateInSchema,
 ) -> ApiResponse[RoomSchema]:
     container = get_container()
-    service = container.resolve(BaseRoomService)
+    service: BaseRoomService = container.resolve(BaseRoomService)
     try:
-        room = service.update_room_number(number=room_number, new_number=schema.number)
+        room = service.update_room_number(room_uuid=schema.room_uuid, new_number=schema.new_room_number)
     except ServiceException as e:
         raise HttpError(
             status_code=401,
@@ -119,20 +119,19 @@ def update_room_number(
 
 
 @router.patch(
-    "{room_number}/change_description",
+    "{room_uuid}/change_description",
     response=ApiResponse[RoomSchema],
     operation_id="update_room_description",
     auth=jwt_bearer_admin,
 )
 def update_room_description(
     request: HttpRequest,
-    room_number: str,
     schema: RoomDescriptionUpdateInSchema,
 ) -> ApiResponse[RoomSchema]:
     container = get_container()
-    service = container.resolve(BaseRoomService)
+    service: BaseRoomService = container.resolve(BaseRoomService)
     try:
-        room = service.update_room_description(number=room_number, description=schema.description)
+        room = service.update_room_description(room_uuid=schema.room_uuid, description=schema.description)
     except ServiceException as e:
         raise HttpError(
             status_code=401,
@@ -145,15 +144,15 @@ def update_room_description(
 
 
 @router.delete(
-    "{room_number}", response=ApiResponse[StatusResponse],
-    operation_id="delete_room_by_number",
+    "{room_uuid}", response=ApiResponse[StatusResponse],
+    operation_id="delete_room_by_uuid",
     auth=jwt_bearer_admin,
 )
-def delete_room(request: HttpRequest, room_number: str) -> ApiResponse[StatusResponse]:
+def delete_room(request: HttpRequest, room_uuid: str) -> ApiResponse[StatusResponse]:
     container = get_container()
-    service = container.resolve(BaseRoomService)
+    service: BaseRoomService = container.resolve(BaseRoomService)
     try:
-        service.delete_room_by_number(number=room_number)
+        service.delete_room_by_uuid(room_uuid=room_uuid)
     except ServiceException as e:
         raise HttpError(
             status_code=401,

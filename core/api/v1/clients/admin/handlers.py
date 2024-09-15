@@ -4,7 +4,7 @@ from ninja.errors import HttpError
 
 from core.api.schemas import ApiResponse
 from core.api.v1.clients.schemas import (
-    ClientSchema,
+    ClientSchemaPrivate,
     SignUpInSchema,
     TokenOutSchema,
     UpdateRoleInSchema,
@@ -19,8 +19,8 @@ from core.project.containers import get_container
 router = Router(tags=["Admin"])
 
 
-@router.post("sign-up", response=ApiResponse[ClientSchema], operation_id='sign_up', auth=jwt_bearer_admin)
-def sign_up_handler(request: HttpRequest, schema: SignUpInSchema) -> ApiResponse[ClientSchema]:
+@router.post("sign-up", response=ApiResponse[ClientSchemaPrivate], operation_id='sign_up', auth=jwt_bearer_admin)
+def sign_up_handler(request: HttpRequest, schema: SignUpInSchema) -> ApiResponse[ClientSchemaPrivate]:
     container = get_container()
     use_case = container.resolve(CreateClientUseCase)
     try:
@@ -40,7 +40,7 @@ def sign_up_handler(request: HttpRequest, schema: SignUpInSchema) -> ApiResponse
         )
 
     return ApiResponse(
-        data=ClientSchema.from_entity(client=client),
+        data=ClientSchemaPrivate.from_entity(client=client),
     )
 
 

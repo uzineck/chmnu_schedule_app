@@ -18,6 +18,7 @@ from core.api.schemas import (
 from core.api.v1.schedule.subjects.schemas import (
     SubjectInSchema,
     SubjectSchema,
+    UpdateSubjectTitleSchema,
 )
 from core.apps.common.authentication.bearer import jwt_bearer_admin
 from core.apps.common.exceptions import ServiceException
@@ -40,7 +41,7 @@ def get_subject_list(
     pagination_in: Query[PaginationIn],
 ) -> ApiResponse[ListPaginatedResponse[SubjectSchema]]:
     container = get_container()
-    service = container.resolve(BaseSubjectService)
+    service: BaseSubjectService = container.resolve(BaseSubjectService)
     try:
         subject_list = service.get_subject_list(
             filters=SearchFiltersEntity(search=filters.search),
@@ -77,9 +78,9 @@ def get_subject_list(
 )
 def get_or_create_subject(request: HttpRequest, schema: SubjectInSchema) -> ApiResponse[SubjectSchema]:
     container = get_container()
-    service = container.resolve(BaseSubjectService)
+    service: BaseSubjectService = container.resolve(BaseSubjectService)
     try:
-        subject = service.create(title=schema.title)
+        subject = service.get_or_create(title=schema.title)
     except ServiceException as e:
         raise HttpError(
             status_code=401,
@@ -92,16 +93,16 @@ def get_or_create_subject(request: HttpRequest, schema: SubjectInSchema) -> ApiR
 
 
 @router.patch(
-    "{subject_id}",
+    "{subject_uuid}",
     response=ApiResponse[SubjectSchema],
-    operation_id="update_subject_by_id",
+    operation_id="update_subject_by_uuid",
     auth=jwt_bearer_admin,
 )
-def update_subject(request: HttpRequest, subject_id: int, schema: SubjectInSchema) -> ApiResponse[SubjectSchema]:
+def update_subject(request: HttpRequest, schema: UpdateSubjectTitleSchema) -> ApiResponse[SubjectSchema]:
     container = get_container()
-    service = container.resolve(BaseSubjectService)
+    service: BaseSubjectService = container.resolve(BaseSubjectService)
     try:
-        subject = service.update_subject_by_id(subject_id=subject_id, title=schema.title)
+        subject = service.update_subject_by_uuid(subject_uuid=schema.subject_uuid, title=schema.new_title)
     except ServiceException as e:
         raise HttpError(
             status_code=401,
@@ -114,16 +115,16 @@ def update_subject(request: HttpRequest, subject_id: int, schema: SubjectInSchem
 
 
 @router.delete(
-    "{subject_id}",
+    "{subject_uuid}",
     response=ApiResponse[StatusResponse],
-    operation_id="delete_subject_by_id",
+    operation_id="delete_subject_by_uuid",
     auth=jwt_bearer_admin,
 )
-def delete_subject(request: HttpRequest, subject_id: int) -> ApiResponse[StatusResponse]:
+def delete_subject(request: HttpRequest, subject_uuid: str) -> ApiResponse[StatusResponse]:
     container = get_container()
-    service = container.resolve(BaseSubjectService)
+    service: BaseSubjectService = container.resolve(BaseSubjectService)
     try:
-        service.delete_subject_by_id(subject_id=subject_id)
+        service.delete_subject_by_uuid(subject_uuid=subject_uuid)
     except ServiceException as e:
         raise HttpError(
             status_code=401,
