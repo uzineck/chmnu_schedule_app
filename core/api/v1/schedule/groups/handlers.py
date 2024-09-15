@@ -31,7 +31,7 @@ from core.apps.common.exceptions import (
     ServiceException,
 )
 from core.apps.schedule.filters.group import GroupFilter as GroupFilterEntity
-from core.apps.schedule.services.groups import BaseGroupService
+from core.apps.schedule.services.group import BaseGroupService
 from core.apps.schedule.use_cases.group.admin_add_lesson_to_group import AdminAddLessonToGroupUseCase
 from core.apps.schedule.use_cases.group.admin_remove_lesson_from_group import AdminRemoveLessonFromGroupUseCase
 from core.apps.schedule.use_cases.group.create_group import CreateGroupUseCase

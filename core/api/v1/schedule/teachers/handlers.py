@@ -26,7 +26,7 @@ from core.api.v1.schedule.teachers.schemas import (
 from core.apps.common.authentication.bearer import jwt_bearer_admin
 from core.apps.common.exceptions import ServiceException
 from core.apps.schedule.filters.teacher import TeacherFilter as TeacherFilterEntity
-from core.apps.schedule.services.teachers import BaseTeacherService
+from core.apps.schedule.services.teacher import BaseTeacherService
 from core.apps.schedule.use_cases.teacher.get_lessons_for_teacher import GetLessonsForTeacherUseCase
 from core.project.containers import get_container
 

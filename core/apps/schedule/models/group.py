@@ -3,7 +3,7 @@ from django.db import models
 from core.apps.clients.models.client import Client
 from core.apps.common.models import TimedBaseModel
 from core.apps.schedule.entities.group import Group as GroupEntity
-from core.apps.schedule.models.lessons import Lesson
+from core.apps.schedule.models.lesson import Lesson
 
 
 class Group(TimedBaseModel):

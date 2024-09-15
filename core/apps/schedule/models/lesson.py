@@ -6,13 +6,23 @@ from core.apps.common.models import (
     TimedBaseModel,
 )
 from core.apps.schedule.entities.lesson import Lesson as LessonEntity
-from core.apps.schedule.models.rooms import Room
-from core.apps.schedule.models.subjects import Subject
-from core.apps.schedule.models.teachers import Teacher
-from core.apps.schedule.models.timeslots import Timeslot
+from core.apps.schedule.models.room import Room
+from core.apps.schedule.models.subject import Subject
+from core.apps.schedule.models.teacher import Teacher
+from core.apps.schedule.models.timeslot import Timeslot
 
 
 class Lesson(TimedBaseModel):
+    type = models.CharField(
+        verbose_name="Type of the lesson",
+        choices=LessonType,
+        max_length=10,
+    )
+    subgroup = models.CharField(
+        max_length=1,
+        choices=Subgroup,
+        null=True,
+    )
     subject = models.ForeignKey(
         Subject,
         on_delete=models.PROTECT,
@@ -25,11 +35,6 @@ class Lesson(TimedBaseModel):
         verbose_name="Teacher that holds the lesson",
         related_name="lesson_teacher",
     )
-    type = models.CharField(
-        verbose_name="Type of the lesson",
-        choices=LessonType,
-        max_length=10,
-    )
     room = models.ForeignKey(
         Room,
         on_delete=models.PROTECT,
@@ -41,11 +46,6 @@ class Lesson(TimedBaseModel):
         on_delete=models.PROTECT,
         verbose_name="Timeslot when the lesson is held",
         related_name='lesson_timeslot',
-    )
-    subgroup = models.CharField(
-        max_length=1,
-        choices=Subgroup,
-        null=True,
     )
 
     def to_entity(self) -> LessonEntity:

@@ -5,7 +5,7 @@ from abc import (
 )
 from dataclasses import dataclass
 
-from core.apps.common.authentication.exceptions import (
+from core.apps.common.authentication.validators.exceptions import (
     InvalidEmailPatternException,
     OldAndNewEmailsAreSimilarException,
 )

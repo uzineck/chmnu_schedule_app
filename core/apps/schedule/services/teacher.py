@@ -13,7 +13,7 @@ from core.apps.schedule.exceptions.subject import SubjectIdNotFoundException
 from core.apps.schedule.exceptions.teacher import TeacherNotFoundException
 from core.apps.schedule.filters.teacher import TeacherFilter
 from core.apps.schedule.models import Subject as SubjectModel
-from core.apps.schedule.models.teachers import Teacher as TeacherModel
+from core.apps.schedule.models.teacher import Teacher as TeacherModel
 
 
 class BaseTeacherService(ABC):

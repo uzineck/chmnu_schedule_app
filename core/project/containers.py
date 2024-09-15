@@ -33,27 +33,27 @@ from core.apps.common.authentication.validators.password import (
     PasswordPatternValidatorService,
     SimilarOldAndNewPasswordValidatorService,
 )
-from core.apps.schedule.services.groups import (
+from core.apps.schedule.services.group import (
     BaseGroupService,
     ORMGroupService,
 )
-from core.apps.schedule.services.lessons import (
+from core.apps.schedule.services.lesson import (
     BaseLessonService,
     ORMLessonService,
 )
-from core.apps.schedule.services.rooms import (
+from core.apps.schedule.services.room import (
     BaseRoomService,
     ORMRoomService,
 )
-from core.apps.schedule.services.subjects import (
+from core.apps.schedule.services.subject import (
     BaseSubjectService,
     ORMSubjectService,
 )
-from core.apps.schedule.services.teachers import (
+from core.apps.schedule.services.teacher import (
     BaseTeacherService,
     ORMTeacherService,
 )
-from core.apps.schedule.services.timeslots import (
+from core.apps.schedule.services.timeslot import (
     BaseTimeslotService,
     ORMTimeslotService,
 )

@@ -37,11 +37,11 @@ class BaseClientService(ABC):
         ...
 
     @abstractmethod
-    def update_password(self, client: ClientEntity, hashed_password: str) -> ClientEntity:
+    def update_email(self, client: ClientEntity, email: str) -> ClientEntity:
         ...
 
     @abstractmethod
-    def update_email(self, client: ClientEntity, email: str) -> ClientEntity:
+    def update_password(self, client: ClientEntity, hashed_password: str) -> ClientEntity:
         ...
 
     @abstractmethod
@@ -71,6 +71,10 @@ class BaseClientService(ABC):
         ...
 
     @abstractmethod
+    def check_user_role(self, user_role: ClientRole, required_role: ClientRole) -> None:
+        ...
+
+    @abstractmethod
     def validate_user(self, email: str, password: str) -> ClientEntity:
         ...
 
@@ -84,10 +88,6 @@ class BaseClientService(ABC):
 
     @abstractmethod
     def get_user_role_from_token(self, token: str) -> str:
-        ...
-
-    @abstractmethod
-    def check_user_role(self, user_role: ClientRole, required_role: ClientRole) -> None:
         ...
 
 
@@ -115,18 +115,18 @@ class ORMClientService(BaseClientService):
 
         return client.to_entity()
 
-    def update_password(self, client: ClientEntity, hashed_password: str) -> ClientEntity:
-        ClientModel.objects.filter(email=client.email).update(password=hashed_password)
-        updated_client = ClientModel.objects.get(email=client.email)
-
-        return updated_client.to_entity()
-
     def update_email(self, client: ClientEntity, email: str) -> ClientEntity:
         ClientModel.objects.filter(email=client.email).update(email=email)
         try:
             updated_client = ClientModel.objects.get(email=email)
         except ClientModel.DoesNotExist:
             raise ClientEmailNotFoundException(email=email)
+
+        return updated_client.to_entity()
+
+    def update_password(self, client: ClientEntity, hashed_password: str) -> ClientEntity:
+        ClientModel.objects.filter(email=client.email).update(password=hashed_password)
+        updated_client = ClientModel.objects.get(email=client.email)
 
         return updated_client.to_entity()
 
@@ -170,6 +170,10 @@ class ORMClientService(BaseClientService):
         ClientModel.objects.filter(email=client.email).update(token=jwt)
         return jwt
 
+    def check_user_role(self, user_role: str, required_role: ClientRole) -> None:
+        if user_role != required_role:
+            raise ClientRoleNotMatchingWithRequired(user_role=user_role)
+
     def validate_user(self, email: str, password: str) -> ClientEntity:
         try:
             client = ClientModel.objects.get(email=email)
@@ -190,8 +194,5 @@ class ORMClientService(BaseClientService):
     def get_user_role_from_token(self, token: str) -> str:
         return self.token_service.get_user_role_from_token(token=token)
 
-    def check_user_role(self, user_role: str, required_role: ClientRole) -> None:
-        if user_role != required_role:
-            raise ClientRoleNotMatchingWithRequired(user_role=user_role)
 
 

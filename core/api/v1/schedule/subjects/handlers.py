@@ -22,7 +22,7 @@ from core.api.v1.schedule.subjects.schemas import (
 from core.apps.common.authentication.bearer import jwt_bearer_admin
 from core.apps.common.exceptions import ServiceException
 from core.apps.common.filters import SearchFilter as SearchFiltersEntity
-from core.apps.schedule.services.subjects import BaseSubjectService
+from core.apps.schedule.services.subject import BaseSubjectService
 from core.project.containers import get_container
 
 

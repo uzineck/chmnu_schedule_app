@@ -5,11 +5,11 @@ from abc import (
 from dataclasses import dataclass
 
 from core.apps.clients.entities.client import Client as ClientEntity
-from core.apps.schedule.exceptions.groups import (
+from core.apps.schedule.exceptions.group import (
     GroupAlreadyExistsException,
     HeadmanAssignedToAnotherGroupException,
 )
-from core.apps.schedule.services.groups import BaseGroupService
+from core.apps.schedule.services.group import BaseGroupService
 
 
 class BaseGroupValidatorService(ABC):

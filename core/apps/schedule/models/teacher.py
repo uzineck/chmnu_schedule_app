@@ -5,7 +5,7 @@ from core.apps.common.models import (
     TimedBaseModel,
 )
 from core.apps.schedule.entities.teacher import Teacher as TeacherEntity
-from core.apps.schedule.models.subjects import Subject
+from core.apps.schedule.models.subject import Subject
 
 
 class Teacher(TimedBaseModel):

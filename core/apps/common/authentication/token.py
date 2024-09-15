@@ -30,10 +30,6 @@ class BaseTokenService(ABC):
     def get_user_role_from_token(self, token: str) -> str:
         ...
 
-    # @abstractmethod
-    # def get_headman_group_from_token(self, token: str) -> str:
-    #     ...
-
 
 class JWTTokenService(BaseTokenService):
     JWT_SECRET_KEY: ClassVar[str] = env("JWT_SECRET_KEY")

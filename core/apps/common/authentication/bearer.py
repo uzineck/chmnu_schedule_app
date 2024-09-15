@@ -22,7 +22,7 @@ class JWTBearer(HttpBearer):
             if not self.is_role_allowed(user_role):
                 raise HttpError(
                     status_code=403,
-                    message="Forbidden: Insufficient permissions",
+                    message="Client does not have permission to access this resource",
                 )
 
         except ServiceException as e:

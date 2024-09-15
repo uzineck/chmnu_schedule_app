@@ -1,11 +1,11 @@
 from dataclasses import dataclass
 
 from core.apps.schedule.entities.lesson import Lesson as LessonEntity
-from core.apps.schedule.services.lessons import BaseLessonService
-from core.apps.schedule.services.rooms import BaseRoomService
-from core.apps.schedule.services.subjects import BaseSubjectService
-from core.apps.schedule.services.teachers import BaseTeacherService
-from core.apps.schedule.services.timeslots import BaseTimeslotService
+from core.apps.schedule.services.lesson import BaseLessonService
+from core.apps.schedule.services.room import BaseRoomService
+from core.apps.schedule.services.subject import BaseSubjectService
+from core.apps.schedule.services.teacher import BaseTeacherService
+from core.apps.schedule.services.timeslot import BaseTimeslotService
 
 
 @dataclass

@@ -14,10 +14,3 @@ class JWTKeyParsingException(ServiceException):
     @property
     def message(self):
         return 'Invalid JWT Key Error'
-
-
-@dataclass(eq=False)
-class NotAuthorizedException(ServiceException):
-    @property
-    def message(self):
-        return 'Not authorized'

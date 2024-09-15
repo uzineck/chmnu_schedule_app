@@ -23,7 +23,7 @@ from core.api.v1.schedule.rooms.schemas import (
 from core.apps.common.authentication.bearer import jwt_bearer_admin
 from core.apps.common.exceptions import ServiceException
 from core.apps.common.filters import SearchFilter as SearchFilterEntity
-from core.apps.schedule.services.rooms import BaseRoomService
+from core.apps.schedule.services.room import BaseRoomService
 from core.project.containers import get_container
 
 

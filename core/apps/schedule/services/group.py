@@ -8,9 +8,9 @@ from typing import Iterable
 
 from core.apps.clients.entities.client import Client as ClientEntity
 from core.apps.schedule.entities.group import Group as GroupEntity
-from core.apps.schedule.exceptions.groups import GroupNotFoundException
+from core.apps.schedule.exceptions.group import GroupNotFoundException
 from core.apps.schedule.filters.group import GroupFilter
-from core.apps.schedule.models.groups import Group as GroupModel
+from core.apps.schedule.models.group import Group as GroupModel
 
 
 class BaseGroupService(ABC):
