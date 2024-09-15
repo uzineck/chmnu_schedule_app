@@ -1,5 +1,7 @@
 from django.db import models
 
+import uuid
+
 from core.apps.common.models import (
     TeachersDegree,
     TimedBaseModel,
@@ -9,6 +11,11 @@ from core.apps.schedule.models.subject import Subject
 
 
 class Teacher(TimedBaseModel):
+    teacher_uuid = models.UUIDField(
+        verbose_name='UUID teacher representation',
+        editable=False,
+        default=uuid.uuid4,
+    )
     first_name = models.CharField(
         verbose_name="Teacher's First Name",
         max_length=100,

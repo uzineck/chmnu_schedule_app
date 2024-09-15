@@ -1,10 +1,17 @@
 from django.db import models
 
+import uuid
+
 from core.apps.common.models import TimedBaseModel
 from core.apps.schedule.entities.subject import Subject as SubjectEntity
 
 
 class Subject(TimedBaseModel):
+    subject_uuid = models.UUIDField(
+        verbose_name='UUID subject representation',
+        editable=False,
+        default=uuid.uuid4,
+    )
     title = models.CharField(
         verbose_name="Subject's title",
         max_length=150,

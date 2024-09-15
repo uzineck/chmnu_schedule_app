@@ -1,5 +1,6 @@
 from django.contrib import admin
 
+from core.apps.schedule.models import GroupLessons
 from core.apps.schedule.models.group import Group
 from core.apps.schedule.models.lesson import Lesson
 from core.apps.schedule.models.room import Room
@@ -17,8 +18,13 @@ class GroupAdmin(admin.ModelAdmin):
 
 @admin.register(Lesson)
 class LessonAdmin(admin.ModelAdmin):
-    list_display = ('id', 'subject', 'teacher', 'room', 'timeslot', 'type', 'subgroup')
+    list_display = ('id', 'subject', 'teacher', 'room', 'timeslot', 'type')
     list_filter = ('timeslot__day', 'timeslot__ord_number', 'timeslot__is_even', 'type')
+
+
+@admin.register(GroupLessons)
+class GroupLessonsAdmin(admin.ModelAdmin):
+    list_display = ('id', 'group', 'subgroup', 'lesson')
 
 
 @admin.register(Teacher)

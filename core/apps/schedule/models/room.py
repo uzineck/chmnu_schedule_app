@@ -1,10 +1,17 @@
 from django.db import models
 
+import uuid
+
 from core.apps.common.models import TimedBaseModel
 from core.apps.schedule.entities.room import Room as RoomEntity
 
 
 class Room(TimedBaseModel):
+    room_uuid = models.UUIDField(
+        verbose_name='UUID room representation',
+        editable=False,
+        default=uuid.uuid4,
+    )
     number = models.CharField(
         verbose_name="Number of the room",
         max_length=20,

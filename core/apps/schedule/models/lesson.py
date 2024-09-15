@@ -1,8 +1,9 @@
 from django.db import models
 
+import uuid
+
 from core.apps.common.models import (
     LessonType,
-    Subgroup,
     TimedBaseModel,
 )
 from core.apps.schedule.entities.lesson import Lesson as LessonEntity
@@ -13,15 +14,15 @@ from core.apps.schedule.models.timeslot import Timeslot
 
 
 class Lesson(TimedBaseModel):
+    lesson_uuid = models.UUIDField(
+        verbose_name='UUID lesson representation',
+        editable=False,
+        default=uuid.uuid4,
+    )
     type = models.CharField(
         verbose_name="Type of the lesson",
         choices=LessonType,
         max_length=10,
-    )
-    subgroup = models.CharField(
-        max_length=1,
-        choices=Subgroup,
-        null=True,
     )
     subject = models.ForeignKey(
         Subject,
@@ -56,7 +57,6 @@ class Lesson(TimedBaseModel):
             room=self.room,
             timeslot=self.timeslot,
             type=self.type,
-            subgroup=self.subgroup,
             created_at=self.created_at,
             updated_at=self.updated_at,
         )
@@ -70,7 +70,6 @@ class Lesson(TimedBaseModel):
             timeslot_id=lesson.timeslot.id,
             room_id=lesson.room.id,
             type=lesson.type,
-            subgroup=lesson.subgroup,
             created_at=lesson.created_at,
             updated_at=lesson.updated_at,
         )
@@ -81,7 +80,6 @@ class Lesson(TimedBaseModel):
             f"Teacher: {self.teacher}, "
             f"Day: {self.timeslot.day}, "
             f"Number: {self.timeslot.ord_number}, "
-            f"Subgroup: {self.subgroup}"
         )
 
     class Meta:

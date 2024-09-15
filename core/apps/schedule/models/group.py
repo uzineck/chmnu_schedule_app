@@ -1,15 +1,20 @@
 from django.db import models
 
+import uuid
+
 from core.apps.clients.models.client import Client
 from core.apps.common.models import TimedBaseModel
 from core.apps.schedule.entities.group import Group as GroupEntity
-from core.apps.schedule.models.lesson import Lesson
 
 
 class Group(TimedBaseModel):
+    group_uuid = models.UUIDField(
+        verbose_name='UUID group representation',
+        editable=False,
+        default=uuid.uuid4,
+    )
     number = models.CharField(
         verbose_name="Group Number",
-        primary_key=True,
         max_length=10,
         unique=True,
     )
@@ -25,19 +30,12 @@ class Group(TimedBaseModel):
         null=True,
         on_delete=models.SET_NULL,
     )
-    lessons = models.ManyToManyField(
-        Lesson,
-        verbose_name="Group lessons",
-        related_name='group_lessons',
-        blank=True,
-    )
 
     def to_entity(self):
         return GroupEntity(
             number=self.number,
             has_subgroups=self.has_subgroups,
             headman=self.headman,
-            lessons=self.lessons,
             created_at=self.created_at,
             updated_at=self.updated_at,
         )
