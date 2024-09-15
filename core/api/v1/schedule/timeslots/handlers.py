@@ -15,7 +15,7 @@ from core.api.v1.schedule.timeslots.schemas import (
 from core.apps.common.authentication.bearer import jwt_bearer
 from core.apps.common.exceptions import ServiceException
 from core.apps.schedule.services.timeslot import BaseTimeslotService
-from core.project.containers import get_container
+from core.project.containers.containers import get_container
 
 
 router = Router(tags=["Timeslots"])

@@ -28,7 +28,7 @@ from core.apps.common.exceptions import ServiceException
 from core.apps.schedule.filters.teacher import TeacherFilter as TeacherFilterEntity
 from core.apps.schedule.services.teacher import BaseTeacherService
 from core.apps.schedule.use_cases.teacher.get_lessons_for_teacher import GetLessonsForTeacherUseCase
-from core.project.containers import get_container
+from core.project.containers.containers import get_container
 
 
 router = Router(tags=["Teachers"])

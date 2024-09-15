@@ -25,7 +25,7 @@ from core.apps.common.authentication.bearer import jwt_bearer_admin
 from core.apps.common.exceptions import ServiceException
 from core.apps.common.filters import SearchFilter as SearchFilterEntity
 from core.apps.schedule.services.room import BaseRoomService
-from core.project.containers import get_container
+from core.project.containers.containers import get_container
 
 
 router = Router(tags=["Rooms"])

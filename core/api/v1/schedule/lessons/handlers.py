@@ -11,7 +11,7 @@ from core.api.v1.schedule.lessons.schema_for_groups import (
 from core.apps.common.authentication.bearer import jwt_bearer
 from core.apps.common.exceptions import ServiceException
 from core.apps.schedule.use_cases.lessons.create import CreateLessonUseCase
-from core.project.containers import get_container
+from core.project.containers.containers import get_container
 
 
 router = Router(tags=["Lessons"])

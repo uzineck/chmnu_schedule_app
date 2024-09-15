@@ -13,7 +13,7 @@ from core.apps.clients.usecases.client.create import CreateClientUseCase
 from core.apps.clients.usecases.client.update_role import UpdateClientRoleUseCase
 from core.apps.common.authentication.bearer import jwt_bearer_admin
 from core.apps.common.exceptions import ServiceException
-from core.project.containers import get_container
+from core.project.containers.containers import get_container
 
 
 router = Router(tags=["Admin"])

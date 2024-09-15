@@ -24,7 +24,7 @@ from core.apps.common.exceptions import (
     JWTKeyParsingException,
     ServiceException,
 )
-from core.project.containers import get_container
+from core.project.containers.containers import get_container
 
 
 router = Router(tags=["Client"])

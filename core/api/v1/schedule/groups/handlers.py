@@ -44,7 +44,7 @@ from core.apps.schedule.use_cases.group.get_group_lessons import GetGroupLessons
 from core.apps.schedule.use_cases.group.headman_add_lesson_to_group import HeadmanAddLessonToGroupUseCase
 from core.apps.schedule.use_cases.group.headman_remove_lesson_from_group import HeadmanRemoveLessonFromGroupUseCase
 from core.apps.schedule.use_cases.group.update_headman import UpdateGroupHeadmanUseCase
-from core.project.containers import get_container
+from core.project.containers.containers import get_container
 
 
 router = Router(tags=['Group'])
