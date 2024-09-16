@@ -46,9 +46,9 @@ def get_timeslot_by_id(request: HttpRequest, schema: Query[TimeslotInSchema]) ->
 @router.post("", response=ApiResponse[TimeslotSchema], operation_id="get_or_create_timeslot", auth=jwt_bearer)
 def get_or_create_timeslot(request: HttpRequest, schema: Form[CreateTimeslotSchema]) -> ApiResponse[TimeslotSchema]:
     container = get_container()
-    service = container.resolve(BaseTimeslotService)
+    service: BaseTimeslotService = container.resolve(BaseTimeslotService)
     try:
-        timeslot = service.create(day=schema.day, ord_number=schema.ord_number, is_even=schema.is_even)
+        timeslot = service.get_or_create(day=schema.day, ord_number=schema.ord_number, is_even=schema.is_even)
     except ServiceException as e:
         raise HttpError(
             status_code=401,
@@ -57,5 +57,3 @@ def get_or_create_timeslot(request: HttpRequest, schema: Form[CreateTimeslotSche
     return ApiResponse(
         data=TimeslotSchema.from_entity(entity=timeslot),
     )
-
-

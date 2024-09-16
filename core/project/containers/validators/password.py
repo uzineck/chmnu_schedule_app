@@ -24,5 +24,3 @@ def register_password_validators(container: punq.Container):
         )
 
     container.register(BasePasswordValidatorService, factory=build_password_validators)
-
-

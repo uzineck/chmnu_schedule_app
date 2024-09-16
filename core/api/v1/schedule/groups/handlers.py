@@ -11,10 +11,7 @@ from core.api.schemas import (
     ApiResponse,
     StatusResponse,
 )
-from core.api.v1.clients.schemas import (
-    ClientEmailInSchema,
-    ClientSchemaPrivate,
-)
+from core.api.v1.clients.schemas import ClientSchemaPrivate
 from core.api.v1.schedule.groups.filters import GroupFilter
 from core.api.v1.schedule.groups.schemas import (
     CreateGroupSchema,
@@ -127,7 +124,7 @@ def get_group_info(
     )
 
 
-@router.post(
+@router.get(
     "get_headman_info",
     response=ApiResponse[Union[GroupSchemaWithHeadman, ClientSchemaPrivate]],
     operation_id='get_headman_info',
@@ -135,13 +132,13 @@ def get_group_info(
 )
 def get_headman_info(
         request: HttpRequest,
-        schema: ClientEmailInSchema,
+        headman_email: str,
 ) -> ApiResponse[Union[GroupSchemaWithHeadman, ClientSchemaPrivate]]:
     container = get_container()
     use_case: GetHeadmanInfoUseCase = container.resolve(GetHeadmanInfoUseCase)
     try:
         group, headman = use_case.execute(
-            email=schema.headman_email,
+            email=headman_email,
         )
     except ServiceException as e:
         raise HttpError(

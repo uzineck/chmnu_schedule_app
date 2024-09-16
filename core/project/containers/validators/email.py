@@ -21,5 +21,3 @@ def register_email_validators(container: punq.Container):
         )
 
     container.register(BaseEmailValidatorService, factory=build_email_validators)
-
-
