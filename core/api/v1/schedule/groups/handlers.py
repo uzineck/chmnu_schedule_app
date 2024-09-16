@@ -191,7 +191,7 @@ def update_group_headman(request: HttpRequest, schema: UpdateGroupHeadmanSchema)
     use_case: UpdateGroupHeadmanUseCase = container.resolve(UpdateGroupHeadmanUseCase)
     try:
         group = use_case.execute(
-            group_number=schema.group_number,
+            group_uuid=schema.group_uuid,
             new_headman_email=schema.new_headman_email,
         )
     except ServiceException as e:

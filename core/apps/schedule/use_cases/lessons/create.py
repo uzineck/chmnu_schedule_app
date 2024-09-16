@@ -6,6 +6,7 @@ from core.apps.schedule.services.room import BaseRoomService
 from core.apps.schedule.services.subject import BaseSubjectService
 from core.apps.schedule.services.teacher import BaseTeacherService
 from core.apps.schedule.services.timeslot import BaseTimeslotService
+from core.apps.schedule.validators.uuid_validator import BaseUuidValidatorService
 
 
 @dataclass
@@ -16,6 +17,8 @@ class CreateLessonUseCase:
     room_service: BaseRoomService
     timeslot_service: BaseTimeslotService
 
+    uuid_validator_service: BaseUuidValidatorService
+
     def execute(
         self,
         lesson: LessonEntity,
@@ -24,6 +27,8 @@ class CreateLessonUseCase:
         room_uuid: str,
         timeslot_id: int,
     ) -> LessonEntity:
+
+        self.uuid_validator_service.validate(uuid_list=[subject_uuid, teacher_uuid, room_uuid])
 
         subject = self.subject_service.get_subject_by_uuid(subject_uuid=subject_uuid)
         teacher = self.teacher_service.get_teacher_by_uuid(teacher_uuid=teacher_uuid)

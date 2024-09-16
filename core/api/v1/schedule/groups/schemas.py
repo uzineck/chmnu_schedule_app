@@ -56,7 +56,7 @@ class CreateGroupSchema(Schema):
 
 
 class UpdateGroupHeadmanSchema(Schema):
-    group_number: str
+    group_uuid: str
     new_headman_email: str
 
 

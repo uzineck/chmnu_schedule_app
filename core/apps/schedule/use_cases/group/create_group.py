@@ -24,7 +24,3 @@ class CreateGroupUseCase:
             has_subgroups=has_subgroups,
             headman_id=headman.id,
         )
-
-
-
-
