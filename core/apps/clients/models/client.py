@@ -37,11 +37,15 @@ class Client(TimedBaseModel):
         blank=False,
         null=False,
     )
-    token = models.CharField(
-        verbose_name="Client's Token",
+    access_token = models.CharField(
+        verbose_name="Client's Access Token",
         max_length=255,
         default=uuid4,
-        unique=True,
+    )
+    refresh_token = models.CharField(
+        verbose_name="Client's Refresh Token",
+        max_length=255,
+        default=uuid4,
     )
 
     def to_entity(self) -> ClientEntity:
@@ -58,7 +62,7 @@ class Client(TimedBaseModel):
         )
 
     def __str__(self):
-        return f"{self.last_name} {self.first_name} {self.middle_name}"
+        return f"{self.last_name} {self.first_name[0]}. {self.middle_name[0]}."
 
     class Meta:
         verbose_name = "Client"

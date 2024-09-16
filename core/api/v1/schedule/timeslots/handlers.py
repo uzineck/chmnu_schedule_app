@@ -26,7 +26,6 @@ router = Router(tags=["Timeslots"])
     response=ApiResponse[TimeslotSchema],
     operation_id="get_timeslot_by_id",
     auth=jwt_bearer,
-    deprecated=True,
 )
 def get_timeslot_by_id(request: HttpRequest, schema: Query[TimeslotInSchema]) -> ApiResponse[TimeslotSchema]:
     container = get_container()

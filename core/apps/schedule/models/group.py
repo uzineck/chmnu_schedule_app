@@ -3,8 +3,13 @@ from django.db import models
 import uuid
 
 from core.apps.clients.models.client import Client
-from core.apps.common.models import TimedBaseModel
+from core.apps.common.models import (
+    Subgroup,
+    TimedBaseModel,
+)
 from core.apps.schedule.entities.group import Group as GroupEntity
+from core.apps.schedule.models.faculty import Faculty
+from core.apps.schedule.models.lesson import Lesson
 
 
 class Group(TimedBaseModel):
@@ -18,6 +23,14 @@ class Group(TimedBaseModel):
         max_length=10,
         unique=True,
     )
+    faculty = models.ForeignKey(
+        Faculty,
+        verbose_name="Faculty the group belongs to",
+        on_delete=models.PROTECT,
+        related_name='group_faculty',
+        blank=True,
+        null=True,
+    )
     has_subgroups = models.BooleanField(
         verbose_name="Does group has subgroups",
         default=True,
@@ -29,6 +42,13 @@ class Group(TimedBaseModel):
         blank=True,
         null=True,
         on_delete=models.SET_NULL,
+    )
+    lessons = models.ManyToManyField(
+        Lesson,
+        verbose_name="Lessons of the group",
+        related_name='group_lessons',
+        through='GroupLesson',
+        blank=True,
     )
 
     def to_entity(self) -> GroupEntity:
@@ -49,3 +69,45 @@ class Group(TimedBaseModel):
         verbose_name = "Group"
         verbose_name_plural = "Groups"
 
+
+class GroupLesson(TimedBaseModel):
+    group = models.ForeignKey(
+        Group,
+        verbose_name="Group that has lesson",
+        on_delete=models.CASCADE,
+        related_name='group',
+    )
+    lesson = models.ForeignKey(
+        Lesson,
+        verbose_name="Lesson for the group",
+        on_delete=models.CASCADE,
+        related_name='lesson',
+    )
+    subgroup = models.CharField(
+        verbose_name="Subgroup of the group that has lesson",
+        max_length=1,
+        choices=Subgroup,
+        null=True,
+        blank=True,
+    )
+
+    # def to_entity(self) -> GroupLessonEntity:
+    #     return GroupLessonEntity(
+    #         group=self.group.to_entity(),
+    #         lesson=self.lesson.to_entity(),
+    #         subgroup=Subgroup(self.subgroup),
+    #         created_at=self.created_at,
+    #         updated_at=self.updated_at,
+    #     )
+    #
+    # @classmethod
+    # def from_entity(cls, entity: GroupLessonEntity) -> 'GroupLesson':
+    #     return cls(
+    #         group_id=entity.group.id,
+    #         lesson_id=entity.lesson.id,
+    #         subgroup=entity.subgroup,
+    #     )
+
+    class Meta:
+        verbose_name = "Group Lessons"
+        verbose_name_plural = "Groups Lessons"

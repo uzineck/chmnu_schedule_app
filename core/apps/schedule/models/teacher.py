@@ -7,7 +7,6 @@ from core.apps.common.models import (
     TimedBaseModel,
 )
 from core.apps.schedule.entities.teacher import Teacher as TeacherEntity
-from core.apps.schedule.models.subject import Subject
 
 
 class Teacher(TimedBaseModel):
@@ -32,11 +31,6 @@ class Teacher(TimedBaseModel):
         verbose_name="Teacher's rank",
         choices=TeachersDegree,
     )
-    subjects = models.ManyToManyField(
-        Subject,
-        related_name='teacher_subjects',
-        blank=True,
-    )
     is_active = models.BooleanField(
         verbose_name="Is teacher still teaching",
         default=True,
@@ -50,7 +44,7 @@ class Teacher(TimedBaseModel):
             last_name=self.last_name,
             middle_name=self.middle_name,
             rank=self.rank,
-            subjects=self.subjects,
+            # subjects=self.subjects,
             is_active=self.is_active,
             created_at=self.created_at,
             updated_at=self.updated_at,

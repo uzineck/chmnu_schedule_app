@@ -17,7 +17,6 @@ class BaseGroupValidatorService(ABC):
     def validate(
             self,
             group_number: str,
-            uuid: str | None = None,
             headman: ClientEntity | None = None,
     ):
         ...
@@ -49,8 +48,7 @@ class ComposedGroupValidatorService(BaseGroupValidatorService):
     def validate(
             self,
             group_number: str,
-            uuid: str | None = None,
             headman: ClientEntity | None = None,
     ):
         for validator in self.validators:
-            validator.validate(group_number=group_number, uuid=uuid, headman=headman)
+            validator.validate(group_number=group_number, headman=headman)

@@ -1,7 +1,10 @@
 from django.contrib import admin
 
-from core.apps.schedule.models import GroupLessons
-from core.apps.schedule.models.group import Group
+from core.apps.schedule.models import Faculty
+from core.apps.schedule.models.group import (
+    Group,
+    GroupLesson,
+)
 from core.apps.schedule.models.lesson import Lesson
 from core.apps.schedule.models.room import Room
 from core.apps.schedule.models.subject import Subject
@@ -25,10 +28,17 @@ class LessonAdmin(admin.ModelAdmin):
     list_filter = ('timeslot__day', 'timeslot__ord_number', 'timeslot__is_even', 'type')
 
 
-@admin.register(GroupLessons)
+@admin.register(GroupLesson)
 class GroupLessonsAdmin(admin.ModelAdmin):
     list_display = ('id', 'group', 'subgroup', 'lesson')
     search_fields = ('group__number', 'group__group_uuid', 'lesson__lesson_uuid')
+
+
+@admin.register(Faculty)
+class FacultyAdmin(admin.ModelAdmin):
+    list_display = ('faculty_uuid', 'code_name', 'name')
+    search_fields = ('faculty_uuid', 'code_name', 'name')
+    list_display_links = ('faculty_uuid',)
 
 
 @admin.register(Teacher)

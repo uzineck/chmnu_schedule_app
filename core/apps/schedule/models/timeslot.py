@@ -26,8 +26,8 @@ class Timeslot(TimedBaseModel):
     def to_entity(self) -> TimeslotEntity:
         return TimeslotEntity(
             id=self.id,
-            day=self.day,
-            ord_number=self.ord_number,
+            day=Day(self.day),
+            ord_number=OrdinaryNumber(self.ord_number),
             is_even=self.is_even,
             created_at=self.created_at,
             updated_at=self.updated_at,

@@ -23,6 +23,7 @@ class GetLessonsForTeacherUseCase:
 
         teacher = self.teacher_service.get_teacher_by_uuid(teacher_uuid=teacher_uuid)
         lessons = self.lesson_service.get_lessons_for_teacher(teacher_id=teacher.id)
+
         groups = {}
         for lesson in lessons:
             groups[lesson.id] = self.group_service.get_groups_from_lesson(lesson_id=lesson.id)

@@ -2,9 +2,10 @@ from abc import (
     ABC,
     abstractmethod,
 )
+from collections.abc import Iterable
 
 from core.apps.schedule.entities.group_lessons import GroupLesson as GroupLessonEntity
-from core.apps.schedule.models import GroupLessons as GroupLessonModel
+from core.apps.schedule.models.group import GroupLesson as GroupLessonModel
 
 
 class BaseGroupLessonService(ABC):
@@ -18,6 +19,10 @@ class BaseGroupLessonService(ABC):
 
     @abstractmethod
     def delete_group_subgroup_lesson(self, group_lesson: GroupLessonEntity) -> None:
+        ...
+
+    @abstractmethod
+    def get_subgroup_from_group_lesson(self, group_id: int, lesson_id: int) -> Iterable[GroupLessonEntity]:
         ...
 
 
@@ -45,3 +50,7 @@ class ORMGroupLessonService(BaseGroupLessonService):
             lesson_id=group_lesson.lesson.id,
             subgroup=group_lesson.subgroup,
         ).delete()
+
+    def get_subgroup_from_group_lesson(self, group_id: int, lesson_id: int) -> Iterable[GroupLessonEntity]:
+        group_subgroup_lesson_dto = GroupLessonModel.objects.filter(group_id=group_id, lesson_id=lesson_id)
+        return [gsl.to_entity() for gsl in group_subgroup_lesson_dto]

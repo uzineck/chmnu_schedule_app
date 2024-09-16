@@ -48,7 +48,7 @@ class BaseGroupService(ABC):
         ...
 
     @abstractmethod
-    def get_group_from_headman(self, headman: ClientEntity) -> GroupEntity:
+    def get_group_from_headman(self, headman: ClientEntity) -> GroupEntity | None:
         ...
 
     @abstractmethod
@@ -99,10 +99,13 @@ class ORMGroupService(BaseGroupService):
         updated_group = GroupModel.objects.get(number=group.number)
         return updated_group.to_entity()
 
-    def get_group_from_headman(self, headman: ClientEntity) -> GroupEntity:
-        group = GroupModel.objects.filter(headman__email=headman.email).first()
+    def get_group_from_headman(self, headman: ClientEntity) -> GroupEntity | None:
+        try:
+            group = GroupModel.objects.filter(headman__email=headman.email).first()
 
-        return group.to_entity()
+            return group.to_entity()
+        except AttributeError:
+            return None
 
     def get_groups_from_lesson(self, lesson_id: int) -> Iterable[GroupEntity]:
         groups = GroupModel.objects.filter(group_lessons_group__lesson_id=lesson_id)
