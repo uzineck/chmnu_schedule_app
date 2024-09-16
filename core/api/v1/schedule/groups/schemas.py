@@ -55,34 +55,6 @@ class CreateGroupSchema(Schema):
     has_subgroups: bool
 
 
-class GroupLessonsOutSchema(GroupSchema):
-    lessons: list[LessonForGroupOutSchema] | None = None
-
-    @classmethod
-    def from_entity_with_lesson_entities(
-            cls,
-            group_entity: GroupEntity,
-            lesson_entities: Iterable[LessonEntity],
-    ) -> 'GroupLessonsOutSchema':
-        return cls(
-            uuid=group_entity.uuid,
-            number=group_entity.number,
-            has_subgroups=group_entity.has_subgroups,
-            subgroup=group_entity.subgroup,
-            lessons=[LessonForGroupOutSchema.from_entity(obj) for obj in lesson_entities] if lesson_entities else None,
-        )
-
-    @classmethod
-    def from_entity(cls, entity: GroupEntity) -> 'GroupLessonsOutSchema':
-        return cls(
-            uuid=entity.uuid,
-            number=entity.number,
-            has_subgroups=entity.has_subgroups,
-            subgroup=entity.subgroup,
-            lessons=entity.lessons if entity.lessons else None,
-        )
-
-
 class UpdateGroupHeadmanSchema(Schema):
     group_number: str
     new_headman_email: str
@@ -100,4 +72,34 @@ class GroupUuidNumberOutSchema(Schema):
         )
 
 
+class GroupLessonsOutSchema(GroupSchema):
+    lessons: list[LessonForGroupOutSchema] | None = None
 
+    @classmethod
+    def from_entity_with_lesson_entities(
+            cls,
+            group_entity: GroupEntity,
+            lesson_entities: Iterable[LessonEntity],
+            subgroup: Subgroup | None = None,
+    ) -> 'GroupLessonsOutSchema':
+        return cls(
+            uuid=group_entity.uuid,
+            number=group_entity.number,
+            has_subgroups=group_entity.has_subgroups,
+            subgroup=subgroup,
+            lessons=[LessonForGroupOutSchema.from_entity(obj) for obj in lesson_entities] if lesson_entities else None,
+        )
+
+    @classmethod
+    def from_entity(
+            cls,
+            entity: GroupEntity,
+            subgroup: Subgroup | None = None,
+    ) -> 'GroupLessonsOutSchema':
+        return cls(
+            uuid=entity.uuid,
+            number=entity.number,
+            has_subgroups=entity.has_subgroups,
+            subgroup=subgroup,
+            lessons=entity.lessons if entity.lessons else None,
+        )

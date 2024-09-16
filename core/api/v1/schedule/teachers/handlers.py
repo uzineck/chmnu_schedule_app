@@ -82,7 +82,7 @@ def get_teacher_list(
     response=ApiResponse[TeacherLessonsOutSchema],
     operation_id="get_lessons_for_teacher",
 )
-def get_lessons_for_teacher(request: HttpRequest, teacher_uuid: Query[str]) -> ApiResponse[TeacherLessonsOutSchema]:
+def get_lessons_for_teacher(request: HttpRequest, teacher_uuid: str) -> ApiResponse[TeacherLessonsOutSchema]:
     container = get_container()
     use_case: GetLessonsForTeacherUseCase = container.resolve(GetLessonsForTeacherUseCase)
     try:

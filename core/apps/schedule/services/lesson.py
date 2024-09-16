@@ -8,6 +8,7 @@ from typing import Iterable
 
 from core.apps.schedule.entities.lesson import Lesson as LessonEntity
 from core.apps.schedule.exceptions.lesson import LessonNotFoundException
+from core.apps.schedule.filters.group import GroupLessonFilter
 from core.apps.schedule.models import Lesson as LessonModel
 
 
@@ -25,7 +26,7 @@ class BaseLessonService(ABC):
         ...
 
     @abstractmethod
-    def get_lessons_for_group(self, group_id: int, group_query: Q) -> Iterable[LessonEntity]:
+    def get_lessons_for_group(self, group_id: int, filter_query: GroupLessonFilter) -> Iterable[LessonEntity]:
         ...
 
     @abstractmethod
@@ -34,6 +35,17 @@ class BaseLessonService(ABC):
 
 
 class ORMLessonService(BaseLessonService):
+
+    def _build_lesson_query(self, filters: GroupLessonFilter) -> Q:
+        query = Q()
+
+        if filters.subgroup is not None:
+            query &= Q(group_lessons_lesson__subgroup=filters.subgroup)
+        if filters.is_even is not None:
+            query &= Q(timeslot__is_even=filters.is_even)
+
+        return query
+
     def get_lessons_by_uuid(self, lesson_uuid: str) -> LessonEntity:
         try:
             lesson = LessonModel.objects.get(lesson_uuid=lesson_uuid)
@@ -61,8 +73,9 @@ class ORMLessonService(BaseLessonService):
 
         return False
 
-    def get_lessons_for_group(self, group_id: int, group_query: Q) -> Iterable[LessonEntity]:
-        query = LessonModel.objects.filter(Q(group_lessons_lesson__group_id=group_id) & group_query)
+    def get_lessons_for_group(self, group_id: int, filter_query: GroupLessonFilter) -> Iterable[LessonEntity]:
+        query = self._build_lesson_query(filter_query)
+        query = LessonModel.objects.filter(Q(group_lessons_lesson__group_id=group_id) & query)
 
         return [lesson.to_entity() for lesson in query]
 

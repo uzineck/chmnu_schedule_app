@@ -1,5 +1,3 @@
-from django.db.models import Q
-
 from abc import (
     ABC,
     abstractmethod,
@@ -12,7 +10,6 @@ from core.apps.schedule.exceptions.group import (
     GroupNumberNotFoundException,
     GroupUuidNotFoundException,
 )
-from core.apps.schedule.filters.group import GroupFilter
 from core.apps.schedule.models.group import Group as GroupModel
 
 
@@ -55,25 +52,11 @@ class BaseGroupService(ABC):
         ...
 
     @abstractmethod
-    def get_qs_for_group(self, filters: GroupFilter) -> Q:
-        ...
-
-    @abstractmethod
     def get_groups_from_lesson(self, lesson_id: int) -> Iterable[GroupEntity]:
         ...
 
 
 class ORMGroupService(BaseGroupService):
-
-    def _build_lesson_query(self, filters: GroupFilter) -> Q:
-        query = Q()
-
-        if filters.subgroup is not None:
-            query &= Q(group_lessons_lesson__subgroup=filters.subgroup)
-        if filters.is_even is not None:
-            query &= Q(timeslot__is_even=filters.is_even)
-
-        return query
 
     def create(
         self,
@@ -120,11 +103,6 @@ class ORMGroupService(BaseGroupService):
         group = GroupModel.objects.filter(headman__email=headman.email).first()
 
         return group.to_entity()
-
-    def get_qs_for_group(self, filters: GroupFilter) -> Q:
-        query = self._build_lesson_query(filters)
-
-        return query
 
     def get_groups_from_lesson(self, lesson_id: int) -> Iterable[GroupEntity]:
         groups = GroupModel.objects.filter(group_lessons_group__lesson_id=lesson_id)

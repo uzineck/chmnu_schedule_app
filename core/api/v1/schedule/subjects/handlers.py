@@ -93,7 +93,7 @@ def get_or_create_subject(request: HttpRequest, schema: SubjectInSchema) -> ApiR
 
 
 @router.patch(
-    "{subject_uuid}",
+    "update_title",
     response=ApiResponse[SubjectSchema],
     operation_id="update_subject_by_uuid",
     auth=jwt_bearer_admin,

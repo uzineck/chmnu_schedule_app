@@ -45,5 +45,3 @@ class ORMGroupLessonService(BaseGroupLessonService):
             lesson_id=group_lesson.lesson.id,
             subgroup=group_lesson.subgroup,
         ).delete()
-
-

@@ -94,7 +94,7 @@ def get_or_create_room(request: HttpRequest, schema: RoomNumberInSchema) -> ApiR
 
 
 @router.patch(
-    "{room_number}/change_number",
+    "change_number",
     response=ApiResponse[RoomSchema],
     operation_id="update_room_number",
     auth=jwt_bearer_admin,
@@ -119,7 +119,7 @@ def update_room_number(
 
 
 @router.patch(
-    "{room_uuid}/change_description",
+    "change_description",
     response=ApiResponse[RoomSchema],
     operation_id="update_room_description",
     auth=jwt_bearer_admin,

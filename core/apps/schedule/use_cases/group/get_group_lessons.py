@@ -3,8 +3,9 @@ from typing import Iterable
 
 from core.apps.schedule.entities.group import Group as GroupEntity
 from core.apps.schedule.entities.lesson import Lesson as LessonEntity
-from core.apps.schedule.filters.group import GroupFilter
+from core.apps.schedule.filters.group import GroupLessonFilter
 from core.apps.schedule.services.group import BaseGroupService
+from core.apps.schedule.services.group_lessons import BaseGroupLessonService
 from core.apps.schedule.services.lesson import BaseLessonService
 
 
@@ -13,12 +14,9 @@ class GetGroupLessonsUseCase:
     group_service: BaseGroupService
     lesson_service: BaseLessonService
 
-    def execute(self, group_uuid: str, filters: GroupFilter) -> tuple[GroupEntity, Iterable[LessonEntity]]:
+    group_lesson_service: BaseGroupLessonService
+
+    def execute(self, group_uuid: str, filters: GroupLessonFilter) -> tuple[GroupEntity, Iterable[LessonEntity]]:
         group = self.group_service.get_group_by_uuid(group_uuid=group_uuid)
-        group_qs = self.group_service.get_qs_for_group(filters=filters)
-        lessons = self.lesson_service.get_lessons_for_group(group_id=group.id, group_query=group_qs)
+        lessons = self.lesson_service.get_lessons_for_group(group_id=group.id, filter_query=filters)
         return group, lessons
-
-
-
-

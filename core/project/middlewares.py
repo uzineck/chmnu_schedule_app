@@ -19,7 +19,7 @@ class ElasticApmMiddleware:
 
     """
 
-    forbidden_paths = ('/admin/',)
+    forbidden_paths = ('django.contrib', 'admin/')
 
     def __init__(self, get_response: Callable):
         self.get_response = get_response
