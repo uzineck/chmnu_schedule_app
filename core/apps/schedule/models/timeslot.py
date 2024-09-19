@@ -43,3 +43,4 @@ class Timeslot(TimedBaseModel):
     class Meta:
         verbose_name = "Timeslot"
         verbose_name_plural = "Timeslots"
+        unique_together = (("day", "ord_number", "is_even"),)

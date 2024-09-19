@@ -14,3 +14,12 @@ class JWTKeyParsingException(ServiceException):
     @property
     def message(self):
         return 'Invalid JWT Key Error'
+
+
+@dataclass(eq=False)
+class InvalidTokenTypeException(ServiceException):
+
+    @property
+    def message(self):
+        return 'Invalid token type'
+

@@ -1,6 +1,7 @@
 from ninja import Schema
 
 from core.apps.clients.entities.client import Client as ClientEntity
+from core.apps.clients.entities.token import Token as TokenEntity
 from core.apps.common.models import ClientRole
 
 
@@ -54,18 +55,35 @@ class LogInSchema(Schema):
 
 
 class TokenOutSchema(ClientSchemaPrivate):
-    token: str
+    access_token: str
+    refresh_token: str | None = None
 
     @classmethod
-    def from_entity_with_token(cls, client: ClientEntity, token: str) -> 'TokenOutSchema':
+    def from_entity_with_tokens(cls, client: ClientEntity, tokens: TokenEntity) -> 'TokenOutSchema':
         return cls(
             last_name=client.last_name,
             first_name=client.first_name,
             middle_name=client.middle_name,
             role=client.role,
             email=client.email,
-            token=token,
+            access_token=tokens.access_token,
+            refresh_token=tokens.refresh_token,
         )
+
+    @classmethod
+    def from_entity_with_access_token(cls, client: ClientEntity, token: TokenEntity) -> 'TokenOutSchema':
+        return cls(
+            last_name=client.last_name,
+            first_name=client.first_name,
+            middle_name=client.middle_name,
+            role=client.role,
+            email=client.email,
+            access_token=token.access_token,
+        )
+
+
+class AccessTokenOutSchema(Schema):
+    access_token: str
 
 
 class UpdatePwInSchema(Schema):

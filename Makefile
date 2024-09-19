@@ -76,4 +76,3 @@ loaddata:
 		${EXEC} ${APP_CONTAINER} ${MANAGE_PY} loaddata --app=schedule --format=json
 
 #docker exec -it main-app python manage.py
-#migrate --fake schedule zero

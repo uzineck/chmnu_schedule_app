@@ -13,7 +13,7 @@ class UpdateClientPasswordUseCase:
     password_validator_service: BasePasswordValidatorService
 
     def execute(self, email: str, old_password: str, new_password: str, verify_password: str) -> None:
-        client = self.client_service.validate_user(email=email, password=old_password)
+        client = self.client_service.validate_client(email=email, password=old_password)
         self.password_validator_service.validate(
             password=new_password,
             verify_password=verify_password,

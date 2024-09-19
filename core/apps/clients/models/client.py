@@ -29,6 +29,7 @@ class Client(TimedBaseModel):
     )
     email = models.EmailField(
         verbose_name="Client's email for auth",
+        max_length=255,
         unique=True,
         blank=False,
     )
@@ -39,12 +40,12 @@ class Client(TimedBaseModel):
     )
     access_token = models.CharField(
         verbose_name="Client's Access Token",
-        max_length=255,
+        max_length=555,
         default=uuid4,
     )
     refresh_token = models.CharField(
         verbose_name="Client's Refresh Token",
-        max_length=255,
+        max_length=555,
         default=uuid4,
     )
 

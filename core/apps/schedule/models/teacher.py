@@ -44,7 +44,6 @@ class Teacher(TimedBaseModel):
             last_name=self.last_name,
             middle_name=self.middle_name,
             rank=self.rank,
-            # subjects=self.subjects,
             is_active=self.is_active,
             created_at=self.created_at,
             updated_at=self.updated_at,

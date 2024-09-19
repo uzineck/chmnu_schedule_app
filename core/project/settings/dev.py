@@ -2,5 +2,5 @@ from .main import *  # noqa
 
 
 ALLOWED_HOSTS = ['*']
-DEBUG = True
+DEBUG = False
 ELASTIC_APM['DEBUG'] = True # noqa

@@ -273,7 +273,7 @@ def add_lesson_to_group_headman(
     use_case: HeadmanAddLessonToGroupUseCase = container.resolve(HeadmanAddLessonToGroupUseCase)
 
     try:
-        user_email: str = client_service.get_user_email_from_token(token=request.auth)
+        user_email: str = client_service.get_client_email_from_token(token=request.auth)
 
     except JWTKeyParsingException as e:
         raise HttpError(
@@ -310,7 +310,7 @@ def remove_lesson_to_group_headman(
     use_case: HeadmanRemoveLessonFromGroupUseCase = container.resolve(HeadmanRemoveLessonFromGroupUseCase)
 
     try:
-        user_email: str = client_service.get_user_email_from_token(token=request.auth)
+        user_email: str = client_service.get_client_email_from_token(token=request.auth)
 
     except JWTKeyParsingException as e:
         raise HttpError(

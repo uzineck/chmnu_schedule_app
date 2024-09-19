@@ -56,6 +56,12 @@ class OrdinaryNumber(models.IntegerChoices):
 
 class ClientRole(models.TextChoices):
     ADMIN = "admin", "Admin"
+    MANAGER = "manager", "Manager"
     HEADMAN = "headman", "Headman"
     DEFAULT = "default", "Default"
+
+
+class TokenType(models.TextChoices):
+    ACCESS = "access", "ACCESS"
+    REFRESH = "refresh", "REFRESH"
 

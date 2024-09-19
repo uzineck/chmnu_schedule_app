@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 
 from core.apps.clients.entities.client import Client as ClientEntity
+from core.apps.clients.entities.token import Token as TokenEntity
 from core.apps.clients.services.client import BaseClientService
 from core.apps.common.authentication.validators.email import BaseEmailValidatorService
 
@@ -11,9 +12,9 @@ class UpdateClientEmailUseCase:
 
     email_validator_service: BaseEmailValidatorService
 
-    def execute(self, old_email: str, new_email: str, password: str) -> tuple[ClientEntity, str]:
-        client = self.client_service.validate_user(email=old_email, password=password)
+    def execute(self, old_email: str, new_email: str, password: str) -> tuple[ClientEntity, TokenEntity]:
+        client = self.client_service.validate_client(email=old_email, password=password)
         self.email_validator_service.validate(email=new_email, old_email=old_email)
         updated_client = self.client_service.update_email(client=client, email=new_email)
 
-        return updated_client, self.client_service.generate_token(client=updated_client)
+        return updated_client, self.client_service.generate_tokens(client=updated_client)

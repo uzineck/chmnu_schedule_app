@@ -5,8 +5,10 @@ from abc import (
     abstractmethod,
 )
 from dataclasses import dataclass
+from typing import Any
 
 from core.apps.clients.entities.client import Client as ClientEntity
+from core.apps.clients.entities.token import Token as TokenEntity
 from core.apps.clients.exceptions.auth import InvalidAuthDataException
 from core.apps.clients.exceptions.client import (
     ClientAlreadyExistsException,
@@ -16,7 +18,10 @@ from core.apps.clients.exceptions.client import (
 from core.apps.clients.models.client import Client as ClientModel
 from core.apps.common.authentication.password import BasePasswordService
 from core.apps.common.authentication.token import BaseTokenService
-from core.apps.common.models import ClientRole
+from core.apps.common.models import (
+    ClientRole,
+    TokenType,
+)
 
 
 @dataclass(eq=False)
@@ -67,7 +72,7 @@ class BaseClientService(ABC):
         ...
 
     @abstractmethod
-    def generate_token(self, client: ClientEntity) -> str:
+    def validate_client(self, email: str, password: str) -> ClientEntity:
         ...
 
     @abstractmethod
@@ -75,19 +80,23 @@ class BaseClientService(ABC):
         ...
 
     @abstractmethod
-    def validate_user(self, email: str, password: str) -> ClientEntity:
+    def generate_tokens(self, client: ClientEntity) -> TokenEntity:
         ...
 
     @abstractmethod
-    def get_user_email_from_token(self, token: str) -> str:
+    def update_access_token(self, client: ClientEntity) -> str:
         ...
 
     @abstractmethod
-    def get_user_id_from_token(self, token: str) -> int:
+    def get_client_email_from_token(self, token: str) -> str:
         ...
 
     @abstractmethod
-    def get_user_role_from_token(self, token: str) -> str:
+    def get_client_role_from_token(self, token: str) -> str:
+        ...
+
+    @abstractmethod
+    def get_token_type_from_token(self, token: str) -> TokenType:
         ...
 
 
@@ -165,16 +174,7 @@ class ORMClientService(BaseClientService):
 
         return client.to_entity()
 
-    def generate_token(self, client: ClientEntity) -> str:
-        jwt = self.token_service.create_token(client=client)
-        ClientModel.objects.filter(email=client.email).update(token=jwt)
-        return jwt
-
-    def check_user_role(self, user_role: str, required_role: ClientRole) -> None:
-        if user_role != required_role:
-            raise ClientRoleNotMatchingWithRequired(user_role=user_role)
-
-    def validate_user(self, email: str, password: str) -> ClientEntity:
+    def validate_client(self, email: str, password: str) -> ClientEntity:
         try:
             client = ClientModel.objects.get(email=email)
         except ClientModel.DoesNotExist:
@@ -185,14 +185,38 @@ class ORMClientService(BaseClientService):
 
         return client.to_entity()
 
-    def get_user_email_from_token(self, token: str) -> str:
-        return self.token_service.get_user_email_from_token(token=token)
+    def check_user_role(self, user_role: str, required_role: ClientRole) -> None:
+        if user_role != required_role:
+            raise ClientRoleNotMatchingWithRequired(client_role=user_role)
 
-    def get_user_id_from_token(self, token: str) -> int:
-        return self.token_service.get_user_id_from_token(token=token)
+    def generate_tokens(self, client: ClientEntity) -> TokenEntity:
+        jwt_token_entity: TokenEntity = self.token_service.create_tokens(client=client)
+        ClientModel.objects.filter(email=client.email).update(
+            access_token=jwt_token_entity.access_token,
+            refresh_token=jwt_token_entity.refresh_token,
+        )
+        return jwt_token_entity
 
-    def get_user_role_from_token(self, token: str) -> str:
-        return self.token_service.get_user_role_from_token(token=token)
+    def update_access_token(self, client: ClientEntity) -> str:
+        jwt_tokens = self.token_service.create_tokens(client=client)
+        ClientModel.objects.filter(email=client.email).update(
+            access_token=jwt_tokens.access_token,
+        )
+        return jwt_tokens.access_token
+
+    def validate_token(self, token: str) -> dict[str, Any]:
+        payload = self.token_service.validate_token(token=token)
+
+        return payload
+
+    def get_client_email_from_token(self, token: str) -> str:
+        return self.token_service.get_client_email_from_token(token=token)
+
+    def get_client_role_from_token(self, token: str) -> str:
+        return self.token_service.get_client_role_from_token(token=token)
+
+    def get_token_type_from_token(self, token: str) -> TokenType:
+        return self.token_service.get_token_type_from_token(token=token)
 
 
 

@@ -23,7 +23,7 @@ class ClientAlreadyExistsException(ServiceException):
 
 @dataclass(eq=False)
 class ClientRoleNotMatchingWithRequired(ServiceException):
-    user_role: str
+    client_role: str
 
     @property
     def message(self):

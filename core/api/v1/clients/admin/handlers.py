@@ -54,7 +54,7 @@ def update_client_role(request: HttpRequest, schema: UpdateRoleInSchema) -> ApiR
     container = get_container()
     use_case = container.resolve(UpdateClientRoleUseCase)
     try:
-        client, jwt_token = use_case.execute(
+        client, jwt_tokens = use_case.execute(
             client_email=schema.client_email,
             new_role=schema.role,
         )
@@ -64,5 +64,5 @@ def update_client_role(request: HttpRequest, schema: UpdateRoleInSchema) -> ApiR
             message=e.message,
         )
     return ApiResponse(
-        data=TokenOutSchema.from_entity_with_token(client=client, token=jwt_token),
+        data=TokenOutSchema.from_entity_with_tokens(client=client, tokens=jwt_tokens),
     )

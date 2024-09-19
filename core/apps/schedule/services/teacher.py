@@ -9,10 +9,8 @@ from typing import Iterable
 from core.api.filters import PaginationIn
 from core.apps.common.models import TeachersDegree
 from core.apps.schedule.entities.teacher import Teacher as TeacherEntity
-from core.apps.schedule.exceptions.subject import SubjectUuidNotFoundException
 from core.apps.schedule.exceptions.teacher import TeacherNotFoundException
 from core.apps.schedule.filters.teacher import TeacherFilter
-from core.apps.schedule.models import Subject as SubjectModel
 from core.apps.schedule.models.teacher import Teacher as TeacherModel
 
 
@@ -52,14 +50,6 @@ class BaseTeacherService(ABC):
             middle_name: str,
             rank: str,
     ) -> TeacherEntity:
-        ...
-
-    @abstractmethod
-    def add_teacher_subject(self, teacher_uuid: str, subject_uuid: str) -> TeacherEntity:
-        ...
-
-    @abstractmethod
-    def remove_teacher_subject(self, teacher_uuid: int, subject_uuid: str) -> TeacherEntity:
         ...
 
 
@@ -137,32 +127,4 @@ class ORMTeacherService(BaseTeacherService):
         except TeacherModel.DoesNotExist:
             raise TeacherNotFoundException(uuid=teacher_uuid)
 
-        return teacher.to_entity()
-
-    def add_teacher_subject(self, teacher_uuid: str, subject_uuid: str) -> TeacherEntity:
-        try:
-            teacher = TeacherModel.objects.get(teacher_uuid=teacher_uuid)
-        except TeacherModel.DoesNotExist:
-            raise TeacherNotFoundException(uuid=teacher_uuid)
-
-        try:
-            subject = SubjectModel.objects.get(subject_uuid=subject_uuid)
-        except SubjectModel.DoesNotExist:
-            raise SubjectUuidNotFoundException(uuid=subject_uuid)
-
-        teacher.subjects.add(subject)
-        return teacher.to_entity()
-
-    def remove_teacher_subject(self, teacher_uuid: str, subject_uuid: str) -> TeacherEntity:
-        try:
-            teacher = TeacherModel.objects.get(teacher_uuid=teacher_uuid)
-        except TeacherModel.DoesNotExist:
-            raise TeacherNotFoundException(uuid=teacher_uuid)
-
-        try:
-            subject = SubjectModel.objects.get(subject_uuid=subject_uuid)
-        except SubjectModel.DoesNotExist:
-            raise SubjectUuidNotFoundException(uuid=subject_uuid)
-
-        teacher.subjects.remove(subject)
         return teacher.to_entity()

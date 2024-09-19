@@ -3,6 +3,7 @@ from django.db import models
 import uuid
 
 from core.apps.common.models import TimedBaseModel
+from core.apps.schedule.entities.faculty import Faculty as FacultyEntity
 
 
 class Faculty(TimedBaseModel):
@@ -20,6 +21,16 @@ class Faculty(TimedBaseModel):
         verbose_name='Name of the faculty',
         max_length=100,
     )
+
+    def to_entity(self) -> FacultyEntity:
+        return FacultyEntity(
+            id=self.id,
+            uuid=self.faculty_uuid,
+            code_name=self.code_name,
+            name=self.name,
+            created_at=self.created_at,
+            updated_at=self.updated_at,
+        )
 
     class Meta:
         verbose_name = 'Faculty'

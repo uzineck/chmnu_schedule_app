@@ -4,5 +4,4 @@
 .env.prod
 static/*
 !static/.gitkeep
-exmp.mwb
-exmp.mwb.bak
+

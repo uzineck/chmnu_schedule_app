@@ -6,6 +6,7 @@ from core.apps.clients.services.client import (
 )
 from core.apps.clients.usecases.client.create import CreateClientUseCase
 from core.apps.clients.usecases.client.login import LoginClientUseCase
+from core.apps.clients.usecases.client.update_access_token import UpdateAccessTokenUseCase
 from core.apps.clients.usecases.client.update_credentials import UpdateClientCredentialsUseCase
 from core.apps.clients.usecases.client.update_email import UpdateClientEmailUseCase
 from core.apps.clients.usecases.client.update_password import UpdateClientPasswordUseCase
@@ -33,3 +34,4 @@ def register_client_services(container: punq.Container):
     container.register(UpdateClientCredentialsUseCase)
     container.register(UpdateClientRoleUseCase)
     container.register(GetHeadmanInfoUseCase)
+    container.register(UpdateAccessTokenUseCase)
