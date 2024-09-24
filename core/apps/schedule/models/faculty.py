@@ -25,12 +25,15 @@ class Faculty(TimedBaseModel):
     def to_entity(self) -> FacultyEntity:
         return FacultyEntity(
             id=self.id,
-            uuid=self.faculty_uuid,
+            uuid=str(self.faculty_uuid),
             code_name=self.code_name,
             name=self.name,
             created_at=self.created_at,
             updated_at=self.updated_at,
         )
+
+    def __str__(self):
+        return self.code_name
 
     class Meta:
         verbose_name = 'Faculty'

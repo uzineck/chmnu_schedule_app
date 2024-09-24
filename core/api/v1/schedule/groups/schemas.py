@@ -3,6 +3,10 @@ from ninja import Schema
 from collections.abc import Iterable
 
 from core.api.v1.clients.schemas import ClientSchemaPrivate
+from core.api.v1.schedule.faculty.schemas import (
+    FacultyCodeNameSchema,
+    FacultySchema,
+)
 from core.api.v1.schedule.lessons.schema_for_groups import LessonForGroupOutSchema
 from core.apps.common.models import Subgroup
 from core.apps.schedule.entities.group import Group as GroupEntity
@@ -12,6 +16,7 @@ from core.apps.schedule.entities.lesson import Lesson as LessonEntity
 class GroupSchema(Schema):
     uuid: str
     number: str
+    faculty: FacultySchema
     has_subgroups: bool
     subgroup: Subgroup | None = None
 
@@ -20,6 +25,7 @@ class GroupSchema(Schema):
         return cls(
             uuid=entity.uuid,
             number=entity.number,
+            faculty=entity.faculty,
             has_subgroups=entity.has_subgroups,
         )
 
@@ -36,6 +42,7 @@ class GroupSchema(Schema):
 class GroupSchemaWithHeadman(Schema):
     uuid: str
     number: str
+    faculty: FacultyCodeNameSchema
     has_subgroups: bool
     headman: ClientSchemaPrivate
 
@@ -44,6 +51,7 @@ class GroupSchemaWithHeadman(Schema):
         return cls(
             uuid=entity.uuid,
             number=entity.number,
+            faculty=entity.faculty,
             has_subgroups=entity.has_subgroups,
             headman=entity.headman,
         )
@@ -51,6 +59,7 @@ class GroupSchemaWithHeadman(Schema):
 
 class CreateGroupSchema(Schema):
     number: str
+    faculty_uuid: str
     headman_email: str
     has_subgroups: bool
 
@@ -63,12 +72,14 @@ class UpdateGroupHeadmanSchema(Schema):
 class GroupUuidNumberOutSchema(Schema):
     uuid: str
     number: str
+    faculty: FacultyCodeNameSchema
 
     @classmethod
     def from_entity(cls, entity: GroupEntity) -> 'GroupUuidNumberOutSchema':
         return cls(
             uuid=entity.uuid,
             number=entity.number,
+            faculty=entity.faculty,
         )
 
 
@@ -85,6 +96,7 @@ class GroupLessonsOutSchema(GroupSchema):
         return cls(
             uuid=group_entity.uuid,
             number=group_entity.number,
+            faculty=group_entity.faculty,
             has_subgroups=group_entity.has_subgroups,
             subgroup=subgroup,
             lessons=[LessonForGroupOutSchema.from_entity(obj) for obj in lesson_entities] if lesson_entities else None,
@@ -99,6 +111,7 @@ class GroupLessonsOutSchema(GroupSchema):
         return cls(
             uuid=entity.uuid,
             number=entity.number,
+            faculty=entity.faculty,
             has_subgroups=entity.has_subgroups,
             subgroup=subgroup,
             lessons=entity.lessons if entity.lessons else None,

@@ -18,6 +18,7 @@ class BaseGroupService(ABC):
     def create(
         self,
         group_number: str,
+        faculty_id: int,
         has_subgroups: bool,
         headman_id: int,
     ) -> GroupEntity:
@@ -61,11 +62,13 @@ class ORMGroupService(BaseGroupService):
     def create(
         self,
         group_number: str,
+        faculty_id: int,
         has_subgroups: bool,
         headman_id: int,
     ) -> GroupEntity:
         group = GroupModel.objects.create(
             number=group_number,
+            faculty_id=faculty_id,
             has_subgroups=has_subgroups,
             headman_id=headman_id,
         )

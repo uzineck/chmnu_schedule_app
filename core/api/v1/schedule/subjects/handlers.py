@@ -22,7 +22,7 @@ from core.api.v1.schedule.subjects.schemas import (
 )
 from core.apps.common.authentication.bearer import jwt_bearer_admin
 from core.apps.common.exceptions import ServiceException
-from core.apps.common.filters import SearchFilter as SearchFiltersEntity
+from core.apps.common.filters import SearchFilter as SearchFilterEntity
 from core.apps.schedule.services.subject import BaseSubjectService
 from core.project.containers.containers import get_container
 
@@ -44,7 +44,7 @@ def get_subject_list(
     service: BaseSubjectService = container.resolve(BaseSubjectService)
     try:
         subject_list = service.get_subject_list(
-            filters=SearchFiltersEntity(search=filters.search),
+            filters=SearchFilterEntity(search=filters.search),
             pagination=pagination_in,
         )
         subject_count = service.get_subject_count(filters=filters)

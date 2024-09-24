@@ -1,5 +1,6 @@
 import punq
 
+from core.project.containers.services.schedule.faculty import register_faculty_services
 from core.project.containers.services.schedule.group import register_group_services
 from core.project.containers.services.schedule.group_lesson import register_group_lesson_services
 from core.project.containers.services.schedule.lesson import register_lesson_services
@@ -17,3 +18,4 @@ def register_schedule_services(container: punq.Container):
     register_subject_services(container=container)
     register_room_services(container=container)
     register_timeslot_services(container=container)
+    register_faculty_services(container=container)

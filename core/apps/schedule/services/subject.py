@@ -9,7 +9,7 @@ from pytils.translit import slugify
 from typing import Iterable
 
 from core.api.filters import PaginationIn
-from core.apps.common.filters import SearchFilter as SearchFiltersEntity
+from core.apps.common.filters import SearchFilter as SearchFilterEntity
 from core.apps.schedule.entities.subject import Subject as SubjectEntity
 from core.apps.schedule.exceptions.subject import (
     SubjectAlreadyExistException,
@@ -25,11 +25,11 @@ class BaseSubjectService(ABC):
         ...
 
     @abstractmethod
-    def get_subject_list(self, filters: SearchFiltersEntity, pagination: PaginationIn) -> Iterable[SubjectEntity]:
+    def get_subject_list(self, filters: SearchFilterEntity, pagination: PaginationIn) -> Iterable[SubjectEntity]:
         ...
 
     @abstractmethod
-    def get_subject_count(self, filters: SearchFiltersEntity) -> int:
+    def get_subject_count(self, filters: SearchFilterEntity) -> int:
         ...
 
     @abstractmethod
@@ -47,7 +47,7 @@ class BaseSubjectService(ABC):
 
 class ORMSubjectService(BaseSubjectService):
 
-    def _build_subject_query(self, filters: SearchFiltersEntity) -> Q:
+    def _build_subject_query(self, filters: SearchFilterEntity) -> Q:
         query = Q()
 
         if filters.search is not None:
@@ -63,14 +63,14 @@ class ORMSubjectService(BaseSubjectService):
             raise SubjectAlreadyExistException(title=title)
         return subject.to_entity()
 
-    def get_subject_list(self, filters: SearchFiltersEntity, pagination: PaginationIn) -> Iterable[SubjectEntity]:
+    def get_subject_list(self, filters: SearchFilterEntity, pagination: PaginationIn) -> Iterable[SubjectEntity]:
         query = self._build_subject_query(filters)
         qs = SubjectModel.objects.filter(query)[
             pagination.offset:pagination.offset + pagination.limit
         ]
         return [subject.to_entity() for subject in qs]
 
-    def get_subject_count(self, filters: SearchFiltersEntity) -> int:
+    def get_subject_count(self, filters: SearchFilterEntity) -> int:
         query = self._build_subject_query(filters)
 
         return SubjectModel.objects.filter(query).count()

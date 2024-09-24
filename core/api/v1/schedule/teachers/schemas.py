@@ -27,7 +27,3 @@ class TeacherInSchema(Schema):
     first_name: str
     middle_name: str
     rank: TeachersDegree
-
-
-class TeacherUpdateSubjectsInSchema(Schema):
-    subject_uuid: str

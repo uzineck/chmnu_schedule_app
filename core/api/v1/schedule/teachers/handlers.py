@@ -21,7 +21,6 @@ from core.api.v1.schedule.teachers.filters import TeacherFilter
 from core.api.v1.schedule.teachers.schemas import (
     TeacherInSchema,
     TeacherSchema,
-    TeacherUpdateSubjectsInSchema,
 )
 from core.apps.common.authentication.bearer import jwt_bearer_admin
 from core.apps.common.exceptions import ServiceException
@@ -158,58 +157,6 @@ def update_teacher(
             middle_name=schema.middle_name,
             rank=schema.rank,
         )
-    except ServiceException as e:
-        raise HttpError(
-            status_code=401,
-            message=e.message,
-        )
-
-    return ApiResponse(
-        data=TeacherSchema.from_entity(entity=teacher),
-    )
-
-
-@router.patch(
-    "{teacher_uuid}/add_subjects",
-    response=ApiResponse[TeacherSchema],
-    operation_id="add_teacher_subjects",
-    auth=jwt_bearer_admin,
-)
-def add_teacher_subjects(
-        request: HttpRequest,
-        teacher_uuid: str,
-        schema: TeacherUpdateSubjectsInSchema,
-) -> ApiResponse[TeacherSchema]:
-    container = get_container()
-    service = container.resolve(BaseTeacherService)
-    try:
-        teacher = service.add_teacher_subject(teacher_uuid=teacher_uuid, subject_uuid=schema.subject_id)
-    except ServiceException as e:
-        raise HttpError(
-            status_code=401,
-            message=e.message,
-        )
-
-    return ApiResponse(
-        data=TeacherSchema.from_entity(entity=teacher),
-    )
-
-
-@router.patch(
-    "{teacher_uuid}/remove_subjects",
-    response=ApiResponse[TeacherSchema],
-    operation_id="remove_teacher_subjects",
-    auth=jwt_bearer_admin,
-)
-def remove_teacher_subjects(
-        request: HttpRequest,
-        teacher_uuid: str,
-        schema: TeacherUpdateSubjectsInSchema,
-) -> ApiResponse[TeacherSchema]:
-    container = get_container()
-    service = container.resolve(BaseTeacherService)
-    try:
-        teacher = service.remove_teacher_subject(teacher_uuid=teacher_uuid, subject_uuid=schema.subject_id)
     except ServiceException as e:
         raise HttpError(
             status_code=401,

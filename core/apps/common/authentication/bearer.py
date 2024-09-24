@@ -13,7 +13,7 @@ from core.apps.common.models import (
 
 
 class JWTBearer(HttpBearer):
-    def __init__(self, allowed_roles: list[ClientRole] | None = None, allowed_emails: list[str] | None = None):
+    def __init__(self, allowed_roles: list[ClientRole], allowed_emails: list[str] | None = None):
         super().__init__()
         self.allowed_roles = allowed_roles
         self.allowed_emails = allowed_emails
@@ -56,8 +56,6 @@ class JWTBearer(HttpBearer):
         return token
 
     def _is_role_allowed(self, role: str) -> bool:
-        if not self.allowed_roles:
-            return True
         return role in self.allowed_roles
 
     def _is_email_allowed(self, email: str) -> bool:

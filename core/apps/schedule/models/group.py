@@ -56,6 +56,7 @@ class Group(TimedBaseModel):
             id=self.id,
             uuid=str(self.group_uuid),
             number=self.number,
+            faculty=self.faculty.to_entity(),
             has_subgroups=self.has_subgroups,
             headman=self.headman.to_entity(),
             created_at=self.created_at,
