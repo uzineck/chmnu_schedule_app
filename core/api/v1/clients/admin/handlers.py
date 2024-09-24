@@ -6,7 +6,7 @@ from core.api.schemas import ApiResponse
 from core.api.v1.clients.schemas import (
     ClientSchemaPrivate,
     SignUpInSchema,
-    TokenOutSchema,
+    TokenClientOutSchema,
     UpdateRoleInSchema,
 )
 from core.apps.clients.usecases.client.create import CreateClientUseCase
@@ -46,13 +46,13 @@ def sign_up_handler(request: HttpRequest, schema: SignUpInSchema) -> ApiResponse
 
 @router.patch(
     "update_client_role",
-    response=ApiResponse[TokenOutSchema],
+    response=ApiResponse[TokenClientOutSchema],
     operation_id='update_client_role',
     auth=jwt_bearer_admin,
 )
-def update_client_role(request: HttpRequest, schema: UpdateRoleInSchema) -> ApiResponse[TokenOutSchema]:
+def update_client_role(request: HttpRequest, schema: UpdateRoleInSchema) -> ApiResponse[TokenClientOutSchema]:
     container = get_container()
-    use_case = container.resolve(UpdateClientRoleUseCase)
+    use_case: UpdateClientRoleUseCase = container.resolve(UpdateClientRoleUseCase)
     try:
         client, jwt_tokens = use_case.execute(
             client_email=schema.client_email,
@@ -64,5 +64,5 @@ def update_client_role(request: HttpRequest, schema: UpdateRoleInSchema) -> ApiR
             message=e.message,
         )
     return ApiResponse(
-        data=TokenOutSchema.from_entity_with_tokens(client=client, tokens=jwt_tokens),
+        data=TokenClientOutSchema.from_entity_with_tokens(client=client, tokens=jwt_tokens),
     )

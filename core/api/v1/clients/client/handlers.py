@@ -7,9 +7,9 @@ from core.api.schemas import (
     StatusResponse,
 )
 from core.api.v1.clients.schemas import (
-    AccessTokenOutSchema,
     ClientSchemaPrivate,
     LogInSchema,
+    TokenClientOutSchema,
     TokenOutSchema,
     UpdateCredentialsInSchema,
     UpdateEmailInSchema,
@@ -17,6 +17,7 @@ from core.api.v1.clients.schemas import (
 )
 from core.apps.clients.services.client import BaseClientService
 from core.apps.clients.usecases.client.login import LoginClientUseCase
+from core.apps.clients.usecases.client.logout import LogoutClientUseCase
 from core.apps.clients.usecases.client.update_access_token import UpdateAccessTokenUseCase
 from core.apps.clients.usecases.client.update_credentials import UpdateClientCredentialsUseCase
 from core.apps.clients.usecases.client.update_email import UpdateClientEmailUseCase
@@ -32,8 +33,8 @@ from core.project.containers.containers import get_container
 router = Router(tags=["Client"])
 
 
-@router.post("log-in", response=ApiResponse[TokenOutSchema], operation_id='login')
-def login(request: HttpRequest, schema: LogInSchema) -> ApiResponse[TokenOutSchema]:
+@router.post("log-in", response=ApiResponse[TokenClientOutSchema], operation_id='login')
+def login(request: HttpRequest, schema: LogInSchema) -> ApiResponse[TokenClientOutSchema]:
     container = get_container()
     use_case = container.resolve(LoginClientUseCase)
     try:
@@ -44,32 +45,40 @@ def login(request: HttpRequest, schema: LogInSchema) -> ApiResponse[TokenOutSche
             message=e.message,
         )
     return ApiResponse(
-        data=TokenOutSchema.from_entity_with_tokens(client=client, tokens=jwt_tokens),
+        data=TokenClientOutSchema.from_entity_with_tokens(client=client, tokens=jwt_tokens),
     )
 
 
-@router.patch("update_access_token", response=ApiResponse[AccessTokenOutSchema], operation_id='update_access_token')
-def update_access_token(request: HttpRequest, refresh_token: str) -> ApiResponse[AccessTokenOutSchema]:
+@router.post("log-out", response=ApiResponse[StatusResponse], operation_id='logout', auth=jwt_bearer)
+def logout(request: HttpRequest) -> ApiResponse[StatusResponse]:
     container = get_container()
-    client_service = container.resolve(BaseClientService)
-    use_case: UpdateAccessTokenUseCase = container.resolve(UpdateAccessTokenUseCase)
+    use_case: LogoutClientUseCase = container.resolve(LogoutClientUseCase)
     try:
-        client_email: str = client_service.get_client_email_from_token(token=refresh_token)
-    except JWTKeyParsingException as e:
-        raise HttpError(
-            status_code=401,
-            message=e.message,
-        )
-
-    try:
-        access_token = use_case.execute(token=refresh_token, client_email=client_email)
+        use_case.execute(token=request.auth)
     except ServiceException as e:
         raise HttpError(
             status_code=400,
             message=e.message,
         )
     return ApiResponse(
-        data=AccessTokenOutSchema(access_token=access_token),
+        data=StatusResponse(status="Successfully logged out"),
+    )
+
+
+@router.patch("update_access_token", response=ApiResponse[TokenOutSchema], operation_id='update_access_token')
+def update_access_token(request: HttpRequest, refresh_token: str) -> ApiResponse[TokenOutSchema]:
+    container = get_container()
+    use_case: UpdateAccessTokenUseCase = container.resolve(UpdateAccessTokenUseCase)
+
+    try:
+        access_token = use_case.execute(token=refresh_token)
+    except ServiceException as e:
+        raise HttpError(
+            status_code=400,
+            message=e.message,
+        )
+    return ApiResponse(
+        data=TokenOutSchema.from_entity(tokens_entity=access_token),
     )
 
 
@@ -113,11 +122,11 @@ def update_password(request: HttpRequest, schema: UpdatePwInSchema) -> ApiRespon
 
 @router.patch(
     "update_email",
-    response=ApiResponse[TokenOutSchema],
+    response=ApiResponse[TokenClientOutSchema],
     operation_id='update_email',
     auth=jwt_bearer,
 )
-def update_email(request: HttpRequest, schema: UpdateEmailInSchema) -> ApiResponse[TokenOutSchema]:
+def update_email(request: HttpRequest, schema: UpdateEmailInSchema) -> ApiResponse[TokenClientOutSchema]:
     container = get_container()
     client_service = container.resolve(BaseClientService)
     use_case = container.resolve(UpdateClientEmailUseCase)
@@ -141,7 +150,7 @@ def update_email(request: HttpRequest, schema: UpdateEmailInSchema) -> ApiRespon
             message=e.message,
         )
     return ApiResponse(
-        data=TokenOutSchema.from_entity_with_tokens(client=client, tokens=jwt_tokens),
+        data=TokenClientOutSchema.from_entity_with_tokens(client=client, tokens=jwt_tokens),
     )
 
 

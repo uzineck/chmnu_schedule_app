@@ -12,9 +12,10 @@ from core.apps.common.models import (
 
 
 class JWTBearer(HttpBearer):
-    def __init__(self, allowed_roles: list[ClientRole] | None = None):
+    def __init__(self, allowed_roles: list[ClientRole] | None = None, allowed_emails: list[str] | None = None):
         super().__init__()
-        self.allowed_roles = allowed_roles or [ClientRole.DEFAULT]
+        self.allowed_roles = allowed_roles
+        self.allowed_emails = allowed_emails
 
     def authenticate(self, request: HttpRequest, token: str) -> str:
         try:
@@ -28,7 +29,14 @@ class JWTBearer(HttpBearer):
                 )
 
             user_role = token_service.get_client_role_from_token(token=token)
-            if not self._is_role_allowed(user_role):
+            if not self._is_role_allowed(role=user_role):
+                raise HttpError(
+                    status_code=403,
+                    message="Client does not have permission to access this resource",
+                )
+
+            user_email = token_service.get_client_email_from_token(token=token)
+            if not self._is_email_allowed(email=user_email):
                 raise HttpError(
                     status_code=403,
                     message="Client does not have permission to access this resource",
@@ -43,6 +51,11 @@ class JWTBearer(HttpBearer):
 
     def _is_role_allowed(self, role: str) -> bool:
         return role in self.allowed_roles
+
+    def _is_email_allowed(self, email: str) -> bool:
+        if not self.allowed_emails:
+            return True
+        return email in self.allowed_emails
 
 
 jwt_bearer_admin = JWTBearer([ClientRole.ADMIN])

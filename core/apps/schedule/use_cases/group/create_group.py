@@ -16,7 +16,7 @@ class CreateGroupUseCase:
 
     def execute(self, group_number: str, headman_email: str, has_subgroups: bool) -> GroupEntity:
         headman = self.client_service.get_by_email(email=headman_email)
-        self.client_service.check_user_role(user_role=headman.role, required_role=ClientRole.HEADMAN)
+        self.client_service.check_client_role(client_role=headman.role, required_role=ClientRole.HEADMAN)
         self.group_validator_service.validate(group_number=group_number, headman=headman)
 
         return self.group_service.create(

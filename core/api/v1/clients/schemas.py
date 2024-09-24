@@ -54,12 +54,12 @@ class LogInSchema(Schema):
     password: str
 
 
-class TokenOutSchema(ClientSchemaPrivate):
+class TokenClientOutSchema(ClientSchemaPrivate):
     access_token: str
-    refresh_token: str | None = None
+    refresh_token: str
 
     @classmethod
-    def from_entity_with_tokens(cls, client: ClientEntity, tokens: TokenEntity) -> 'TokenOutSchema':
+    def from_entity_with_tokens(cls, client: ClientEntity, tokens: TokenEntity) -> 'TokenClientOutSchema':
         return cls(
             last_name=client.last_name,
             first_name=client.first_name,
@@ -70,20 +70,17 @@ class TokenOutSchema(ClientSchemaPrivate):
             refresh_token=tokens.refresh_token,
         )
 
-    @classmethod
-    def from_entity_with_access_token(cls, client: ClientEntity, token: TokenEntity) -> 'TokenOutSchema':
-        return cls(
-            last_name=client.last_name,
-            first_name=client.first_name,
-            middle_name=client.middle_name,
-            role=client.role,
-            email=client.email,
-            access_token=token.access_token,
-        )
 
-
-class AccessTokenOutSchema(Schema):
+class TokenOutSchema(Schema):
     access_token: str
+    refresh_token: str | None = None
+
+    @classmethod
+    def from_entity(cls, tokens_entity: TokenEntity) -> 'TokenOutSchema':
+        return cls(
+            access_token=tokens_entity.access_token,
+            refresh_token=tokens_entity.refresh_token,
+        )
 
 
 class UpdatePwInSchema(Schema):

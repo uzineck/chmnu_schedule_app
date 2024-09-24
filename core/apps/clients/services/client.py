@@ -18,6 +18,7 @@ from core.apps.clients.exceptions.client import (
 from core.apps.clients.models.client import Client as ClientModel
 from core.apps.common.authentication.password import BasePasswordService
 from core.apps.common.authentication.token import BaseTokenService
+from core.apps.common.factory import get_new_uuid
 from core.apps.common.models import (
     ClientRole,
     TokenType,
@@ -76,7 +77,7 @@ class BaseClientService(ABC):
         ...
 
     @abstractmethod
-    def check_user_role(self, user_role: ClientRole, required_role: ClientRole) -> None:
+    def check_client_role(self, client_role: ClientRole, required_role: ClientRole) -> None:
         ...
 
     @abstractmethod
@@ -84,7 +85,7 @@ class BaseClientService(ABC):
         ...
 
     @abstractmethod
-    def update_access_token(self, client: ClientEntity) -> str:
+    def update_access_token(self, client: ClientEntity, device_id: str) -> TokenEntity:
         ...
 
     @abstractmethod
@@ -97,6 +98,18 @@ class BaseClientService(ABC):
 
     @abstractmethod
     def get_token_type_from_token(self, token: str) -> TokenType:
+        ...
+
+    @abstractmethod
+    def get_jti_from_token(self, token: str) -> str:
+        ...
+
+    @abstractmethod
+    def get_device_id_from_token(self, token: str) -> str:
+        ...
+
+    @abstractmethod
+    def get_expiration_time_from_token(self, token: str) -> int:
         ...
 
 
@@ -185,24 +198,21 @@ class ORMClientService(BaseClientService):
 
         return client.to_entity()
 
-    def check_user_role(self, user_role: str, required_role: ClientRole) -> None:
-        if user_role != required_role:
-            raise ClientRoleNotMatchingWithRequired(client_role=user_role)
+    def check_client_role(self, client_role: str, required_role: ClientRole) -> None:
+        if client_role != required_role:
+            raise ClientRoleNotMatchingWithRequired(client_role=client_role)
 
     def generate_tokens(self, client: ClientEntity) -> TokenEntity:
-        jwt_token_entity: TokenEntity = self.token_service.create_tokens(client=client)
-        ClientModel.objects.filter(email=client.email).update(
-            access_token=jwt_token_entity.access_token,
-            refresh_token=jwt_token_entity.refresh_token,
-        )
-        return jwt_token_entity
+        device_id = get_new_uuid()
+        access_token = self.token_service.create_access_token(client=client, payload={"device_id": device_id})
+        refresh_token = self.token_service.create_refresh_token(client=client, payload={"device_id": device_id})
 
-    def update_access_token(self, client: ClientEntity) -> str:
-        jwt_tokens = self.token_service.create_tokens(client=client)
-        ClientModel.objects.filter(email=client.email).update(
-            access_token=jwt_tokens.access_token,
-        )
-        return jwt_tokens.access_token
+        return TokenEntity(access_token=access_token, refresh_token=refresh_token)
+
+    def update_access_token(self, client: ClientEntity, device_id: str) -> TokenEntity:
+        access_token = self.token_service.create_access_token(client=client, payload={"device_id": device_id})
+
+        return TokenEntity(access_token=access_token)
 
     def validate_token(self, token: str) -> dict[str, Any]:
         payload = self.token_service.validate_token(token=token)
@@ -218,5 +228,11 @@ class ORMClientService(BaseClientService):
     def get_token_type_from_token(self, token: str) -> TokenType:
         return self.token_service.get_token_type_from_token(token=token)
 
+    def get_jti_from_token(self, token: str) -> str:
+        return self.token_service.get_jti_from_token(token=token)
 
+    def get_device_id_from_token(self, token: str) -> str:
+        return self.token_service.get_device_id_from_token(token=token)
 
+    def get_expiration_time_from_token(self, token: str) -> int:
+        return self.token_service.get_expiration_time_from_token(token=token)

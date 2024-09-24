@@ -2,6 +2,7 @@ version: '3.9'
 
 services:
   apm-server:
+    container_name: apm-server
     image: docker.elastic.co/apm/apm-server:7.17.20
     depends_on:
       elasticsearch:
@@ -26,6 +27,7 @@ services:
       test: curl --write-out 'HTTP %{http_code}' --fail --silent --output /dev/null http://localhost:8200/
 
   elasticsearch:
+    container_name: elasticsearch
     image: docker.elastic.co/elasticsearch/elasticsearch:7.17.20
     environment:
     - bootstrap.memory_lock=true
@@ -47,6 +49,7 @@ services:
       test: curl -s http://localhost:9200/_cluster/health | grep -vq '"status":"red"'
 
   kibana:
+    container_name: kibana
     image: docker.elastic.co/kibana/kibana:7.17.20
     depends_on:
       elasticsearch:

@@ -6,5 +6,5 @@ from dataclasses import (
 
 @dataclass
 class Token:
-    access_token: str = field(default=None)
-    refresh_token: str = field(default=None)
+    access_token: str | None = field(default=None)
+    refresh_token: str | None = field(default=None)
