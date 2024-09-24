@@ -1,7 +1,5 @@
 from django.db import models
 
-from uuid import uuid4
-
 from core.apps.clients.entities.client import Client as ClientEntity
 from core.apps.common.models import (
     ClientRole,
@@ -37,16 +35,6 @@ class Client(TimedBaseModel):
         max_length=250,
         blank=False,
         null=False,
-    )
-    access_token = models.CharField(
-        verbose_name="Client's Access Token",
-        max_length=555,
-        default=uuid4,
-    )
-    refresh_token = models.CharField(
-        verbose_name="Client's Refresh Token",
-        max_length=555,
-        default=uuid4,
     )
 
     def to_entity(self) -> ClientEntity:

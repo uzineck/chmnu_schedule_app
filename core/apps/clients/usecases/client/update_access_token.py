@@ -24,4 +24,11 @@ class UpdateAccessTokenUseCase:
             self.issued_jwt_token_service.revoke_client_tokens(subject=client)
 
         device_id = self.client_service.get_device_id_from_token(token=token)
-        return self.client_service.update_access_token(client=client, device_id=device_id)
+        token: TokenEntity = self.client_service.update_access_token(client=client, device_id=device_id)
+        self.issued_jwt_token_service.create(
+            subject=client,
+            jti=self.client_service.get_jti_from_token(token=token.access_token),
+            device_id=self.client_service.get_device_id_from_token(token=token.access_token),
+            expiration_time=self.client_service.get_expiration_time_from_token(token=token.access_token),
+        )
+        return token

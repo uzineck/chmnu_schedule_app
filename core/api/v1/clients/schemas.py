@@ -83,6 +83,10 @@ class TokenOutSchema(Schema):
         )
 
 
+class TokenInSchema(Schema):
+    token: str
+
+
 class UpdatePwInSchema(Schema):
     old_password: str
     new_password: str

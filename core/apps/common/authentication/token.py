@@ -33,6 +33,10 @@ class BaseTokenService(ABC):
         ...
 
     @abstractmethod
+    def get_raw_jwt(self, token: str) -> dict[str, Any]:
+        ...
+
+    @abstractmethod
     def get_client_email_from_token(self, token: str) -> str:
         ...
 
@@ -135,6 +139,9 @@ class JWTTokenService(BaseTokenService):
             payload=new_payload,
             ttl=self.REFRESH_TOKEN_TTL,
         )
+
+    def get_raw_jwt(self, token: str) -> dict[str, Any]:
+        return jwt.decode(jwt=token, options={'verify_signature': False})
 
     def get_client_email_from_token(self, token: str) -> str:
         payload: dict[str, Any] = self.__decode_jwt_token(token=token)

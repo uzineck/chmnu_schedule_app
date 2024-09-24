@@ -5,7 +5,7 @@ from core.apps.common.exceptions import ServiceException
 
 @dataclass(eq=False)
 class TokenJTIAlreadyExistsException(ServiceException):
-    jti: str
+    jti: str | list[str]
 
     @property
     def message(self):

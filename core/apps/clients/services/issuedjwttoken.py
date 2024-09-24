@@ -4,6 +4,7 @@ from abc import (
     ABC,
     abstractmethod,
 )
+from typing import Any
 
 from core.apps.clients.entities.client import Client as ClientEntity
 from core.apps.clients.exceptions.issuedjwttoken import (
@@ -21,6 +22,14 @@ class BaseIssuedJwtTokenService(ABC):
             jti: str,
             device_id: str,
             expiration_time: int,
+    ) -> None:
+        ...
+
+    @abstractmethod
+    def bulk_create(
+            self,
+            subject: ClientEntity,
+            raw_tokens: list[dict[str, Any]],
     ) -> None:
         ...
 
@@ -48,6 +57,22 @@ class ORMIssuedJwtTokenService(BaseIssuedJwtTokenService):
             )
         except IntegrityError:
             raise TokenJTIAlreadyExistsException(jti=jti)
+
+    def bulk_create(self, subject: ClientEntity, raw_tokens: list[dict[str, Any]]) -> None:
+        try:
+            IssuedJwtTokenModel.objects.bulk_create(
+                [
+                    IssuedJwtTokenModel(
+                        subject_id=subject.id,
+                        jti=token_payload.get('jti'),
+                        device_id=token_payload.get('device_id'),
+                        expiration_time=token_payload.get('exp'),
+                    )
+                    for token_payload in raw_tokens
+                ],
+            )
+        except IntegrityError:
+            raise TokenJTIAlreadyExistsException(jti=[token_payload['jti'] for token_payload in raw_tokens])
 
     def check_revoked(self, jti: str) -> bool:
         return IssuedJwtTokenModel.objects.filter(jti=jti, revoked=True).exists()

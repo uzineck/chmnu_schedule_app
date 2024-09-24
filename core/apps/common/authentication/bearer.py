@@ -4,6 +4,7 @@ from ninja.security import HttpBearer
 
 from jwt import PyJWTError
 
+from core.apps.clients.services.issuedjwttoken import ORMIssuedJwtTokenService
 from core.apps.common.authentication.token import JWTTokenService
 from core.apps.common.models import (
     ClientRole,
@@ -20,12 +21,17 @@ class JWTBearer(HttpBearer):
     def authenticate(self, request: HttpRequest, token: str) -> str:
         try:
             token_service = JWTTokenService()
-
+            issued_jwt_token_service = ORMIssuedJwtTokenService()
             token_type = token_service.get_token_type_from_token(token=token)
             if token_type != TokenType.ACCESS:
                 raise HttpError(
                     status_code=403,
                     message="Invalid token type",
+                )
+            if issued_jwt_token_service.check_revoked(jti=token_service.get_jti_from_token(token=token)):
+                raise HttpError(
+                    status_code=403,
+                    message="Invalid token",
                 )
 
             user_role = token_service.get_client_role_from_token(token=token)
@@ -50,6 +56,8 @@ class JWTBearer(HttpBearer):
         return token
 
     def _is_role_allowed(self, role: str) -> bool:
+        if not self.allowed_roles:
+            return True
         return role in self.allowed_roles
 
     def _is_email_allowed(self, email: str) -> bool:

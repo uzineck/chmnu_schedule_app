@@ -10,6 +10,7 @@ from core.api.v1.clients.schemas import (
     ClientSchemaPrivate,
     LogInSchema,
     TokenClientOutSchema,
+    TokenInSchema,
     TokenOutSchema,
     UpdateCredentialsInSchema,
     UpdateEmailInSchema,
@@ -66,12 +67,12 @@ def logout(request: HttpRequest) -> ApiResponse[StatusResponse]:
 
 
 @router.patch("update_access_token", response=ApiResponse[TokenOutSchema], operation_id='update_access_token')
-def update_access_token(request: HttpRequest, refresh_token: str) -> ApiResponse[TokenOutSchema]:
+def update_access_token(request: HttpRequest, schema: TokenInSchema) -> ApiResponse[TokenOutSchema]:
     container = get_container()
     use_case: UpdateAccessTokenUseCase = container.resolve(UpdateAccessTokenUseCase)
 
     try:
-        access_token = use_case.execute(token=refresh_token)
+        access_token = use_case.execute(token=schema.token)
     except ServiceException as e:
         raise HttpError(
             status_code=400,

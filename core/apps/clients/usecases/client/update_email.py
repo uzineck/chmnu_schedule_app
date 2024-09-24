@@ -20,11 +20,7 @@ class UpdateClientEmailUseCase:
         updated_client = self.client_service.update_email(client=client, email=new_email)
 
         tokens: TokenEntity = self.client_service.generate_tokens(client=updated_client)
-        self.issued_jwt_token_service.create(
-            subject=updated_client,
-            jti=self.client_service.get_jti_from_token(token=tokens.refresh_token),
-            device_id=self.client_service.get_device_id_from_token(token=tokens.refresh_token),
-            expiration_time=self.client_service.get_expiration_time_from_token(token=tokens.refresh_token),
-        )
+        raw_tokens = [self.client_service.get_raw_jwt(token) for token in [tokens.access_token, tokens.refresh_token]]
+        self.issued_jwt_token_service.bulk_create(subject=updated_client, raw_tokens=raw_tokens)
 
         return updated_client, tokens

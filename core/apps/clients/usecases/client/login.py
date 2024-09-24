@@ -15,11 +15,7 @@ class LoginClientUseCase:
         client = self.client_service.validate_client(email=email, password=password)
 
         tokens: TokenEntity = self.client_service.generate_tokens(client=client)
-        self.issued_jwt_token_service.create(
-            subject=client,
-            jti=self.client_service.get_jti_from_token(token=tokens.refresh_token),
-            device_id=self.client_service.get_device_id_from_token(token=tokens.refresh_token),
-            expiration_time=self.client_service.get_expiration_time_from_token(token=tokens.refresh_token),
-        )
+        raw_tokens = [self.client_service.get_raw_jwt(token) for token in [tokens.access_token, tokens.refresh_token]]
+        self.issued_jwt_token_service.bulk_create(subject=client, raw_tokens=raw_tokens)
 
         return client, tokens

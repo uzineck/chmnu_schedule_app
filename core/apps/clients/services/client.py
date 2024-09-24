@@ -89,6 +89,10 @@ class BaseClientService(ABC):
         ...
 
     @abstractmethod
+    def get_raw_jwt(self, token: str) -> dict[str, Any]:
+        ...
+
+    @abstractmethod
     def get_client_email_from_token(self, token: str) -> str:
         ...
 
@@ -214,8 +218,8 @@ class ORMClientService(BaseClientService):
 
         return TokenEntity(access_token=access_token)
 
-    def validate_token(self, token: str) -> dict[str, Any]:
-        payload = self.token_service.validate_token(token=token)
+    def get_raw_jwt(self, token: str) -> dict[str, Any]:
+        payload = self.token_service.get_raw_jwt(token=token)
 
         return payload
 
