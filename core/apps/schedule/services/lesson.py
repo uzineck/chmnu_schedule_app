@@ -14,15 +14,19 @@ from core.apps.schedule.models import Lesson as LessonModel
 
 class BaseLessonService(ABC):
     @abstractmethod
-    def get_lessons_by_uuid(self, lesson_uuid: str) -> LessonEntity:
-        ...
-
-    @abstractmethod
     def save_lesson(self, lesson: LessonEntity) -> LessonEntity:
         ...
 
     @abstractmethod
-    def check_lesson_exists(self, lesson: LessonEntity) -> bool | LessonEntity:
+    def get_lessons_by_uuid(self, lesson_uuid: str) -> LessonEntity:
+        ...
+
+    @abstractmethod
+    def get_lessons_by_lesson_entity(self, lesson: LessonEntity) -> LessonEntity:
+        ...
+
+    @abstractmethod
+    def check_lesson_exists(self, lesson: LessonEntity) -> bool:
         ...
 
     @abstractmethod
@@ -40,11 +44,17 @@ class ORMLessonService(BaseLessonService):
         query = Q()
 
         if filters.subgroup is not None:
-            query &= Q(group_lessons_lesson__subgroup=filters.subgroup)
+            query &= Q(lesson__subgroup=filters.subgroup)
         if filters.is_even is not None:
             query &= Q(timeslot__is_even=filters.is_even)
 
         return query
+
+    def save_lesson(self, lesson: LessonEntity) -> LessonEntity:
+        lesson_model = LessonModel.from_entity(lesson=lesson)
+        lesson_model.save()
+
+        return lesson_model.to_entity()
 
     def get_lessons_by_uuid(self, lesson_uuid: str) -> LessonEntity:
         try:
@@ -54,28 +64,29 @@ class ORMLessonService(BaseLessonService):
 
         return lesson.to_entity()
 
-    def save_lesson(self, lesson: LessonEntity) -> LessonEntity:
-        lesson_model = LessonModel.from_entity(lesson=lesson)
-        lesson_model.save()
-
-        return lesson_model.to_entity()
-
-    def check_lesson_exists(self, lesson: LessonEntity) -> bool | LessonEntity:
-        existing_lesson = LessonModel.objects.filter(
+    def get_lessons_by_lesson_entity(self, lesson: LessonEntity) -> LessonEntity:
+        lesson = LessonModel.objects.filter(
             subject_id=lesson.subject.id,
             teacher_id=lesson.teacher.id,
             room_id=lesson.room.id,
             timeslot_id=lesson.timeslot.id,
             type=lesson.type,
         ).first()
-        if existing_lesson:
-            return existing_lesson.to_entity()
 
-        return False
+        return lesson.to_entity()
+
+    def check_lesson_exists(self, lesson: LessonEntity) -> bool:
+        return LessonModel.objects.filter(
+            subject_id=lesson.subject.id,
+            teacher_id=lesson.teacher.id,
+            room_id=lesson.room.id,
+            timeslot_id=lesson.timeslot.id,
+            type=lesson.type,
+        ).exists()
 
     def get_lessons_for_group(self, group_id: int, filter_query: GroupLessonFilter) -> Iterable[LessonEntity]:
         query = self._build_lesson_query(filter_query)
-        query = LessonModel.objects.filter(Q(group_lessons_lesson__group_id=group_id) & query)
+        query = LessonModel.objects.filter(Q(lesson__group_id=group_id) & query)
 
         return [lesson.to_entity() for lesson in query]
 

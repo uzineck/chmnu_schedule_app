@@ -20,6 +20,7 @@ class AdminRemoveLessonFromGroupUseCase:
         self.uuid_validator_service.validate(uuid_list=[group_uuid, lesson_uuid])
 
         group = self.group_service.get_group_by_uuid(group_uuid=group_uuid)
+        self.group_service.check_group_has_subgroups_subgroup(group=group, subgroup=subgroup)
         lesson = self.lesson_service.get_lessons_by_uuid(lesson_uuid=lesson_uuid)
         group_lesson_entity = GroupLessonEntity(
             group=group,
@@ -28,11 +29,3 @@ class AdminRemoveLessonFromGroupUseCase:
         )
 
         self.group_lesson_service.delete_group_subgroup_lesson(group_lesson=group_lesson_entity)
-
-
-
-
-
-
-
-

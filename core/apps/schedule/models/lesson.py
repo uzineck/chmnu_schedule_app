@@ -82,6 +82,7 @@ class Lesson(TimedBaseModel):
             f"Teacher: {self.teacher}, "
             f"Day: {self.timeslot.day}, "
             f"Number: {self.timeslot.ord_number}, "
+            f"Is_even: {self.timeslot.is_even}"
         )
 
     class Meta:

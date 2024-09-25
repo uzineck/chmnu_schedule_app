@@ -14,7 +14,6 @@ from core.apps.schedule.validators.uuid_validator import BaseUuidValidatorServic
 class GetGroupLessonsUseCase:
     group_service: BaseGroupService
     lesson_service: BaseLessonService
-
     group_lesson_service: BaseGroupLessonService
 
     uuid_validator_service: BaseUuidValidatorService
@@ -23,5 +22,6 @@ class GetGroupLessonsUseCase:
         self.uuid_validator_service.validate(uuid_str=group_uuid)
 
         group = self.group_service.get_group_by_uuid(group_uuid=group_uuid)
+        self.group_service.check_group_has_subgroups_subgroup(group=group, subgroup=filters.subgroup)
         lessons = self.lesson_service.get_lessons_for_group(group_id=group.id, filter_query=filters)
         return group, lessons

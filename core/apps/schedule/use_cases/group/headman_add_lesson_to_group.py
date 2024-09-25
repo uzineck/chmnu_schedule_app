@@ -18,23 +18,21 @@ class HeadmanAddLessonToGroupUseCase:
 
     uuid_validator_service: BaseUuidValidatorService
 
-    def execute(self, headman_email: str, subgroup: Subgroup, lesson_uuid: str) -> GroupLessonEntity:
+    def execute(self, headman_email: str, subgroup: Subgroup, lesson_uuid: str) -> None:
         self.uuid_validator_service.validate(uuid_str=lesson_uuid)
 
         headman = self.client_service.get_by_email(headman_email)
         group = self.group_service.get_group_from_headman(headman=headman)
+        self.group_service.check_group_has_subgroups_subgroup(group=group, subgroup=subgroup)
         lesson = self.lesson_service.get_lessons_by_uuid(lesson_uuid=lesson_uuid)
-        group_lesson_entity = GroupLessonEntity(
+        group_subgroup_lesson_entity = GroupLessonEntity(
             group=group,
             subgroup=subgroup,
             lesson=lesson,
         )
         existing_group_subgroup_lesson = self.group_lesson_service.check_group_subgroup_lesson_exists(
-            group_lesson=group_lesson_entity,
+            group_lesson=group_subgroup_lesson_entity,
         )
 
         if not existing_group_subgroup_lesson:
-            saved_lesson = self.group_lesson_service.save_group_subgroup_lesson(group_lesson=group_lesson_entity)
-            return saved_lesson
-        else:
-            return existing_group_subgroup_lesson
+            self.group_lesson_service.save_group_subgroup_lesson(group_lesson=group_subgroup_lesson_entity)

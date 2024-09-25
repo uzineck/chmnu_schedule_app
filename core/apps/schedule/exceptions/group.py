@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 
 from core.apps.common.exceptions import ServiceException
+from core.apps.common.models import Subgroup
 
 
 @dataclass(eq=False)
@@ -38,3 +39,12 @@ class HeadmanAssignedToAnotherGroupException(ServiceException):
     @property
     def message(self):
         return 'Headman with provided email already assigned to another group'
+
+
+@dataclass(eq=False)
+class GroupWithoutSubgroupsInvalidSubgroupException(ServiceException):
+    subgroup: Subgroup
+
+    @property
+    def message(self):
+        return 'Group without subgroups cannot have subgroup B, only A'

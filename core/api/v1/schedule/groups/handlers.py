@@ -162,6 +162,7 @@ def create_group(request: HttpRequest, schema: CreateGroupSchema) -> ApiResponse
     try:
         group = use_case.execute(
             group_number=schema.number,
+            faculty_uuid=schema.faculty_uuid,
             headman_email=schema.headman_email,
             has_subgroups=schema.has_subgroups,
         )
@@ -215,17 +216,17 @@ def add_lesson_to_group_admin(
 ) -> ApiResponse[StatusResponse]:
     container = get_container()
     use_case: AdminAddLessonToGroupUseCase = container.resolve(AdminAddLessonToGroupUseCase)
+
     try:
-        group = use_case.execute(group_uuid=group_uuid, subgroup=subgroup, lesson_uuid=lesson_uuid)
+        use_case.execute(group_uuid=group_uuid, subgroup=subgroup, lesson_uuid=lesson_uuid)
     except ServiceException as e:
         raise HttpError(
             status_code=404,
             message=e.message,
         )
-    print(group)
 
     return ApiResponse(
-        data=StatusResponse(status='added successfully'),
+        data=StatusResponse(status='Lesson was added successfully'),
     )
 
 
@@ -253,7 +254,7 @@ def remove_lesson_from_group_admin(
         )
 
     return ApiResponse(
-        data=StatusResponse(status="Object deleted successfully"),
+        data=StatusResponse(status="Lesson was removed successfully"),
     )
 
 
@@ -274,7 +275,6 @@ def add_lesson_to_group_headman(
 
     try:
         user_email: str = client_service.get_client_email_from_token(token=request.auth)
-
     except JWTKeyParsingException as e:
         raise HttpError(
             status_code=401,
@@ -282,7 +282,7 @@ def add_lesson_to_group_headman(
         )
 
     try:
-        group = use_case.execute(headman_email=user_email, subgroup=subgroup, lesson_uuid=lesson_uuid)
+        use_case.execute(headman_email=user_email, subgroup=subgroup, lesson_uuid=lesson_uuid)
     except ServiceException as e:
         raise HttpError(
             status_code=404,
@@ -290,7 +290,7 @@ def add_lesson_to_group_headman(
         )
 
     return ApiResponse(
-        data=StatusResponse(status=f'added successfully {group}'),
+        data=StatusResponse(status='Lesson was added successfully'),
     )
 
 
@@ -311,7 +311,6 @@ def remove_lesson_to_group_headman(
 
     try:
         user_email: str = client_service.get_client_email_from_token(token=request.auth)
-
     except JWTKeyParsingException as e:
         raise HttpError(
             status_code=401,
@@ -327,5 +326,5 @@ def remove_lesson_to_group_headman(
         )
 
     return ApiResponse(
-        data=StatusResponse(status="deleted successfully"),
+        data=StatusResponse(status="Lesson was removed successfully"),
     )

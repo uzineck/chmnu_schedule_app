@@ -4,4 +4,3 @@
 .env.prod
 static/*
 !static/.gitkeep
-

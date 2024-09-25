@@ -18,5 +18,3 @@ router.add_router(prefix="faculty/", router=faculty_router)
 router.add_router(prefix="subject/", router=subject_router)
 router.add_router(prefix="room/", router=room_router)
 router.add_router(prefix="timeslot/", router=timeslot_router)
-
-

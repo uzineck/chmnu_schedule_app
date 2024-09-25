@@ -43,10 +43,11 @@ class CreateLessonUseCase:
             timeslot=timeslot,
         )
 
-        existing_lesson: bool | LessonEntity = self.lesson_service.check_lesson_exists(lesson=lesson_entity)
+        existing_lesson: bool = self.lesson_service.check_lesson_exists(lesson=lesson_entity)
 
-        if not existing_lesson:
-            saved_lesson = self.lesson_service.save_lesson(lesson=lesson_entity)
-            return saved_lesson
-        else:
-            return existing_lesson
+        if existing_lesson:
+            lesson = self.lesson_service.get_lessons_by_lesson_entity(lesson=lesson_entity)
+            return lesson
+
+        saved_lesson = self.lesson_service.save_lesson(lesson=lesson_entity)
+        return saved_lesson

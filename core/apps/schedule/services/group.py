@@ -5,10 +5,12 @@ from abc import (
 from typing import Iterable
 
 from core.apps.clients.entities.client import Client as ClientEntity
+from core.apps.common.models import Subgroup
 from core.apps.schedule.entities.group import Group as GroupEntity
 from core.apps.schedule.exceptions.group import (
     GroupNumberNotFoundException,
     GroupUuidNotFoundException,
+    GroupWithoutSubgroupsInvalidSubgroupException,
 )
 from core.apps.schedule.models.group import Group as GroupModel
 
@@ -38,6 +40,10 @@ class BaseGroupService(ABC):
 
     @abstractmethod
     def check_group_exists_by_uuid(self, group_uuid: str) -> bool:
+        ...
+
+    @abstractmethod
+    def check_group_has_subgroups_subgroup(self, group: GroupEntity, subgroup: Subgroup) -> bool:
         ...
 
     @abstractmethod
@@ -97,21 +103,24 @@ class ORMGroupService(BaseGroupService):
     def check_group_exists_by_uuid(self, group_uuid: str) -> bool:
         return GroupModel.objects.filter(group_uuid=group_uuid).exists()
 
+    def check_group_has_subgroups_subgroup(self, group: GroupEntity, subgroup: Subgroup) -> bool:
+        if not group.has_subgroups and subgroup != Subgroup.A:
+            raise GroupWithoutSubgroupsInvalidSubgroupException(subgroup=subgroup)
+
+        return True
+
     def update_group_headman(self, group: GroupEntity, headman: ClientEntity) -> GroupEntity:
         GroupModel.objects.filter(number=group.number).update(headman_id=headman.id)
-        updated_group = GroupModel.objects.get(number=group.number)
+        updated_group = GroupModel.objects.get(id=group.id)
         return updated_group.to_entity()
 
     def get_group_from_headman(self, headman: ClientEntity) -> GroupEntity | None:
-        try:
-            group = GroupModel.objects.filter(headman__email=headman.email).first()
+        group: GroupModel = GroupModel.objects.filter(headman__email=headman.email).first()
 
-            return group.to_entity()
-        except AttributeError:
-            return None
+        return group.to_entity() if group.headman else None
 
     def get_groups_from_lesson(self, lesson_id: int) -> Iterable[GroupEntity]:
-        groups = GroupModel.objects.filter(group_lessons_group__lesson_id=lesson_id)
+        groups = GroupModel.objects.filter(group__lesson_id=lesson_id)
 
         return [group.to_entity() for group in groups]
 

@@ -8,6 +8,7 @@ from core.apps.common.models import (
     TimedBaseModel,
 )
 from core.apps.schedule.entities.group import Group as GroupEntity
+from core.apps.schedule.entities.group_lessons import GroupLesson as GroupLessonEntity
 from core.apps.schedule.models.faculty import Faculty
 from core.apps.schedule.models.lesson import Lesson
 
@@ -92,22 +93,13 @@ class GroupLesson(TimedBaseModel):
         blank=True,
     )
 
-    # def to_entity(self) -> GroupLessonEntity:
-    #     return GroupLessonEntity(
-    #         group=self.group.to_entity(),
-    #         lesson=self.lesson.to_entity(),
-    #         subgroup=Subgroup(self.subgroup),
-    #         created_at=self.created_at,
-    #         updated_at=self.updated_at,
-    #     )
-    #
-    # @classmethod
-    # def from_entity(cls, entity: GroupLessonEntity) -> 'GroupLesson':
-    #     return cls(
-    #         group_id=entity.group.id,
-    #         lesson_id=entity.lesson.id,
-    #         subgroup=entity.subgroup,
-    #     )
+    @classmethod
+    def from_entity(cls, entity: GroupLessonEntity) -> 'GroupLesson':
+        return cls(
+            group_id=entity.group.id,
+            lesson_id=entity.lesson.id,
+            subgroup=entity.subgroup,
+        )
 
     class Meta:
         verbose_name = "Group Lessons"

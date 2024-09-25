@@ -6,6 +6,7 @@ from datetime import datetime
 
 from core.apps.clients.entities.client import Client as ClientEntity
 from core.apps.common.factory import get_new_uuid
+from core.apps.common.models import Subgroup
 from core.apps.schedule.entities.faculty import Faculty as FacultyEntity
 
 
@@ -17,5 +18,6 @@ class Group:
     faculty: FacultyEntity | None = field(default=None, kw_only=True)
     has_subgroups: bool = field(default=True, kw_only=True)
     headman: ClientEntity | None = field(default=None, kw_only=True)
+    subgroups: list[Subgroup] | None = field(default=None, kw_only=True)
     created_at: datetime = field(default_factory=datetime.utcnow)
     updated_at: datetime | None = field(default=None)
