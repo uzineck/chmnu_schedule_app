@@ -88,3 +88,6 @@ class Lesson(TimedBaseModel):
     class Meta:
         verbose_name = "Lesson"
         verbose_name_plural = "Lessons"
+        indexes = [
+            models.Index(fields=["lesson_uuid"]),
+        ]

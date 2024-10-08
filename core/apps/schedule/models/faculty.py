@@ -38,3 +38,7 @@ class Faculty(TimedBaseModel):
     class Meta:
         verbose_name = 'Faculty'
         verbose_name_plural = 'Faculties'
+        indexes = [
+            models.Index(fields=['faculty_uuid']),
+            models.Index(fields=['code_name']),
+        ]

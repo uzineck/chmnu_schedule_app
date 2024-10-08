@@ -24,11 +24,17 @@ isort = "^5.13.2"
 flake8 = "^7.0.0"
 pre-commit = "^3.7.0"
 gunicorn = "^23.0.0"
+pytest = "^8.3.3"
+pytest-django = "^4.9.0"
+factory-boy = "^3.3.1"
 
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "core.project.settings.dev"
 
 [tool.isort]
 multi_line_output=3

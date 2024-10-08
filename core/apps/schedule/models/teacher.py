@@ -55,3 +55,6 @@ class Teacher(TimedBaseModel):
     class Meta:
         verbose_name = "Teacher"
         verbose_name_plural = "Teachers"
+        indexes = [
+            models.Index(fields=["teacher_uuid"]),
+        ]

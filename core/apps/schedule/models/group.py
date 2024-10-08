@@ -70,6 +70,10 @@ class Group(TimedBaseModel):
     class Meta:
         verbose_name = "Group"
         verbose_name_plural = "Groups"
+        indexes = [
+            models.Index(fields=['group_uuid']),
+            models.Index(fields=['number']),
+        ]
 
 
 class GroupLesson(TimedBaseModel):

@@ -56,3 +56,6 @@ class Client(TimedBaseModel):
     class Meta:
         verbose_name = "Client"
         verbose_name_plural = "Clients"
+        indexes = [
+            models.Index(fields=["email"]),
+        ]

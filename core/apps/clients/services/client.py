@@ -136,6 +136,7 @@ class ORMClientService(BaseClientService):
                 email=email,
                 password=hashed_password,
             )
+
         except IntegrityError:
             raise ClientAlreadyExistsException(email=email)
 

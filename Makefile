@@ -11,6 +11,7 @@ LOGS = docker logs
 
 ENV = --env-file .env
 
+# TODO hide this
 DB_CONTAINER = chmnu-db
 DB_USER = myuser
 DB_NAME = chmnu_schedule
@@ -21,7 +22,7 @@ MANAGE_PY = python manage.py
 .PHONY: storages, storages-logs, storages-down,  # storages in docker commands
 .PHONY: monitoring, monitoring-logs, monitoring-down, # elastic apm in docker commands
 .PHONY: postgres, db-logs, # postgres in docker commands
-.PHONY: migrations, migrate, superuser, loaddata, dumpdata, collectstatic # django manage.py commands
+.PHONY: migrations, migrate, superuser_default, loaddata, dumpdata, collectstatic # django manage.py commands
 
 
 app:
@@ -63,7 +64,7 @@ migrate:
 migrations:
 		${EXEC} ${APP_CONTAINER} ${MANAGE_PY} makemigrations
 
-superuser:
+superuser_default:
 		${EXEC} ${APP_CONTAINER} ${MANAGE_PY} createsuperuser --username admin --email admin@admin.com
 
 collectstatic:
@@ -74,5 +75,8 @@ dumpdata:
 
 loaddata:
 		${EXEC} ${APP_CONTAINER} ${MANAGE_PY} loaddata --app=schedule --format=json
+
+run-test:
+		${EXEC} ${APP_CONTAINER} pytest -v
 
 #docker exec -it main-app python manage.py

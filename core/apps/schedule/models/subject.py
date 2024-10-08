@@ -38,3 +38,7 @@ class Subject(TimedBaseModel):
     class Meta:
         verbose_name = "Subject"
         verbose_name_plural = "Subjects"
+        indexes = [
+            models.Index(fields=["subject_uuid"]),
+            models.Index(fields=["title"]),
+        ]

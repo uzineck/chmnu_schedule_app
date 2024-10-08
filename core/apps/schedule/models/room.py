@@ -40,3 +40,7 @@ class Room(TimedBaseModel):
     class Meta:
         verbose_name = "Room"
         verbose_name_plural = "Rooms"
+        indexes = [
+            models.Index(fields=["room_uuid"]),
+            models.Index(fields=["number"]),
+        ]
