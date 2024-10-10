@@ -133,7 +133,7 @@ def test_client_role_check_failure(client_service: BaseClientService):
 
 
 @pytest.mark.django_db
-def test_client_update_email_success(client_service: BaseClientService, faker):
+def test_client_update_email_success(client_service: BaseClientService):
     client = ClientModelFactory.create()
     new_email = generate_email()
     updated_client = client_service.update_email(client=client, email=new_email)

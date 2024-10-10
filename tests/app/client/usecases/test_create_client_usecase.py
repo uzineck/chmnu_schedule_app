@@ -9,7 +9,6 @@ from tests.fixtures.client.utils import (
     generate_password,
 )
 
-from core.apps.clients.entities.client import Client as ClientEntity
 from core.apps.clients.exceptions.client import ClientAlreadyExistsException
 from core.apps.clients.usecases.client.create import CreateClientUseCase
 from core.apps.common.authentication.validators.exceptions import (
@@ -50,7 +49,12 @@ def use_case_params():
 def test_create_client_success(use_case: CreateClientUseCase, use_case_params):
     created_client = use_case.execute(**use_case_params)
 
-    assert isinstance(created_client, ClientEntity)
+    assert created_client.first_name == use_case_params["first_name"]
+    assert created_client.last_name == use_case_params["last_name"]
+    assert created_client.middle_name == use_case_params["middle_name"]
+    assert created_client.role == use_case_params["role"]
+    assert created_client.email == use_case_params["email"]
+    assert created_client.password != use_case_params["password"]
 
 
 @pytest.mark.django_db
