@@ -1,7 +1,5 @@
-from tests.app.auth.password.conftest import (
-    generate_password,
-    hash_password,
-)
+from tests.app.auth.password.conftest import hash_password
+from tests.fixtures.client.utils import generate_password
 
 from core.apps.common.authentication.password import BasePasswordService
 

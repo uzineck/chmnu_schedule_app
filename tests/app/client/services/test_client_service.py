@@ -1,11 +1,11 @@
 import pytest
-from faker_ua import Faker
-from tests.app.auth.password.conftest import (
-    generate_password,
-    hash_password,
-)
-from tests.app.client.services.conftest import generate_email
+from tests.app.auth.password.conftest import hash_password
+from tests.conftest import faker_ua
 from tests.fixtures.client.client import ClientModelFactory
+from tests.fixtures.client.utils import (
+    generate_email,
+    generate_password,
+)
 
 from core.apps.clients.exceptions.auth import InvalidAuthDataException
 from core.apps.clients.exceptions.client import (
@@ -15,9 +15,6 @@ from core.apps.clients.exceptions.client import (
 )
 from core.apps.clients.services.client import BaseClientService
 from core.apps.common.models import ClientRole
-
-
-faker_ua = Faker('uk_UA')
 
 
 @pytest.mark.django_db
@@ -136,7 +133,7 @@ def test_client_role_check_failure(client_service: BaseClientService):
 
 
 @pytest.mark.django_db
-def test_client_update_email_success(client_service: BaseClientService):
+def test_client_update_email_success(client_service: BaseClientService, faker):
     client = ClientModelFactory.create()
     new_email = generate_email()
     updated_client = client_service.update_email(client=client, email=new_email)
