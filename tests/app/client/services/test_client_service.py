@@ -1,11 +1,5 @@
 import pytest
-from tests.app.auth.password.conftest import hash_password
-from tests.conftest import faker_ua
 from tests.fixtures.client.client import ClientModelFactory
-from tests.fixtures.client.utils import (
-    generate_email,
-    generate_password,
-)
 
 from core.apps.clients.exceptions.auth import InvalidAuthDataException
 from core.apps.clients.exceptions.client import (
@@ -18,7 +12,7 @@ from core.apps.common.models import ClientRole
 
 
 @pytest.mark.django_db
-def test_create_client_success(client_service: BaseClientService):
+def test_create_client_success(client_service: BaseClientService, generate_password):
     plain_password = generate_password()
     client = ClientModelFactory.build(password=plain_password)
     created_client = client_service.create(
@@ -69,9 +63,9 @@ def test_get_client_not_found_failure(client_service: BaseClientService):
 
 
 @pytest.mark.django_db
-def test_client_verification_success(client_service: BaseClientService):
+def test_client_verification_success(client_service: BaseClientService, hash_password, generate_password):
     plain_password = generate_password()
-    hashed_password = hash_password(password_service=client_service.password_service, plain_password=plain_password)
+    hashed_password = hash_password(plain_password=plain_password)
     client = ClientModelFactory.create(password=hashed_password)
 
     verified_client = client_service.validate_client(email=client.email, password=plain_password)
@@ -81,19 +75,27 @@ def test_client_verification_success(client_service: BaseClientService):
 
 
 @pytest.mark.django_db
-def test_client_verification_password_invalid_auth_failure(client_service: BaseClientService):
+def test_client_verification_password_invalid_auth_failure(
+        client_service: BaseClientService,
+        hash_password,
+        generate_password,
+):
     plain_password = generate_password()
     new_plain_password = generate_password()
-    hashed_password = hash_password(password_service=client_service.password_service, plain_password=plain_password)
+    hashed_password = hash_password(plain_password=plain_password)
     client = ClientModelFactory.create(password=hashed_password)
     with pytest.raises(InvalidAuthDataException):
         client_service.validate_client(email=client.email, password=new_plain_password)
 
 
 @pytest.mark.django_db
-def test_client_verification_email_invalid_auth_failure(client_service: BaseClientService):
+def test_client_verification_email_invalid_auth_failure(
+        client_service: BaseClientService,
+        hash_password,
+        generate_password,
+):
     plain_password = generate_password()
-    hashed_password = hash_password(password_service=client_service.password_service, plain_password=plain_password)
+    hashed_password = hash_password(plain_password=plain_password)
     client = ClientModelFactory.create(password=hashed_password)
     with pytest.raises(InvalidAuthDataException):
         client_service.validate_client(email=f'wrong{client.email}', password=plain_password)
@@ -133,7 +135,7 @@ def test_client_role_check_failure(client_service: BaseClientService):
 
 
 @pytest.mark.django_db
-def test_client_update_email_success(client_service: BaseClientService):
+def test_client_update_email_success(client_service: BaseClientService, generate_email):
     client = ClientModelFactory.create()
     new_email = generate_email()
     updated_client = client_service.update_email(client=client, email=new_email)
@@ -143,7 +145,7 @@ def test_client_update_email_success(client_service: BaseClientService):
 
 
 @pytest.mark.django_db
-def test_client_update_email_email_not_found_failure(client_service: BaseClientService):
+def test_client_update_email_email_not_found_failure(client_service: BaseClientService, generate_email):
     client = ClientModelFactory.build()
     new_email = generate_email()
 
@@ -152,10 +154,10 @@ def test_client_update_email_email_not_found_failure(client_service: BaseClientS
 
 
 @pytest.mark.django_db
-def test_client_update_password_success(client_service: BaseClientService):
+def test_client_update_password_success(client_service: BaseClientService, hash_password, generate_password):
     client = ClientModelFactory.create()
     new_plain_password = generate_password()
-    hashed_password = hash_password(password_service=client_service.password_service, plain_password=new_plain_password)
+    hashed_password = hash_password(plain_password=new_plain_password)
     updated_client = client_service.update_password(client=client, hashed_password=hashed_password)
 
     assert updated_client.password == hashed_password
@@ -163,7 +165,7 @@ def test_client_update_password_success(client_service: BaseClientService):
 
 
 @pytest.mark.django_db
-def test_client_update_credentials_success(client_service: BaseClientService):
+def test_client_update_credentials_success(client_service: BaseClientService, faker_ua):
     client = ClientModelFactory.create()
     new_first_name = faker_ua.first_name()
     new_last_name = faker_ua.last_name()

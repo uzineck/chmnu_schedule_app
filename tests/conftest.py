@@ -10,5 +10,15 @@ def container():
     return container
 
 
-faker = Faker()
-faker_ua = Faker('uk_UA')
+# faker = Faker()
+# faker_ua = Faker('uk_UA')
+
+
+@pytest.fixture(scope="session")
+def faker():
+    return Faker()
+
+
+@pytest.fixture(scope="session")
+def faker_ua():
+    return Faker("uk_UA")

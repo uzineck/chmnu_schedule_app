@@ -1,10 +1,5 @@
 import pytest
-from tests.app.auth.password.conftest import hash_password
 from tests.fixtures.client.client import ClientModelFactory
-from tests.fixtures.client.utils import (
-    generate_email,
-    generate_password,
-)
 
 from core.apps.clients.exceptions.auth import InvalidAuthDataException
 from core.apps.clients.usecases.client.login import LoginClientUseCase
@@ -16,9 +11,9 @@ def use_case(container):
 
 
 @pytest.fixture(scope='function')
-def use_case_params(password_service):
+def use_case_params(generate_password, hash_password):
     plain_password = generate_password()
-    hashed_password = hash_password(password_service=password_service, plain_password=plain_password)
+    hashed_password = hash_password(plain_password=plain_password)
     client = ClientModelFactory.create(password=hashed_password)
     return {
         "email": client.email,
@@ -38,7 +33,7 @@ def test_login_client_success(use_case: LoginClientUseCase, use_case_params):
 
 
 @pytest.mark.django_db
-def test_login_client_does_not_exist_failure(use_case: LoginClientUseCase, use_case_params):
+def test_login_client_does_not_exist_failure(use_case: LoginClientUseCase, use_case_params, generate_email):
     use_case_params = use_case_params
     use_case_params['email'] = generate_email()
 
@@ -47,7 +42,7 @@ def test_login_client_does_not_exist_failure(use_case: LoginClientUseCase, use_c
 
 
 @pytest.mark.django_db
-def test_login_client_wrong_password_failure(use_case: LoginClientUseCase, use_case_params):
+def test_login_client_wrong_password_failure(use_case: LoginClientUseCase, use_case_params, generate_password):
     use_case_params = use_case_params
     use_case_params['password'] = generate_password()
 

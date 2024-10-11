@@ -1,13 +1,5 @@
 import pytest
-from tests.conftest import (
-    faker,
-    faker_ua,
-)
 from tests.fixtures.client.client import ClientModelFactory
-from tests.fixtures.client.utils import (
-    generate_email,
-    generate_password,
-)
 
 from core.apps.clients.exceptions.client import ClientAlreadyExistsException
 from core.apps.clients.usecases.client.create import CreateClientUseCase
@@ -25,7 +17,7 @@ def use_case(container):
 
 
 @pytest.fixture
-def use_case_params():
+def use_case_params(faker_ua, generate_email, generate_password):
     first_name = faker_ua.first_name()
     last_name = faker_ua.last_name()
     middle_name = faker_ua.middle_name()
@@ -73,7 +65,7 @@ def test_create_client_already_exists_failure(use_case: CreateClientUseCase, use
 
 
 @pytest.mark.django_db
-def test_create_client_email_validator_failure(use_case: CreateClientUseCase, use_case_params):
+def test_create_client_email_validator_failure(use_case: CreateClientUseCase, use_case_params, faker):
     use_case_params = use_case_params
     use_case_params['email'] = faker.email()
 
@@ -92,7 +84,11 @@ def test_create_client_password_validator_pattern_failure(use_case: CreateClient
 
 
 @pytest.mark.django_db
-def test_create_client_password_validator_match_failure(use_case: CreateClientUseCase, use_case_params):
+def test_create_client_password_validator_match_failure(
+        use_case: CreateClientUseCase,
+        use_case_params,
+        generate_password,
+):
     use_case_params = use_case_params
     use_case_params["password"] = generate_password()
 

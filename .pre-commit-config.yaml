@@ -52,3 +52,8 @@ repos:
           - flake8-comprehensions>=3.14.0
           - flake8-eradicate>=1.5.0
           - dlint>=0.14.0
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
+    hooks:
+      - id: end-of-file-fixer
