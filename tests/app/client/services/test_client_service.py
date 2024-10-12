@@ -8,13 +8,17 @@ from core.apps.clients.exceptions.client import (
     ClientRoleNotMatchingWithRequired,
 )
 from core.apps.clients.services.client import BaseClientService
-from core.apps.common.models import ClientRole
+from core.apps.common.models import (
+    ClientRole,
+    TokenType,
+)
 
 
 @pytest.mark.django_db
-def test_create_client_success(client_service: BaseClientService, generate_password):
+def test_create_client_success(client_service: BaseClientService, generate_password, hash_password):
     plain_password = generate_password()
-    client = ClientModelFactory.build(password=plain_password)
+    hashed_password = hash_password(plain_password)
+    client = ClientModelFactory.build(password=hashed_password)
     created_client = client_service.create(
         first_name=client.first_name,
         last_name=client.last_name,
@@ -29,7 +33,7 @@ def test_create_client_success(client_service: BaseClientService, generate_passw
     assert created_client.middle_name == client.middle_name
     assert created_client.role == client.role
     assert created_client.email == client.email
-    assert created_client.password == client.password
+    assert created_client.password != plain_password
 
 
 @pytest.mark.django_db
@@ -75,7 +79,7 @@ def test_client_verification_success(client_service: BaseClientService, hash_pas
 
 
 @pytest.mark.django_db
-def test_client_verification_password_invalid_auth_failure(
+def test_client_verification_password_failure(
         client_service: BaseClientService,
         hash_password,
         generate_password,
@@ -89,7 +93,7 @@ def test_client_verification_password_invalid_auth_failure(
 
 
 @pytest.mark.django_db
-def test_client_verification_email_invalid_auth_failure(
+def test_client_verification_email_failure(
         client_service: BaseClientService,
         hash_password,
         generate_password,
@@ -181,3 +185,37 @@ def test_client_update_credentials_success(client_service: BaseClientService, fa
     assert updated_client.first_name == new_first_name, f'{new_first_name=}'
     assert updated_client.last_name == new_last_name, f'{new_last_name=}'
     assert updated_client.middle_name == new_middle_name, f'{new_middle_name=}'
+
+
+def test_generate_client_tokens(client_service: BaseClientService, get_current_timestamp):
+    client = ClientModelFactory.build()
+
+    tokens = client_service.generate_tokens(client=client)
+
+    assert tokens.access_token is not None
+    assert tokens.refresh_token is not None
+    assert (
+        client_service.get_device_id_from_token(token=tokens.access_token) ==
+        client_service.get_device_id_from_token(token=tokens.refresh_token)
+    )
+    assert client_service.get_token_type_from_token(token=tokens.access_token) == TokenType.ACCESS
+    assert client_service.get_token_type_from_token(token=tokens.refresh_token) == TokenType.REFRESH
+    assert client_service.get_expiration_time_from_token(token=tokens.access_token) > get_current_timestamp
+    assert client_service.get_expiration_time_from_token(token=tokens.refresh_token) > get_current_timestamp
+    assert client_service.get_client_role_from_token(token=tokens.access_token) == client.role
+    assert client_service.get_client_role_from_token(token=tokens.refresh_token) == client.role
+    assert client_service.get_client_email_from_token(token=tokens.access_token) == client.email
+    assert client_service.get_client_email_from_token(token=tokens.refresh_token) == client.email
+
+
+def test_update_access_token(client_service: BaseClientService, get_current_timestamp, generate_device_id):
+    client = ClientModelFactory.build()
+
+    tokens = client_service.update_access_token(client=client, device_id=generate_device_id)
+
+    assert tokens.access_token is not None
+    assert tokens.refresh_token is None
+    assert client_service.get_token_type_from_token(token=tokens.access_token) == TokenType.ACCESS
+    assert client_service.get_client_email_from_token(token=tokens.access_token) == client.email
+    assert client_service.get_client_role_from_token(token=tokens.access_token) == client.role
+    assert client_service.get_expiration_time_from_token(token=tokens.access_token) > get_current_timestamp
