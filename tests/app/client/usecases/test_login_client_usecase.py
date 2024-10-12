@@ -23,8 +23,7 @@ def use_case_params(generate_password, hash_password):
 
 @pytest.mark.django_db
 def test_login_client_success(use_case: LoginClientUseCase, use_case_params):
-    logged_in_data = use_case.execute(**use_case_params)
-    client, tokens = logged_in_data
+    client, tokens = use_case.execute(**use_case_params)
 
     assert client.email == use_case_params['email']
     assert client.password != use_case_params['password']

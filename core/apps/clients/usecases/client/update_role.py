@@ -12,8 +12,8 @@ class UpdateClientRoleUseCase:
     client_service: BaseClientService
     issued_jwt_token_service: BaseIssuedJwtTokenService
 
-    def execute(self, client_email: str, new_role: ClientRole) -> tuple[ClientEntity, TokenEntity]:
-        client = self.client_service.get_by_email(email=client_email)
+    def execute(self, email: str, new_role: ClientRole) -> tuple[ClientEntity, TokenEntity]:
+        client = self.client_service.get_by_email(email=email)
         updated_client = self.client_service.update_role(client=client, new_role=new_role)
 
         tokens: TokenEntity = self.client_service.generate_tokens(client=updated_client)

@@ -24,7 +24,6 @@ def use_case_params(faker_ua, generate_email, generate_password):
     role = ClientRole.DEFAULT
     email = generate_email()
     password = generate_password()
-    verify_password = password
 
     return {
         "first_name": first_name,
@@ -33,7 +32,7 @@ def use_case_params(faker_ua, generate_email, generate_password):
         "role": role,
         "email": email,
         "password": password,
-        "verify_password": verify_password,
+        "verify_password": password,
     }
 
 
