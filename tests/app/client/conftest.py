@@ -6,6 +6,7 @@ from datetime import (
 )
 
 from core.apps.clients.services.client import BaseClientService
+from core.apps.clients.services.issuedjwttoken import BaseIssuedJwtTokenService
 from core.apps.common.authentication.password import BasePasswordService
 from core.apps.common.authentication.token import BaseTokenService
 from core.apps.common.factory import convert_to_timestamp
@@ -24,6 +25,11 @@ def password_service(container) -> BasePasswordService:
 @pytest.fixture
 def token_service(container) -> BaseTokenService:
     return container.resolve(BaseTokenService)
+
+
+@pytest.fixture
+def issued_jwt_token_service(container) -> BaseIssuedJwtTokenService:
+    return container.resolve(BaseIssuedJwtTokenService)
 
 
 @pytest.fixture
