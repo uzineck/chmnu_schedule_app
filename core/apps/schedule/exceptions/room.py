@@ -4,21 +4,14 @@ from core.apps.common.exceptions import ServiceException
 
 
 @dataclass(eq=False)
-class RoomNumberNotFoundException(ServiceException):
-    number: str
+class RoomNotFoundException(ServiceException):
+    uuid: str | None = None
+    id: int | None = None
+    number: str | None = None
 
     @property
     def message(self):
-        return 'Room with provided number not found'
-
-
-@dataclass(eq=False)
-class RoomUuidNotFoundException(ServiceException):
-    uuid: str
-
-    @property
-    def message(self):
-        return 'Room with provided uuid not found'
+        return 'Room with provided identifier not found'
 
 
 @dataclass(eq=False)
@@ -29,3 +22,20 @@ class RoomAlreadyExistException(ServiceException):
     def message(self):
         return 'Room with provided number already exists'
 
+
+@dataclass(eq=False)
+class RoomUpdateException(ServiceException):
+    id: int
+
+    @property
+    def message(self):
+        return 'An error occurred while updating room'
+
+
+@dataclass(eq=False)
+class RoomDeleteException(ServiceException):
+    id: int
+
+    @property
+    def message(self):
+        return 'An error occurred while deleting room'

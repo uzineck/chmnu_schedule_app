@@ -22,8 +22,15 @@ class TeacherSchema(Schema):
         )
 
 
-class TeacherInSchema(Schema):
-    last_name: str
+class TeacherNameInSchema(Schema):
     first_name: str
+    last_name: str
     middle_name: str
+
+
+class TeacherRankInSchema(Schema):
     rank: TeachersDegree
+
+
+class TeacherInSchema(TeacherNameInSchema, TeacherRankInSchema):
+    ...

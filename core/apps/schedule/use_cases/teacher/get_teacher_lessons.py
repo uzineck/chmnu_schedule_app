@@ -17,12 +17,13 @@ class GetLessonsForTeacherUseCase:
     group_service: BaseGroupService
     lesson_service: BaseLessonService
     group_lesson_service: BaseGroupLessonService
+
     uuid_validator_service: BaseUuidValidatorService
 
     def execute(self, teacher_uuid: str) -> tuple[TeacherEntity, Iterable[LessonEntity], dict[int, [GroupEntity]]]:
         self.uuid_validator_service.validate(uuid_str=teacher_uuid)
 
-        teacher = self.teacher_service.get_teacher_by_uuid(teacher_uuid=teacher_uuid)
+        teacher = self.teacher_service.get_by_uuid(teacher_uuid=teacher_uuid)
         lessons = self.lesson_service.get_lessons_for_teacher(teacher_id=teacher.id)
 
         groups = {}

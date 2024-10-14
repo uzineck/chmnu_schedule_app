@@ -12,15 +12,20 @@ from core.apps.common.filters import SearchFilter as SearchFiltersEntity
 from core.apps.schedule.entities.room import Room as RoomEntity
 from core.apps.schedule.exceptions.room import (
     RoomAlreadyExistException,
-    RoomNumberNotFoundException,
-    RoomUuidNotFoundException,
+    RoomDeleteException,
+    RoomNotFoundException,
+    RoomUpdateException,
 )
 from core.apps.schedule.models import Room as RoomModel
 
 
 class BaseRoomService(ABC):
     @abstractmethod
-    def get_or_create(self, number: str) -> RoomEntity:
+    def create(self, number: str) -> RoomEntity:
+        ...
+
+    @abstractmethod
+    def get_all_rooms(self) -> Iterable[RoomEntity]:
         ...
 
     @abstractmethod
@@ -32,27 +37,27 @@ class BaseRoomService(ABC):
         ...
 
     @abstractmethod
-    def get_room_by_number(self, number: str) -> RoomEntity:
+    def get_by_uuid(self, room_uuid: str) -> RoomEntity:
         ...
 
     @abstractmethod
-    def get_room_by_uuid(self, room_uuid: str) -> RoomEntity:
+    def get_by_id(self, room_id: int) -> RoomEntity:
         ...
 
     @abstractmethod
-    def update_room_number(self, room_uuid: str, new_number: str) -> RoomEntity:
+    def check_room_number_exists(self, room_number: str) -> bool:
         ...
 
     @abstractmethod
-    def update_room_description(self, room_uuid: str, description: str) -> RoomEntity:
+    def update_number(self, room_id: int, number: str) -> None:
         ...
 
     @abstractmethod
-    def delete_room_by_number(self, number: str) -> None:
+    def update_description(self, room_id: int, description: str) -> None:
         ...
 
     @abstractmethod
-    def delete_room_by_uuid(self, room_uuid: str) -> None:
+    def delete_room(self, room_id: int) -> None:
         ...
 
 
@@ -67,9 +72,18 @@ class ORMRoomService(BaseRoomService):
 
         return query
 
-    def get_or_create(self, number: str) -> RoomEntity:
-        room, _ = RoomModel.objects.get_or_create(number=number)
+    def create(self, number: str) -> RoomEntity:
+        try:
+            room = RoomModel.objects.create(number=number)
+        except IntegrityError:
+            raise RoomAlreadyExistException(number=number)
         return room.to_entity()
+
+    def get_all_rooms(self) -> Iterable[RoomEntity]:
+        rooms = RoomModel.objects.all()
+
+        for room in rooms:
+            yield room.to_entity()
 
     def get_room_list(self, filters: SearchFiltersEntity, pagination: PaginationIn) -> list[RoomEntity]:
         query = self._build_room_query(filters)
@@ -81,58 +95,43 @@ class ORMRoomService(BaseRoomService):
 
         return RoomModel.objects.filter(query).count()
 
-    def get_room_by_number(self, number: str) -> RoomEntity:
-        try:
-            room = RoomModel.objects.get(number=number)
-        except RoomModel.DoesNotExist:
-            raise RoomNumberNotFoundException(number=number)
-
-        return room.to_entity()
-
-    def get_room_by_uuid(self, room_uuid: str) -> RoomEntity:
+    def get_by_uuid(self, room_uuid: str) -> RoomEntity:
         try:
             room = RoomModel.objects.get(room_uuid=room_uuid)
         except RoomModel.DoesNotExist:
-            raise RoomUuidNotFoundException(uuid=room_uuid)
+            raise RoomNotFoundException(uuid=room_uuid)
 
         return room.to_entity()
 
-    def update_room_number(
+    def get_by_id(self, room_id: int) -> RoomEntity:
+        try:
+            room = RoomModel.objects.get(id=room_id)
+        except RoomModel.DoesNotExist:
+            raise RoomNotFoundException(id=room_id)
+
+        return room.to_entity()
+
+    def check_room_number_exists(self, room_number: str) -> bool:
+        return RoomModel.objects.filter(number=room_number).exists()
+
+    def update_number(
         self,
-        room_uuid: str,
-        new_number: str,
-    ) -> RoomEntity:
-        try:
-            RoomModel.objects.filter(room_uuid=room_uuid).update(number=new_number)
-        except IntegrityError:
-            raise RoomAlreadyExistException(number=new_number)
-        try:
-            updated_room = RoomModel.objects.get(number=new_number)
-        except RoomModel.DoesNotExist:
-            raise RoomNumberNotFoundException(number=new_number)
-        return updated_room.to_entity()
+        room_id: int,
+        number: str,
+    ) -> None:
+        is_updated = RoomModel.objects.filter(id=room_id).update(number=number)
 
-    def update_room_description(self, room_uuid: str, description: str) -> RoomEntity:
-        RoomModel.objects.filter(room_uuid=room_uuid).update(description=description)
-        try:
-            updated_room = RoomModel.objects.get(room_uuid=room_uuid)
-        except RoomModel.DoesNotExist:
-            raise RoomUuidNotFoundException(uuid=room_uuid)
+        if not is_updated:
+            raise RoomUpdateException(id=room_id)
 
-        return updated_room.to_entity()
+    def update_description(self, room_id: int, description: str) -> None:
+        is_updated = RoomModel.objects.filter(id=room_id).update(description=description)
 
-    def delete_room_by_number(self, number: str) -> None:
-        try:
-            room = RoomModel.objects.get(number=number)
-        except RoomModel.DoesNotExist:
-            raise RoomNumberNotFoundException(number=number)
+        if not is_updated:
+            raise RoomUpdateException(id=room_id)
 
-        room.delete()
+    def delete_room(self, room_id: int) -> None:
+        is_deleted = RoomModel.objects.filter(id=room_id).delete()
 
-    def delete_room_by_uuid(self, room_uuid: str) -> None:
-        try:
-            room = RoomModel.objects.get(room_uuid=room_uuid)
-        except RoomModel.DoesNotExist:
-            raise RoomUuidNotFoundException(uuid=room_uuid)
-
-        room.delete()
+        if not is_deleted:
+            raise RoomDeleteException(id=room_id)

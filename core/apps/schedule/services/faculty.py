@@ -23,6 +23,10 @@ class BaseFacultyService(ABC):
         ...
 
     @abstractmethod
+    def get_all_faculties(self) -> Iterable[FacultyEntity]:
+        ...
+
+    @abstractmethod
     def get_faculty_list(self, filters: SearchFilterEntity, pagination: PaginationIn) -> Iterable[FacultyEntity]:
         ...
 

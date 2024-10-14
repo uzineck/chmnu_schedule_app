@@ -12,8 +12,12 @@ class CreateTimeslotSchema(Schema):
     ord_number: OrdinaryNumber
     is_even: bool
 
-    class Config:
-        model = Day, OrdinaryNumber
+    def to_entity(self) -> TimeslotEntity:
+        return TimeslotEntity(
+            day=self.day,
+            ord_number=self.ord_number,
+            is_even=self.is_even,
+        )
 
 
 class TimeslotSchema(CreateTimeslotSchema):

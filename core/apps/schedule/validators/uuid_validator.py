@@ -5,7 +5,7 @@ from abc import (
 )
 from dataclasses import dataclass
 
-from core.apps.schedule.exceptions.uuid_validator import InvalidUuidFormatStringException
+from core.apps.schedule.exceptions.validators.uuid_validator import InvalidUuidFormatStringException
 
 
 class BaseUuidValidatorService(ABC):

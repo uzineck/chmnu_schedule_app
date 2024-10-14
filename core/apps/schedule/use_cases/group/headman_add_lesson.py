@@ -24,7 +24,7 @@ class HeadmanAddLessonToGroupUseCase:
         headman = self.client_service.get_by_email(headman_email)
         group = self.group_service.get_group_from_headman(headman=headman)
         self.group_service.check_group_has_subgroups_subgroup(group=group, subgroup=subgroup)
-        lesson = self.lesson_service.get_lessons_by_uuid(lesson_uuid=lesson_uuid)
+        lesson = self.lesson_service.get_lesson_by_uuid(lesson_uuid=lesson_uuid)
         group_subgroup_lesson_entity = GroupLessonEntity(
             group=group,
             subgroup=subgroup,

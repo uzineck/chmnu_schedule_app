@@ -32,14 +32,14 @@ from core.apps.common.exceptions import (
 )
 from core.apps.common.models import Subgroup
 from core.apps.schedule.filters.group import GroupLessonFilter as GroupFilterEntity
-from core.apps.schedule.services.group import BaseGroupService
-from core.apps.schedule.use_cases.group.admin_add_lesson_to_group import AdminAddLessonToGroupUseCase
-from core.apps.schedule.use_cases.group.admin_remove_lesson_from_group import AdminRemoveLessonFromGroupUseCase
-from core.apps.schedule.use_cases.group.create_group import CreateGroupUseCase
-from core.apps.schedule.use_cases.group.get_group_info import GetGroupInfoUseCase
+from core.apps.schedule.use_cases.group.admin_add_lesson import AdminAddLessonToGroupUseCase
+from core.apps.schedule.use_cases.group.admin_remove_lesson import AdminRemoveLessonFromGroupUseCase
+from core.apps.schedule.use_cases.group.create import CreateGroupUseCase
+from core.apps.schedule.use_cases.group.get_all import GetAllGroupsUseCase
 from core.apps.schedule.use_cases.group.get_group_lessons import GetGroupLessonsUseCase
-from core.apps.schedule.use_cases.group.headman_add_lesson_to_group import HeadmanAddLessonToGroupUseCase
-from core.apps.schedule.use_cases.group.headman_remove_lesson_from_group import HeadmanRemoveLessonFromGroupUseCase
+from core.apps.schedule.use_cases.group.get_info import GetGroupInfoUseCase
+from core.apps.schedule.use_cases.group.headman_add_lesson import HeadmanAddLessonToGroupUseCase
+from core.apps.schedule.use_cases.group.headman_remove_lesson import HeadmanRemoveLessonFromGroupUseCase
 from core.apps.schedule.use_cases.group.update_headman import UpdateGroupHeadmanUseCase
 from core.project.containers.containers import get_container
 
@@ -55,8 +55,8 @@ router = Router(tags=['Group'])
 )
 def get_all_groups(request: HttpRequest) -> ApiResponse:
     container = get_container()
-    service: BaseGroupService = container.resolve(BaseGroupService)
-    groups = service.get_all_groups()
+    use_case: GetAllGroupsUseCase = container.resolve(GetAllGroupsUseCase)
+    groups = use_case.execute()
     items = [GroupUuidNumberOutSchema.from_entity(group) for group in groups]
 
     return ApiResponse(

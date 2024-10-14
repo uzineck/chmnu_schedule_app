@@ -5,7 +5,6 @@ from abc import (
     ABC,
     abstractmethod,
 )
-from pytils.translit import slugify
 from typing import Iterable
 
 from core.api.filters import PaginationIn
@@ -13,15 +12,20 @@ from core.apps.common.filters import SearchFilter as SearchFilterEntity
 from core.apps.schedule.entities.subject import Subject as SubjectEntity
 from core.apps.schedule.exceptions.subject import (
     SubjectAlreadyExistException,
+    SubjectDeleteException,
     SubjectNotFoundException,
-    SubjectUuidNotFoundException,
+    SubjectUpdateException,
 )
 from core.apps.schedule.models import Subject as SubjectModel
 
 
 class BaseSubjectService(ABC):
     @abstractmethod
-    def get_or_create(self, title: str) -> SubjectEntity:
+    def create(self, title: str, slug: str) -> SubjectEntity:
+        ...
+
+    @abstractmethod
+    def get_all_subjects(self) -> Iterable[SubjectEntity]:
         ...
 
     @abstractmethod
@@ -33,20 +37,23 @@ class BaseSubjectService(ABC):
         ...
 
     @abstractmethod
-    def get_subject_by_uuid(self, subject_uuid: str) -> SubjectEntity:
+    def get_by_uuid(self, subject_uuid: str) -> SubjectEntity:
         ...
 
     @abstractmethod
-    def update_subject_by_uuid(self, subject_uuid: str, title: str) -> SubjectEntity:
+    def get_by_id(self, subject_id: int) -> SubjectEntity:
         ...
 
     @abstractmethod
-    def delete_subject_by_uuid(self, subject_uuid: str) -> None:
+    def update(self, subject_id: int, title: str, slug: str) -> None:
+        ...
+
+    @abstractmethod
+    def delete(self, subject_id: int) -> None:
         ...
 
 
 class ORMSubjectService(BaseSubjectService):
-
     def _build_subject_query(self, filters: SearchFilterEntity) -> Q:
         query = Q()
 
@@ -55,13 +62,18 @@ class ORMSubjectService(BaseSubjectService):
 
         return query
 
-    def get_or_create(self, title: str) -> SubjectEntity:
+    def create(self, title: str, slug: str) -> SubjectEntity:
         try:
-            slug = slugify(title.strip())
-            subject, _ = SubjectModel.objects.get_or_create(title=title.strip(), slug=slug)
+            subject = SubjectModel.objects.create(title=title, slug=slug)
         except IntegrityError:
             raise SubjectAlreadyExistException(title=title)
         return subject.to_entity()
+
+    def get_all_subjects(self) -> Iterable[SubjectEntity]:
+        subjects = SubjectModel.objects.all()
+
+        for subject in subjects:
+            yield subject.to_entity()
 
     def get_subject_list(self, filters: SearchFilterEntity, pagination: PaginationIn) -> Iterable[SubjectEntity]:
         query = self._build_subject_query(filters)
@@ -75,31 +87,28 @@ class ORMSubjectService(BaseSubjectService):
 
         return SubjectModel.objects.filter(query).count()
 
-    def get_subject_by_uuid(self, subject_uuid: str) -> SubjectEntity:
+    def get_by_uuid(self, subject_uuid: str) -> SubjectEntity:
         try:
             subject = SubjectModel.objects.get(subject_uuid=subject_uuid)
         except SubjectModel.DoesNotExist:
-            raise SubjectNotFoundException(subject_info=str(subject_uuid))
+            raise SubjectNotFoundException(uuid=subject_uuid)
         return subject.to_entity()
 
-    def update_subject_by_uuid(self, subject_uuid: str, title: str) -> SubjectEntity:
+    def get_by_id(self, subject_id: int) -> SubjectEntity:
         try:
-            slug = slugify(title.strip())
-            SubjectModel.objects.filter(subject_uuid=subject_uuid).update(title=title.strip(), slug=slug)
-        except IntegrityError:
-            raise SubjectAlreadyExistException(uuid=subject_uuid, title=title)
-        try:
-            updated_subject = SubjectModel.objects.get(subject_uuid=subject_uuid)
+            subject = SubjectModel.objects.get(id=subject_id)
         except SubjectModel.DoesNotExist:
-            raise SubjectUuidNotFoundException(uuid=subject_uuid)
-        return updated_subject.to_entity()
+            raise SubjectNotFoundException(id=subject_id)
+        return subject.to_entity()
 
-    def delete_subject_by_uuid(self, subject_uuid: str) -> None:
-        try:
-            subject = SubjectModel.objects.get(subject_uuid=subject_uuid)
-        except SubjectModel.DoesNotExist:
-            raise SubjectUuidNotFoundException(uuid=subject_uuid)
+    def update(self, subject_id: int, title: str, slug: str) -> None:
+        is_updated = SubjectModel.objects.filter(id=subject_id).update(title=title, slug=slug)
 
-        subject.delete()
+        if not is_updated:
+            raise SubjectUpdateException(id=subject_id)
 
+    def delete(self, subject_id: int) -> None:
+        is_deleted = SubjectModel.objects.filter(id=subject_id).delete()
 
+        if not is_deleted:
+            raise SubjectDeleteException(id=subject_id)

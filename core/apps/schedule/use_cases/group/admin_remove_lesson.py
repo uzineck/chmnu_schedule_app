@@ -9,7 +9,7 @@ from core.apps.schedule.validators.uuid_validator import BaseUuidValidatorServic
 
 
 @dataclass
-class AdminAddLessonToGroupUseCase:
+class AdminRemoveLessonFromGroupUseCase:
     group_service: BaseGroupService
     lesson_service: BaseLessonService
     group_lesson_service: BaseGroupLessonService
@@ -21,17 +21,11 @@ class AdminAddLessonToGroupUseCase:
 
         group = self.group_service.get_group_by_uuid(group_uuid=group_uuid)
         self.group_service.check_group_has_subgroups_subgroup(group=group, subgroup=subgroup)
-        lesson = self.lesson_service.get_lessons_by_uuid(lesson_uuid=lesson_uuid)
-
-        group_subgroup_lesson_entity = GroupLessonEntity(
+        lesson = self.lesson_service.get_lesson_by_uuid(lesson_uuid=lesson_uuid)
+        group_lesson_entity = GroupLessonEntity(
             group=group,
             subgroup=subgroup,
             lesson=lesson,
         )
 
-        existing_group_subgroup_lesson = self.group_lesson_service.check_group_subgroup_lesson_exists(
-            group_lesson=group_subgroup_lesson_entity,
-        )
-
-        if not existing_group_subgroup_lesson:
-            self.group_lesson_service.save_group_subgroup_lesson(group_lesson=group_subgroup_lesson_entity)
+        self.group_lesson_service.delete_group_subgroup_lesson(group_lesson=group_lesson_entity)

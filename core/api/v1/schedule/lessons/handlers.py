@@ -10,7 +10,7 @@ from core.api.v1.schedule.lessons.schema_for_groups import (
 )
 from core.apps.common.authentication.bearer import jwt_bearer
 from core.apps.common.exceptions import ServiceException
-from core.apps.schedule.use_cases.lessons.create import CreateLessonUseCase
+from core.apps.schedule.use_cases.lesson.create import CreateLessonUseCase
 from core.project.containers.containers import get_container
 
 
@@ -32,7 +32,6 @@ def create_lesson(
             subject_uuid=schema.subject_uuid,
             teacher_uuid=schema.teacher_uuid,
             room_uuid=schema.room_uuid,
-            timeslot_id=schema.timeslot_id,
         )
     except ServiceException as e:
         raise HttpError(

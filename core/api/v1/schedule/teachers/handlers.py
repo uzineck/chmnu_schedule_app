@@ -1,8 +1,5 @@
 from django.http import HttpRequest
-from ninja import (
-    Query,
-    Router,
-)
+from ninja import Router
 from ninja.errors import HttpError
 
 from core.api.filters import (
@@ -12,6 +9,7 @@ from core.api.filters import (
 from core.api.schemas import (
     ApiResponse,
     ListPaginatedResponse,
+    StatusResponse,
 )
 from core.api.v1.schedule.lessons.schema_for_teachers import (
     LessonForTeacherOutSchema,
@@ -20,17 +18,41 @@ from core.api.v1.schedule.lessons.schema_for_teachers import (
 from core.api.v1.schedule.teachers.filters import TeacherFilter
 from core.api.v1.schedule.teachers.schemas import (
     TeacherInSchema,
+    TeacherNameInSchema,
+    TeacherRankInSchema,
     TeacherSchema,
 )
 from core.apps.common.authentication.bearer import jwt_bearer_admin
 from core.apps.common.exceptions import ServiceException
 from core.apps.schedule.filters.teacher import TeacherFilter as TeacherFilterEntity
-from core.apps.schedule.services.teacher import BaseTeacherService
-from core.apps.schedule.use_cases.teacher.get_lessons_for_teacher import GetLessonsForTeacherUseCase
+from core.apps.schedule.use_cases.teacher.create import CreateTeacherUseCase
+from core.apps.schedule.use_cases.teacher.deactivate import DeactivateTeacherUseCase
+from core.apps.schedule.use_cases.teacher.get_all import GetAllTeachersUseCase
+from core.apps.schedule.use_cases.teacher.get_list import GetTeacherListUseCase
+from core.apps.schedule.use_cases.teacher.get_teacher_lessons import GetLessonsForTeacherUseCase
+from core.apps.schedule.use_cases.teacher.update_name import UpdateTeacherNameUseCase
+from core.apps.schedule.use_cases.teacher.update_rank import UpdateTeacherRankUseCase
 from core.project.containers.containers import get_container
 
 
 router = Router(tags=["Teachers"])
+
+
+@router.get(
+    'all',
+    response=ApiResponse,
+    operation_id='get_all_teachers',
+
+)
+def get_all_teachers(request: HttpRequest) -> ApiResponse:
+    container = get_container()
+    use_case: GetAllTeachersUseCase = container.resolve(GetAllTeachersUseCase)
+    teachers = use_case.execute()
+    items = [TeacherSchema.from_entity(obj) for obj in teachers]
+
+    return ApiResponse(
+        data=items,
+    )
 
 
 @router.get(
@@ -40,23 +62,20 @@ router = Router(tags=["Teachers"])
 )
 def get_teacher_list(
         request: HttpRequest,
-        filters: Query[TeacherFilter],
-        pagination_in: Query[PaginationIn],
+        filters: TeacherFilter,
+        pagination_in: PaginationIn,
 ) -> ApiResponse[ListPaginatedResponse[TeacherSchema]]:
     container = get_container()
-    service: BaseTeacherService = container.resolve(BaseTeacherService)
+    use_case: GetTeacherListUseCase = container.resolve(GetTeacherListUseCase)
     try:
-        teacher_list = service.get_teacher_list(
+        teacher_list, teacher_count = use_case.execute(
             filters=TeacherFilterEntity(
                 name=filters.name,
                 rank=filters.rank,
             ),
             pagination=pagination_in,
         )
-        teacher_count = service.get_teacher_count(filters=filters)
-
         items = [TeacherSchema.from_entity(obj) for obj in teacher_list]
-
         pagination_out = PaginationOut(
             offset=pagination_in.offset,
             limit=pagination_in.limit,
@@ -112,14 +131,14 @@ def get_lessons_for_teacher(request: HttpRequest, teacher_uuid: str) -> ApiRespo
 @router.post(
     "",
     response=ApiResponse[TeacherSchema],
-    operation_id="get_or_create_teacher",
+    operation_id="create_teacher",
     auth=jwt_bearer_admin,
 )
-def get_or_create_teacher(request: HttpRequest, schema: TeacherInSchema) -> ApiResponse[TeacherSchema]:
+def create_teacher(request: HttpRequest, schema: TeacherInSchema) -> ApiResponse[TeacherSchema]:
     container = get_container()
-    service: BaseTeacherService = container.resolve(BaseTeacherService)
+    use_case: CreateTeacherUseCase = container.resolve(CreateTeacherUseCase)
     try:
-        teacher = service.get_or_create(
+        teacher = use_case.execute(
             first_name=schema.first_name,
             last_name=schema.last_name,
             middle_name=schema.middle_name,
@@ -137,24 +156,51 @@ def get_or_create_teacher(request: HttpRequest, schema: TeacherInSchema) -> ApiR
 
 
 @router.patch(
-    "{teacher_uuid}/update",
+    "{teacher_uuid}/update_name",
     response=ApiResponse[TeacherSchema],
-    operation_id="update_teacher",
+    operation_id="update_teacher_name",
     auth=jwt_bearer_admin,
 )
-def update_teacher(
+def update_teacher_name(
         request: HttpRequest,
         teacher_uuid: str,
-        schema: TeacherInSchema,
+        schema: TeacherNameInSchema,
 ) -> ApiResponse[TeacherSchema]:
     container = get_container()
-    service = container.resolve(BaseTeacherService)
+    use_case: UpdateTeacherNameUseCase = container.resolve(UpdateTeacherNameUseCase)
     try:
-        teacher = service.update_teacher_by_uuid(
+        teacher = use_case.execute(
             teacher_uuid=teacher_uuid,
             first_name=schema.first_name,
             last_name=schema.last_name,
             middle_name=schema.middle_name,
+        )
+    except ServiceException as e:
+        raise HttpError(
+            status_code=401,
+            message=e.message,
+        )
+    return ApiResponse(
+        data=TeacherSchema.from_entity(entity=teacher),
+    )
+
+
+@router.patch(
+    "{teacher_uuid}/update_rank",
+    response=ApiResponse[TeacherSchema],
+    operation_id="update_teacher_rank",
+    auth=jwt_bearer_admin,
+)
+def update_teacher_rank(
+        request: HttpRequest,
+        teacher_uuid: str,
+        schema: TeacherRankInSchema,
+) -> ApiResponse[TeacherSchema]:
+    container = get_container()
+    use_case: UpdateTeacherRankUseCase = container.resolve(UpdateTeacherRankUseCase)
+    try:
+        teacher = use_case.execute(
+            teacher_uuid=teacher_uuid,
             rank=schema.rank,
         )
     except ServiceException as e:
@@ -162,7 +208,32 @@ def update_teacher(
             status_code=401,
             message=e.message,
         )
-
     return ApiResponse(
         data=TeacherSchema.from_entity(entity=teacher),
+    )
+
+
+@router.delete(
+    "{teacher_uuid}",
+    response=ApiResponse[StatusResponse],
+    operation_id="delete_teacher",
+    auth=jwt_bearer_admin,
+)
+def delete_teacher(
+        request: HttpRequest,
+        teacher_uuid: str,
+) -> ApiResponse[StatusResponse]:
+    container = get_container()
+    use_case: DeactivateTeacherUseCase = container.resolve(DeactivateTeacherUseCase)
+    try:
+        use_case.execute(
+            teacher_uuid=teacher_uuid,
+        )
+    except ServiceException as e:
+        raise HttpError(
+            status_code=401,
+            message=e.message,
+        )
+    return ApiResponse(
+        data=StatusResponse(status="Teacher deleted successfully"),
     )

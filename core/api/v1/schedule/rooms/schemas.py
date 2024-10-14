@@ -23,12 +23,5 @@ class RoomNumberInSchema(Schema):
     number: str
 
 
-class RoomNumberUpdateInSchema(Schema):
-    room_uuid: str
-    new_room_number: str
-
-
-class RoomDescriptionUpdateInSchema(Schema):
-    room_uuid: str
+class RoomDescriptionInSchema(Schema):
     description: str
-

@@ -27,6 +27,10 @@ class BaseGroupService(ABC):
         ...
 
     @abstractmethod
+    def get_all_groups(self) -> Iterable[GroupEntity]:
+        ...
+
+    @abstractmethod
     def get_group_by_number(self, group_number: str) -> GroupEntity:
         ...
 
@@ -47,11 +51,7 @@ class BaseGroupService(ABC):
         ...
 
     @abstractmethod
-    def get_all_groups(self) -> Iterable[GroupEntity]:
-        ...
-
-    @abstractmethod
-    def update_group_headman(self, group: GroupEntity, headman: ClientEntity) -> GroupEntity:
+    def get_groups_from_lesson(self, lesson_id: int) -> Iterable[GroupEntity]:
         ...
 
     @abstractmethod
@@ -59,7 +59,7 @@ class BaseGroupService(ABC):
         ...
 
     @abstractmethod
-    def get_groups_from_lesson(self, lesson_id: int) -> Iterable[GroupEntity]:
+    def update_group_headman(self, group: GroupEntity, headman: ClientEntity) -> GroupEntity:
         ...
 
 
@@ -80,6 +80,12 @@ class ORMGroupService(BaseGroupService):
         )
 
         return group.to_entity()
+
+    def get_all_groups(self) -> Iterable[GroupEntity]:
+        groups = GroupModel.objects.all()
+
+        for group in groups:
+            yield group.to_entity()
 
     def get_group_by_number(self, group_number: str) -> GroupEntity:
         try:
@@ -109,23 +115,17 @@ class ORMGroupService(BaseGroupService):
 
         return True
 
-    def update_group_headman(self, group: GroupEntity, headman: ClientEntity) -> GroupEntity:
-        GroupModel.objects.filter(number=group.number).update(headman_id=headman.id)
-        updated_group = GroupModel.objects.get(id=group.id)
-        return updated_group.to_entity()
+    def get_groups_from_lesson(self, lesson_id: int) -> Iterable[GroupEntity]:
+        groups = GroupModel.objects.filter(group__lesson_id=lesson_id)
+
+        return [group.to_entity() for group in groups]
 
     def get_group_from_headman(self, headman: ClientEntity) -> GroupEntity | None:
         group: GroupModel = GroupModel.objects.filter(headman__email=headman.email).first()
 
         return group.to_entity() if group.headman else None
 
-    def get_groups_from_lesson(self, lesson_id: int) -> Iterable[GroupEntity]:
-        groups = GroupModel.objects.filter(group__lesson_id=lesson_id)
-
-        return [group.to_entity() for group in groups]
-
-    def get_all_groups(self) -> Iterable[GroupEntity]:
-        groups = GroupModel.objects.all()
-
-        for group in groups:
-            yield group.to_entity()
+    def update_group_headman(self, group: GroupEntity, headman: ClientEntity) -> GroupEntity:
+        GroupModel.objects.filter(number=group.number).update(headman_id=headman.id)
+        updated_group = GroupModel.objects.get(id=group.id)
+        return updated_group.to_entity()

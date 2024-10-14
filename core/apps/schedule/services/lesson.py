@@ -18,7 +18,7 @@ class BaseLessonService(ABC):
         ...
 
     @abstractmethod
-    def get_lessons_by_uuid(self, lesson_uuid: str) -> LessonEntity:
+    def get_lesson_by_uuid(self, lesson_uuid: str) -> LessonEntity:
         ...
 
     @abstractmethod
@@ -56,7 +56,7 @@ class ORMLessonService(BaseLessonService):
 
         return lesson_model.to_entity()
 
-    def get_lessons_by_uuid(self, lesson_uuid: str) -> LessonEntity:
+    def get_lesson_by_uuid(self, lesson_uuid: str) -> LessonEntity:
         try:
             lesson = LessonModel.objects.get(lesson_uuid=lesson_uuid)
         except LessonModel.DoesNotExist:

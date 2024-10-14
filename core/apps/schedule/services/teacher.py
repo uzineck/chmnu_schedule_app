@@ -1,3 +1,4 @@
+from django.db import IntegrityError
 from django.db.models import Q
 
 from abc import (
@@ -9,20 +10,28 @@ from typing import Iterable
 from core.api.filters import PaginationIn
 from core.apps.common.models import TeachersDegree
 from core.apps.schedule.entities.teacher import Teacher as TeacherEntity
-from core.apps.schedule.exceptions.teacher import TeacherNotFoundException
+from core.apps.schedule.exceptions.teacher import (
+    TeacherAlreadyExistsException,
+    TeacherNotFoundException,
+    TeacherUpdateException,
+)
 from core.apps.schedule.filters.teacher import TeacherFilter
 from core.apps.schedule.models.teacher import Teacher as TeacherModel
 
 
 class BaseTeacherService(ABC):
     @abstractmethod
-    def get_or_create(
+    def create(
             self,
             first_name: str,
             last_name: str,
             middle_name: str,
             rank: TeachersDegree,
     ) -> TeacherEntity:
+        ...
+
+    @abstractmethod
+    def get_all_teachers(self) -> Iterable[TeacherEntity]:
         ...
 
     @abstractmethod
@@ -38,18 +47,37 @@ class BaseTeacherService(ABC):
         ...
 
     @abstractmethod
-    def get_teacher_by_uuid(self, teacher_uuid: str) -> TeacherEntity:
+    def get_by_uuid(self, teacher_uuid: str) -> TeacherEntity:
         ...
 
     @abstractmethod
-    def update_teacher_by_uuid(
+    def get_by_id(self, teacher_id: int) -> TeacherEntity:
+        ...
+
+    @abstractmethod
+    def update_teacher_name(
             self,
-            teacher_uuid: str,
+            teacher_id: int,
             first_name: str,
             last_name: str,
             middle_name: str,
-            rank: str,
-    ) -> TeacherEntity:
+    ) -> None:
+        ...
+
+    @abstractmethod
+    def update_teacher_rank(
+            self,
+            teacher_id: int,
+            rank: TeachersDegree,
+    ) -> None:
+        ...
+
+    @abstractmethod
+    def update_teacher_is_active(
+            self,
+            teacher_id: int,
+            is_active: bool,
+    ) -> None:
         ...
 
 
@@ -68,27 +96,44 @@ class ORMTeacherService(BaseTeacherService):
 
         return query
 
-    def get_or_create(
+    def create(
             self,
             first_name: str,
             last_name: str,
             middle_name: str,
             rank: str,
     ) -> TeacherEntity:
-        teacher, _ = TeacherModel.objects.get_or_create(
-            first_name=first_name,
-            last_name=last_name,
-            middle_name=middle_name,
-            rank=rank,
-        )
+        try:
+            teacher = TeacherModel.objects.create(
+                first_name=first_name,
+                last_name=last_name,
+                middle_name=middle_name,
+                rank=rank,
+            )
+        except IntegrityError:
+            raise TeacherAlreadyExistsException(first_name=first_name, last_name=last_name, middle_name=middle_name)
 
         return teacher.to_entity()
 
-    def get_teacher_by_uuid(self, teacher_uuid: str) -> TeacherEntity:
+    def get_all_teachers(self) -> Iterable[TeacherEntity]:
+        teachers = TeacherModel.objects.filter(is_active=True).all()
+
+        for teacher in teachers:
+            yield teacher.to_entity()
+
+    def get_by_uuid(self, teacher_uuid: str) -> TeacherEntity:
         try:
-            teacher = TeacherModel.objects.get(teacher_uuid=teacher_uuid)
+            teacher = TeacherModel.objects.get(teacher_uuid=teacher_uuid, is_active=True)
         except TeacherModel.DoesNotExist:
             raise TeacherNotFoundException(uuid=teacher_uuid)
+
+        return teacher.to_entity()
+
+    def get_by_id(self, teacher_id: int) -> TeacherEntity:
+        try:
+            teacher = TeacherModel.objects.get(id=teacher_id, is_active=True)
+        except TeacherModel.DoesNotExist:
+            raise TeacherNotFoundException(id=teacher_id)
 
         return teacher.to_entity()
 
@@ -107,24 +152,38 @@ class ORMTeacherService(BaseTeacherService):
 
         return query
 
-    def update_teacher_by_uuid(
+    def update_teacher_name(
             self,
-            teacher_uuid: str,
+            teacher_id: int,
             first_name: str,
             last_name: str,
             middle_name: str,
-            rank: str,
-    ) -> TeacherEntity:
-
-        TeacherModel.objects.filter(teacher_uuid=teacher_uuid).update(
+    ) -> None:
+        is_updated = TeacherModel.objects.filter(id=teacher_id).update(
             first_name=first_name,
             last_name=last_name,
             middle_name=middle_name,
+        )
+        if not is_updated:
+            raise TeacherUpdateException(id=teacher_id)
+
+    def update_teacher_rank(
+            self,
+            teacher_id: int,
+            rank: TeachersDegree,
+    ) -> None:
+        is_updated = TeacherModel.objects.filter(id=teacher_id).update(
             rank=rank,
         )
-        try:
-            teacher = TeacherModel.objects.get(teacher_uuid=teacher_uuid)
-        except TeacherModel.DoesNotExist:
-            raise TeacherNotFoundException(uuid=teacher_uuid)
+        if not is_updated:
+            raise TeacherUpdateException(id=teacher_id)
 
-        return teacher.to_entity()
+    def update_teacher_is_active(
+            self,
+            teacher_id: int,
+            is_active: bool,
+    ) -> None:
+        is_updated = TeacherModel.objects.filter(id=teacher_id).update(is_active=is_active)
+
+        if not is_updated:
+            raise TeacherUpdateException(id=teacher_id)

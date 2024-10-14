@@ -19,8 +19,3 @@ class SubjectSchema(Schema):
 
 class SubjectInSchema(Schema):
     title: str
-
-
-class UpdateSubjectTitleSchema(Schema):
-    subject_uuid: str
-    new_title: str

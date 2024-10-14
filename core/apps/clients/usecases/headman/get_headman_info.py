@@ -19,9 +19,3 @@ class GetHeadmanInfoUseCase:
 
         group = self.group_service.get_group_from_headman(headman=client)
         return group, client
-
-
-
-
-
-
