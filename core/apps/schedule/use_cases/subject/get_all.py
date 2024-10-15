@@ -10,5 +10,5 @@ class GetAllSubjectsUseCase:
     subject_service: BaseSubjectService
 
     def execute(self) -> Iterable[SubjectEntity]:
-        subjects = self.subject_service.get_all_subjects()
+        subjects = self.subject_service.get_all()
         return subjects

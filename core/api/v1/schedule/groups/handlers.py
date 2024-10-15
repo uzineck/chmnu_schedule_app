@@ -17,7 +17,7 @@ from core.api.v1.schedule.groups.schemas import (
     CreateGroupSchema,
     GroupLessonsOutSchema,
     GroupSchemaWithHeadman,
-    GroupUuidNumberOutSchema,
+    GroupUuidNumberFacultyOutSchema,
     UpdateGroupHeadmanSchema,
 )
 from core.apps.clients.services.client import BaseClientService
@@ -49,16 +49,21 @@ router = Router(tags=['Group'])
 
 @router.get(
     'all',
-    response=ApiResponse,
+    response=ApiResponse[list[GroupUuidNumberFacultyOutSchema]],
     operation_id='get_all_groups',
 
 )
-def get_all_groups(request: HttpRequest) -> ApiResponse:
+def get_all_groups(request: HttpRequest) -> ApiResponse[list[GroupUuidNumberFacultyOutSchema]]:
     container = get_container()
     use_case: GetAllGroupsUseCase = container.resolve(GetAllGroupsUseCase)
-    groups = use_case.execute()
-    items = [GroupUuidNumberOutSchema.from_entity(group) for group in groups]
-
+    try:
+        groups = use_case.execute()
+        items = [GroupUuidNumberFacultyOutSchema.from_entity(group) for group in groups]
+    except ServiceException as e:
+        raise HttpError(
+            status_code=403,
+            message=e.message,
+        )
     return ApiResponse(
         data=items,
     )
@@ -110,7 +115,6 @@ def get_group_info(
 ) -> ApiResponse[GroupSchemaWithHeadman]:
     container = get_container()
     use_case: GetGroupInfoUseCase = container.resolve(GetGroupInfoUseCase)
-
     try:
         group = use_case.execute(group_uuid=group_uuid)
     except ServiceException as e:
@@ -125,7 +129,7 @@ def get_group_info(
 
 
 @router.get(
-    "get_headman_info",
+    "{headman_email}/headman_info",
     response=ApiResponse[Union[GroupSchemaWithHeadman, ClientSchemaPrivate]],
     operation_id='get_headman_info',
     auth=jwt_bearer_admin,
@@ -166,7 +170,6 @@ def create_group(request: HttpRequest, schema: CreateGroupSchema) -> ApiResponse
             headman_email=schema.headman_email,
             has_subgroups=schema.has_subgroups,
         )
-
     except ServiceException as e:
         raise HttpError(
             status_code=404,
@@ -216,7 +219,6 @@ def add_lesson_to_group_admin(
 ) -> ApiResponse[StatusResponse]:
     container = get_container()
     use_case: AdminAddLessonToGroupUseCase = container.resolve(AdminAddLessonToGroupUseCase)
-
     try:
         use_case.execute(group_uuid=group_uuid, subgroup=subgroup, lesson_uuid=lesson_uuid)
     except ServiceException as e:
@@ -244,7 +246,6 @@ def remove_lesson_from_group_admin(
 ) -> ApiResponse[StatusResponse]:
     container = get_container()
     use_case: AdminRemoveLessonFromGroupUseCase = container.resolve(AdminRemoveLessonFromGroupUseCase)
-
     try:
         use_case.execute(group_uuid=group_uuid, subgroup=subgroup, lesson_uuid=lesson_uuid)
     except ServiceException as e:
@@ -252,7 +253,6 @@ def remove_lesson_from_group_admin(
             status_code=404,
             message=e.message,
         )
-
     return ApiResponse(
         data=StatusResponse(status="Lesson was removed successfully"),
     )
@@ -272,7 +272,6 @@ def add_lesson_to_group_headman(
     container = get_container()
     client_service = container.resolve(BaseClientService)
     use_case: HeadmanAddLessonToGroupUseCase = container.resolve(HeadmanAddLessonToGroupUseCase)
-
     try:
         user_email: str = client_service.get_client_email_from_token(token=request.auth)
     except JWTKeyParsingException as e:
@@ -280,7 +279,6 @@ def add_lesson_to_group_headman(
             status_code=401,
             message=e.message,
         )
-
     try:
         use_case.execute(headman_email=user_email, subgroup=subgroup, lesson_uuid=lesson_uuid)
     except ServiceException as e:
@@ -308,7 +306,6 @@ def remove_lesson_to_group_headman(
     container = get_container()
     client_service = container.resolve(BaseClientService)
     use_case: HeadmanRemoveLessonFromGroupUseCase = container.resolve(HeadmanRemoveLessonFromGroupUseCase)
-
     try:
         user_email: str = client_service.get_client_email_from_token(token=request.auth)
     except JWTKeyParsingException as e:
@@ -316,7 +313,6 @@ def remove_lesson_to_group_headman(
             status_code=401,
             message=e.message,
         )
-
     try:
         use_case.execute(headman_email=user_email, subgroup=subgroup, lesson_uuid=lesson_uuid)
     except ServiceException as e:

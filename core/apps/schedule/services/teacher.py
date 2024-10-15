@@ -31,19 +31,15 @@ class BaseTeacherService(ABC):
         ...
 
     @abstractmethod
-    def get_all_teachers(self) -> Iterable[TeacherEntity]:
+    def get_all(self) -> Iterable[TeacherEntity]:
         ...
 
     @abstractmethod
-    def get_teacher_list(self, filters: TeacherFilter, pagination: PaginationIn) -> Iterable[TeacherEntity]:
+    def get_list(self, filters: TeacherFilter, pagination: PaginationIn) -> Iterable[TeacherEntity]:
         ...
 
     @abstractmethod
-    def get_teacher_count(self, filters: TeacherFilter) -> int:
-        ...
-
-    @abstractmethod
-    def get_qs_for_teacher(self, filters: TeacherFilter) -> Q:
+    def get_count(self, filters: TeacherFilter) -> int:
         ...
 
     @abstractmethod
@@ -55,7 +51,7 @@ class BaseTeacherService(ABC):
         ...
 
     @abstractmethod
-    def update_teacher_name(
+    def update_name(
             self,
             teacher_id: int,
             first_name: str,
@@ -65,7 +61,7 @@ class BaseTeacherService(ABC):
         ...
 
     @abstractmethod
-    def update_teacher_rank(
+    def update_rank(
             self,
             teacher_id: int,
             rank: TeachersDegree,
@@ -73,7 +69,7 @@ class BaseTeacherService(ABC):
         ...
 
     @abstractmethod
-    def update_teacher_is_active(
+    def update_is_active(
             self,
             teacher_id: int,
             is_active: bool,
@@ -115,7 +111,7 @@ class ORMTeacherService(BaseTeacherService):
 
         return teacher.to_entity()
 
-    def get_all_teachers(self) -> Iterable[TeacherEntity]:
+    def get_all(self) -> Iterable[TeacherEntity]:
         teachers = TeacherModel.objects.filter(is_active=True).all()
 
         for teacher in teachers:
@@ -137,22 +133,17 @@ class ORMTeacherService(BaseTeacherService):
 
         return teacher.to_entity()
 
-    def get_teacher_list(self, filters: TeacherFilter, pagination: PaginationIn) -> Iterable[TeacherEntity]:
+    def get_list(self, filters: TeacherFilter, pagination: PaginationIn) -> Iterable[TeacherEntity]:
         query = self._build_teacher_query(filters)
         qs = TeacherModel.objects.filter(query)[pagination.offset:pagination.offset + pagination.limit]
         return [teacher.to_entity() for teacher in qs]
 
-    def get_teacher_count(self, filters: TeacherFilter) -> int:
+    def get_count(self, filters: TeacherFilter) -> int:
         query = self._build_teacher_query(filters)
 
         return TeacherModel.objects.filter(query).count()
 
-    def get_qs_for_teacher(self, filters: TeacherFilter) -> Q:
-        query = self._build_teacher_query(filters)
-
-        return query
-
-    def update_teacher_name(
+    def update_name(
             self,
             teacher_id: int,
             first_name: str,
@@ -167,7 +158,7 @@ class ORMTeacherService(BaseTeacherService):
         if not is_updated:
             raise TeacherUpdateException(id=teacher_id)
 
-    def update_teacher_rank(
+    def update_rank(
             self,
             teacher_id: int,
             rank: TeachersDegree,
@@ -178,7 +169,7 @@ class ORMTeacherService(BaseTeacherService):
         if not is_updated:
             raise TeacherUpdateException(id=teacher_id)
 
-    def update_teacher_is_active(
+    def update_is_active(
             self,
             teacher_id: int,
             is_active: bool,

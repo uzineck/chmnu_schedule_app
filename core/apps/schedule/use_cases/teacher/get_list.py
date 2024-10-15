@@ -12,7 +12,7 @@ class GetTeacherListUseCase:
     teacher_service: BaseTeacherService
 
     def execute(self, filters: TeacherFilter, pagination: PaginationIn) -> tuple[Iterable[TeacherEntity], int]:
-        teacher_list = self.teacher_service.get_teacher_list(filters=filters, pagination=pagination)
-        teacher_count = self.teacher_service.get_teacher_count(filters=filters)
+        teacher_list = self.teacher_service.get_list(filters=filters, pagination=pagination)
+        teacher_count = self.teacher_service.get_count(filters=filters)
 
         return teacher_list, teacher_count

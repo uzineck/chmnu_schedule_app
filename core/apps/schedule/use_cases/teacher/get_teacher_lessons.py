@@ -28,7 +28,7 @@ class GetLessonsForTeacherUseCase:
 
         groups = {}
         for lesson in lessons:
-            lesson_groups = self.group_service.get_groups_from_lesson(lesson_id=lesson.id)
+            lesson_groups = self.group_service.get_group_list_from_lesson(lesson_id=lesson.id)
             groups[lesson.id] = []
 
             for group in lesson_groups:

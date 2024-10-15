@@ -14,7 +14,7 @@ class DeactivateTeacherUseCase:
         self.uuid_validator_service.validate(uuid_str=teacher_uuid)
 
         teacher = self.teacher_service.get_by_uuid(teacher_uuid=teacher_uuid)
-        self.teacher_service.update_teacher_is_active(
+        self.teacher_service.update_is_active(
             teacher_id=teacher.id,
             is_active=False,
         )

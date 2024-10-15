@@ -12,7 +12,7 @@ class GetRoomListUseCase:
     room_service: BaseRoomService
 
     def execute(self, filters: SearchFilter, pagination: PaginationIn) -> tuple[Iterable[RoomEntity], int]:
-        room_list = self.room_service.get_room_list(filters=filters, pagination=pagination)
-        room_count = self.room_service.get_room_count(filters=filters)
+        room_list = self.room_service.get_list(filters=filters, pagination=pagination)
+        room_count = self.room_service.get_count(filters=filters)
 
         return room_list, room_count

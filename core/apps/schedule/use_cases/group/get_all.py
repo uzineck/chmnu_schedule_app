@@ -10,4 +10,4 @@ class GetAllGroupsUseCase:
     group_service: BaseGroupService
 
     def execute(self) -> Iterable[GroupEntity]:
-        return self.group_service.get_all_groups()
+        return self.group_service.get_all()

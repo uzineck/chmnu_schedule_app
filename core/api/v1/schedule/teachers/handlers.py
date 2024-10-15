@@ -9,7 +9,6 @@ from core.api.filters import (
 from core.api.schemas import (
     ApiResponse,
     ListPaginatedResponse,
-    StatusResponse,
 )
 from core.api.v1.schedule.lessons.schema_for_teachers import (
     LessonForTeacherOutSchema,
@@ -26,7 +25,6 @@ from core.apps.common.authentication.bearer import jwt_bearer_admin
 from core.apps.common.exceptions import ServiceException
 from core.apps.schedule.filters.teacher import TeacherFilter as TeacherFilterEntity
 from core.apps.schedule.use_cases.teacher.create import CreateTeacherUseCase
-from core.apps.schedule.use_cases.teacher.deactivate import DeactivateTeacherUseCase
 from core.apps.schedule.use_cases.teacher.get_all import GetAllTeachersUseCase
 from core.apps.schedule.use_cases.teacher.get_list import GetTeacherListUseCase
 from core.apps.schedule.use_cases.teacher.get_teacher_lessons import GetLessonsForTeacherUseCase
@@ -40,16 +38,21 @@ router = Router(tags=["Teachers"])
 
 @router.get(
     'all',
-    response=ApiResponse,
+    response=ApiResponse[list[TeacherSchema]],
     operation_id='get_all_teachers',
 
 )
-def get_all_teachers(request: HttpRequest) -> ApiResponse:
+def get_all_teachers(request: HttpRequest) -> ApiResponse[list[TeacherSchema]]:
     container = get_container()
     use_case: GetAllTeachersUseCase = container.resolve(GetAllTeachersUseCase)
-    teachers = use_case.execute()
-    items = [TeacherSchema.from_entity(obj) for obj in teachers]
-
+    try:
+        teachers = use_case.execute()
+        items = [TeacherSchema.from_entity(obj) for obj in teachers]
+    except ServiceException as e:
+        raise HttpError(
+            status_code=403,
+            message=e.message,
+        )
     return ApiResponse(
         data=items,
     )
@@ -210,30 +213,4 @@ def update_teacher_rank(
         )
     return ApiResponse(
         data=TeacherSchema.from_entity(entity=teacher),
-    )
-
-
-@router.delete(
-    "{teacher_uuid}",
-    response=ApiResponse[StatusResponse],
-    operation_id="delete_teacher",
-    auth=jwt_bearer_admin,
-)
-def delete_teacher(
-        request: HttpRequest,
-        teacher_uuid: str,
-) -> ApiResponse[StatusResponse]:
-    container = get_container()
-    use_case: DeactivateTeacherUseCase = container.resolve(DeactivateTeacherUseCase)
-    try:
-        use_case.execute(
-            teacher_uuid=teacher_uuid,
-        )
-    except ServiceException as e:
-        raise HttpError(
-            status_code=401,
-            message=e.message,
-        )
-    return ApiResponse(
-        data=StatusResponse(status="Teacher deleted successfully"),
     )

@@ -18,7 +18,7 @@ class BaseTimeslotService(ABC):
         ...
 
     @abstractmethod
-    def get_timeslot_by_id(self, timeslot_id: int) -> TimeslotEntity:
+    def get_by_id(self, timeslot_id: int) -> TimeslotEntity:
         ...
 
 
@@ -27,7 +27,7 @@ class ORMTimeslotService(BaseTimeslotService):
         timeslot, _ = TimeslotModel.objects.get_or_create(day=day, ord_number=ord_number, is_even=is_even)
         return timeslot.to_entity()
 
-    def get_timeslot_by_id(self, timeslot_id: int) -> TimeslotEntity:
+    def get_by_id(self, timeslot_id: int) -> TimeslotEntity:
         try:
             timeslot = TimeslotModel.objects.get(id=timeslot_id)
         except TimeslotModel.DoesNotExist:

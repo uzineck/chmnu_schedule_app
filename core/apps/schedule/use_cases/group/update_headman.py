@@ -16,10 +16,13 @@ class UpdateGroupHeadmanUseCase:
 
     def execute(self, group_uuid: str, new_headman_email: str) -> GroupEntity:
         self.uuid_validator_service.validate(uuid_str=group_uuid)
-        group = self.group_service.get_group_by_uuid(group_uuid=group_uuid)
+
+        group = self.group_service.get_by_uuid(group_uuid=group_uuid)
         client = self.client_service.get_by_email(email=new_headman_email)
+
         self.client_service.check_client_role(client.role, ClientRole.HEADMAN)
-        return self.group_service.update_group_headman(group=group, headman=client)
 
+        self.group_service.update_group_headman(group_id=group.id, headman_id=client.id)
+        updated_group = self.group_service.get_by_id(group_id=group.id)
 
-
+        return updated_group

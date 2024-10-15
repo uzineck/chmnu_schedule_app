@@ -26,7 +26,7 @@ MANAGE_PY = python manage.py
 
 
 app:
-		${DC} ${ENV} -f ${APP_FILE} -f ${STORAGES_FILE} up --build -d
+		${DC} ${ENV} -f ${APP_FILE} -f ${STORAGES_FILE} -f ${MONITORING_FILE} up --build -d
 
 app-logs:
 		${LOGS} ${APP_CONTAINER} -f

@@ -19,9 +19,9 @@ class AdminAddLessonToGroupUseCase:
     def execute(self, group_uuid: str, subgroup: Subgroup, lesson_uuid: str) -> None:
         self.uuid_validator_service.validate(uuid_list=[group_uuid, lesson_uuid])
 
-        group = self.group_service.get_group_by_uuid(group_uuid=group_uuid)
-        self.group_service.check_group_has_subgroups_subgroup(group=group, subgroup=subgroup)
-        lesson = self.lesson_service.get_lesson_by_uuid(lesson_uuid=lesson_uuid)
+        group = self.group_service.get_by_uuid(group_uuid=group_uuid)
+        self.group_service.check_if_group_has_subgroup(group=group, subgroup=subgroup)
+        lesson = self.lesson_service.get_by_uuid(lesson_uuid=lesson_uuid)
 
         group_subgroup_lesson_entity = GroupLessonEntity(
             group=group,
@@ -29,9 +29,9 @@ class AdminAddLessonToGroupUseCase:
             lesson=lesson,
         )
 
-        existing_group_subgroup_lesson = self.group_lesson_service.check_group_subgroup_lesson_exists(
+        existing_group_subgroup_lesson = self.group_lesson_service.check_exists(
             group_lesson=group_subgroup_lesson_entity,
         )
 
         if not existing_group_subgroup_lesson:
-            self.group_lesson_service.save_group_subgroup_lesson(group_lesson=group_subgroup_lesson_entity)
+            self.group_lesson_service.save(group_lesson=group_subgroup_lesson_entity)

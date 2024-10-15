@@ -17,5 +17,8 @@ class GetHeadmanInfoUseCase:
 
         self.client_service.check_client_role(client.role, ClientRole.HEADMAN)
 
-        group = self.group_service.get_group_from_headman(headman=client)
+        if not self.group_service.check_if_headman_assigned_to_group(headman_id=client.id):
+            return None, client
+
+        group = self.group_service.get_group_from_headman(headman_id=client.id)
         return group, client

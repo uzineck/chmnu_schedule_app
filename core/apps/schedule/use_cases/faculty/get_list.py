@@ -12,8 +12,7 @@ class GetFacultyListUseCase:
     faculty_service: BaseFacultyService
 
     def execute(self, filters: SearchFilter, pagination: PaginationIn) -> tuple[Iterable[FacultyEntity], int]:
-        faculty_list = self.faculty_service.get_faculty_list(filters=filters, pagination=pagination)
-        faculty_count = self.faculty_service.get_faculty_count(filters=filters)
+        faculty_list = self.faculty_service.get_list(filters=filters, pagination=pagination)
+        faculty_count = self.faculty_service.get_count(filters=filters)
 
         return faculty_list, faculty_count
-

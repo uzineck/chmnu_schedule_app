@@ -66,13 +66,13 @@ class UpdateGroupHeadmanSchema(Schema):
     new_headman_email: str
 
 
-class GroupUuidNumberOutSchema(Schema):
+class GroupUuidNumberFacultyOutSchema(Schema):
     uuid: str
     number: str
     faculty: FacultyCodeNameSchema
 
     @classmethod
-    def from_entity(cls, entity: GroupEntity) -> 'GroupUuidNumberOutSchema':
+    def from_entity(cls, entity: GroupEntity) -> 'GroupUuidNumberFacultyOutSchema':
         return cls(
             uuid=entity.uuid,
             number=entity.number,

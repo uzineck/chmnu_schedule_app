@@ -25,15 +25,15 @@ class BaseRoomService(ABC):
         ...
 
     @abstractmethod
-    def get_all_rooms(self) -> Iterable[RoomEntity]:
+    def get_all(self) -> Iterable[RoomEntity]:
         ...
 
     @abstractmethod
-    def get_room_list(self, filters: SearchFiltersEntity, pagination: PaginationIn) -> Iterable[RoomEntity]:
+    def get_list(self, filters: SearchFiltersEntity, pagination: PaginationIn) -> Iterable[RoomEntity]:
         ...
 
     @abstractmethod
-    def get_room_count(self, filters: SearchFiltersEntity) -> int:
+    def get_count(self, filters: SearchFiltersEntity) -> int:
         ...
 
     @abstractmethod
@@ -57,7 +57,7 @@ class BaseRoomService(ABC):
         ...
 
     @abstractmethod
-    def delete_room(self, room_id: int) -> None:
+    def delete(self, room_id: int) -> None:
         ...
 
 
@@ -79,18 +79,18 @@ class ORMRoomService(BaseRoomService):
             raise RoomAlreadyExistException(number=number)
         return room.to_entity()
 
-    def get_all_rooms(self) -> Iterable[RoomEntity]:
+    def get_all(self) -> Iterable[RoomEntity]:
         rooms = RoomModel.objects.all()
 
         for room in rooms:
             yield room.to_entity()
 
-    def get_room_list(self, filters: SearchFiltersEntity, pagination: PaginationIn) -> list[RoomEntity]:
+    def get_list(self, filters: SearchFiltersEntity, pagination: PaginationIn) -> list[RoomEntity]:
         query = self._build_room_query(filters)
         qs = RoomModel.objects.filter(query)[pagination.offset:pagination.offset + pagination.limit]
         return [room.to_entity() for room in qs]
 
-    def get_room_count(self, filters: SearchFiltersEntity) -> int:
+    def get_count(self, filters: SearchFiltersEntity) -> int:
         query = self._build_room_query(filters)
 
         return RoomModel.objects.filter(query).count()
@@ -130,7 +130,7 @@ class ORMRoomService(BaseRoomService):
         if not is_updated:
             raise RoomUpdateException(id=room_id)
 
-    def delete_room(self, room_id: int) -> None:
+    def delete(self, room_id: int) -> None:
         is_deleted = RoomModel.objects.filter(id=room_id).delete()
 
         if not is_deleted:

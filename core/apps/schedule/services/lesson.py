@@ -14,19 +14,19 @@ from core.apps.schedule.models import Lesson as LessonModel
 
 class BaseLessonService(ABC):
     @abstractmethod
-    def save_lesson(self, lesson: LessonEntity) -> LessonEntity:
+    def save(self, lesson: LessonEntity) -> LessonEntity:
         ...
 
     @abstractmethod
-    def get_lesson_by_uuid(self, lesson_uuid: str) -> LessonEntity:
+    def get_by_uuid(self, lesson_uuid: str) -> LessonEntity:
         ...
 
     @abstractmethod
-    def get_lessons_by_lesson_entity(self, lesson: LessonEntity) -> LessonEntity:
+    def get_by_lesson_entity(self, lesson: LessonEntity) -> LessonEntity:
         ...
 
     @abstractmethod
-    def check_lesson_exists(self, lesson: LessonEntity) -> bool:
+    def check_exists(self, lesson: LessonEntity) -> bool:
         ...
 
     @abstractmethod
@@ -50,13 +50,13 @@ class ORMLessonService(BaseLessonService):
 
         return query
 
-    def save_lesson(self, lesson: LessonEntity) -> LessonEntity:
+    def save(self, lesson: LessonEntity) -> LessonEntity:
         lesson_model = LessonModel.from_entity(lesson=lesson)
         lesson_model.save()
 
         return lesson_model.to_entity()
 
-    def get_lesson_by_uuid(self, lesson_uuid: str) -> LessonEntity:
+    def get_by_uuid(self, lesson_uuid: str) -> LessonEntity:
         try:
             lesson = LessonModel.objects.get(lesson_uuid=lesson_uuid)
         except LessonModel.DoesNotExist:
@@ -64,7 +64,7 @@ class ORMLessonService(BaseLessonService):
 
         return lesson.to_entity()
 
-    def get_lessons_by_lesson_entity(self, lesson: LessonEntity) -> LessonEntity:
+    def get_by_lesson_entity(self, lesson: LessonEntity) -> LessonEntity:
         lesson = LessonModel.objects.filter(
             subject_id=lesson.subject.id,
             teacher_id=lesson.teacher.id,
@@ -75,7 +75,7 @@ class ORMLessonService(BaseLessonService):
 
         return lesson.to_entity()
 
-    def check_lesson_exists(self, lesson: LessonEntity) -> bool:
+    def check_exists(self, lesson: LessonEntity) -> bool:
         return LessonModel.objects.filter(
             subject_id=lesson.subject.id,
             teacher_id=lesson.teacher.id,
@@ -86,11 +86,11 @@ class ORMLessonService(BaseLessonService):
 
     def get_lessons_for_group(self, group_id: int, filter_query: GroupLessonFilter) -> Iterable[LessonEntity]:
         query = self._build_lesson_query(filter_query)
-        query = LessonModel.objects.filter(Q(lesson__group_id=group_id) & query)
+        queryset = LessonModel.objects.filter(Q(lesson__group_id=group_id) & query)
 
-        return [lesson.to_entity() for lesson in query]
+        return [lesson.to_entity() for lesson in queryset]
 
     def get_lessons_for_teacher(self, teacher_id: int) -> Iterable[LessonEntity]:
-        query = LessonModel.objects.filter(teacher_id=teacher_id)
+        queryset = LessonModel.objects.filter(teacher_id=teacher_id)
 
-        return [lesson.to_entity() for lesson in query]
+        return [lesson.to_entity() for lesson in queryset]

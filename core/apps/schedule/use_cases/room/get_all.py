@@ -10,5 +10,5 @@ class GetAllRoomsUseCase:
     room_service: BaseRoomService
 
     def execute(self) -> Iterable[RoomEntity]:
-        rooms = self.room_service.get_all_rooms()
+        rooms = self.room_service.get_all()
         return rooms

@@ -25,15 +25,15 @@ class BaseSubjectService(ABC):
         ...
 
     @abstractmethod
-    def get_all_subjects(self) -> Iterable[SubjectEntity]:
+    def get_all(self) -> Iterable[SubjectEntity]:
         ...
 
     @abstractmethod
-    def get_subject_list(self, filters: SearchFilterEntity, pagination: PaginationIn) -> Iterable[SubjectEntity]:
+    def get_list(self, filters: SearchFilterEntity, pagination: PaginationIn) -> Iterable[SubjectEntity]:
         ...
 
     @abstractmethod
-    def get_subject_count(self, filters: SearchFilterEntity) -> int:
+    def get_count(self, filters: SearchFilterEntity) -> int:
         ...
 
     @abstractmethod
@@ -69,20 +69,20 @@ class ORMSubjectService(BaseSubjectService):
             raise SubjectAlreadyExistException(title=title)
         return subject.to_entity()
 
-    def get_all_subjects(self) -> Iterable[SubjectEntity]:
+    def get_all(self) -> Iterable[SubjectEntity]:
         subjects = SubjectModel.objects.all()
 
         for subject in subjects:
             yield subject.to_entity()
 
-    def get_subject_list(self, filters: SearchFilterEntity, pagination: PaginationIn) -> Iterable[SubjectEntity]:
+    def get_list(self, filters: SearchFilterEntity, pagination: PaginationIn) -> Iterable[SubjectEntity]:
         query = self._build_subject_query(filters)
         qs = SubjectModel.objects.filter(query)[
             pagination.offset:pagination.offset + pagination.limit
         ]
         return [subject.to_entity() for subject in qs]
 
-    def get_subject_count(self, filters: SearchFilterEntity) -> int:
+    def get_count(self, filters: SearchFilterEntity) -> int:
         query = self._build_subject_query(filters)
 
         return SubjectModel.objects.filter(query).count()

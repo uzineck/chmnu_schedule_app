@@ -5,26 +5,20 @@ from core.apps.common.models import Subgroup
 
 
 @dataclass(eq=False)
-class GroupNumberNotFoundException(ServiceException):
-    group_number: str
+class GroupNotFoundException(ServiceException):
+    number: str | None = None
+    uuid: str | None = None
+    id: int | None = None
 
     @property
     def message(self):
-        return 'Group with provided number not found'
-
-
-@dataclass(eq=False)
-class GroupUuidNotFoundException(ServiceException):
-    uuid: str
-
-    @property
-    def message(self):
-        return 'Group with provided uuid not found'
+        return 'Group with provided identifier not found'
 
 
 @dataclass(eq=False)
 class GroupAlreadyExistsException(ServiceException):
-    group_number: str
+    group_number: str | None = None
+    headman_id: int | None = None
 
     @property
     def message(self):
@@ -48,3 +42,22 @@ class GroupWithoutSubgroupsInvalidSubgroupException(ServiceException):
     @property
     def message(self):
         return 'Group without subgroups cannot have subgroup B, only A'
+
+
+@dataclass(eq=False)
+class HeadmanNotAssignedToAnyGroup(ServiceException):
+    headman_id: int
+
+    @property
+    def message(self):
+        return 'Headman is not assigned to any group'
+
+
+@dataclass(eq=False)
+class GroupHeadmanUpdateException(ServiceException):
+    group_id: int | None = None
+    headman_id: int | None = None
+
+    @property
+    def message(self):
+        return 'An error occurred while updating groups` headman'

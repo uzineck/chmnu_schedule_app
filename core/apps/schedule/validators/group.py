@@ -27,7 +27,7 @@ class GroupAlreadyExistsValidatorService(BaseGroupValidatorService):
     group_service: BaseGroupService
 
     def validate(self, group_number: str, *args, **kwargs):
-        if self.group_service.check_group_exists_by_number(group_number=group_number):
+        if self.group_service.check_exists_by_number(group_number=group_number):
             raise GroupAlreadyExistsException(group_number=group_number)
 
 
@@ -36,9 +36,10 @@ class HeadmanAssignedToAnotherGroupValidatorService(BaseGroupValidatorService):
     group_service: BaseGroupService
 
     def validate(self, group_number: str, headman: ClientEntity | None = None, *args, **kwargs):
-        headman_group = self.group_service.get_group_from_headman(headman=headman)
-        if (headman_group is not None) and (headman_group != group_number):
-            raise HeadmanAssignedToAnotherGroupException(headman_email=headman.email, group_number=group_number)
+        if self.group_service.check_if_headman_assigned_to_group(headman_id=headman.id):
+            headman_group = self.group_service.get_group_from_headman(headman_id=headman.id)
+            if headman_group != group_number:
+                raise HeadmanAssignedToAnotherGroupException(headman_email=headman.email, group_number=group_number)
 
 
 @dataclass

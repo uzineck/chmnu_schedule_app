@@ -33,16 +33,21 @@ router = Router(tags=["Subjects"])
 
 @router.get(
     'all',
-    response=ApiResponse,
+    response=ApiResponse[list[SubjectSchema]],
     operation_id='get_all_subjects',
 
 )
-def get_all_subjects(request: HttpRequest) -> ApiResponse:
+def get_all_subjects(request: HttpRequest) -> ApiResponse[list[SubjectSchema]]:
     container = get_container()
     use_case: GetAllSubjectsUseCase = container.resolve(GetAllSubjectsUseCase)
-    subjects = use_case.execute()
-    items = [SubjectSchema.from_entity(obj) for obj in subjects]
-
+    try:
+        subjects = use_case.execute()
+        items = [SubjectSchema.from_entity(obj) for obj in subjects]
+    except ServiceException as e:
+        raise HttpError(
+            status_code=403,
+            message=e.message,
+        )
     return ApiResponse(
         data=items,
     )

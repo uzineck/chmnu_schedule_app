@@ -10,4 +10,4 @@ class GetAllTeachersUseCase:
     teacher_service: BaseTeacherService
 
     def execute(self) -> Iterable[TeacherEntity]:
-        return self.teacher_service.get_all_teachers()
+        return self.teacher_service.get_all()

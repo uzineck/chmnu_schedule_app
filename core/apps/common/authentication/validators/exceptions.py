@@ -53,6 +53,3 @@ class OldAndNewEmailsAreSimilarException(ServiceException):
     @property
     def message(self):
         return 'Old email and the new one are similar'
-
-
-

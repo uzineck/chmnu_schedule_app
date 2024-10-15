@@ -21,7 +21,7 @@ class GetGroupLessonsUseCase:
     def execute(self, group_uuid: str, filters: GroupLessonFilter) -> tuple[GroupEntity, Iterable[LessonEntity]]:
         self.uuid_validator_service.validate(uuid_str=group_uuid)
 
-        group = self.group_service.get_group_by_uuid(group_uuid=group_uuid)
-        self.group_service.check_group_has_subgroups_subgroup(group=group, subgroup=filters.subgroup)
+        group = self.group_service.get_by_uuid(group_uuid=group_uuid)
+        self.group_service.check_if_group_has_subgroup(group=group, subgroup=filters.subgroup)
         lessons = self.lesson_service.get_lessons_for_group(group_id=group.id, filter_query=filters)
         return group, lessons

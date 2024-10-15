@@ -14,4 +14,4 @@ class GetGroupInfoUseCase:
     def execute(self, group_uuid: str) -> GroupEntity:
         self.uuid_validator_service.validate(uuid_str=group_uuid)
 
-        return self.group_service.get_group_by_uuid(group_uuid=group_uuid)
+        return self.group_service.get_by_uuid(group_uuid=group_uuid)

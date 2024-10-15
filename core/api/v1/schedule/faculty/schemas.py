@@ -27,6 +27,16 @@ class FacultyCodeNameSchema(Schema):
         )
 
 
+class FacultyNameSchema(Schema):
+    name: str
+
+    @classmethod
+    def from_entity(cls, entity: FacultyEntity) -> 'FacultyNameSchema':
+        return cls(
+            code_name=entity.name,
+        )
+
+
 class FacultyInSchema(Schema):
     name: str
     code_name: str

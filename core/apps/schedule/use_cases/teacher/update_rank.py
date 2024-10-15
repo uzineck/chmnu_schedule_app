@@ -16,7 +16,7 @@ class UpdateTeacherRankUseCase:
         self.uuid_validator_service.validate(uuid_str=teacher_uuid)
 
         teacher = self.teacher_service.get_by_uuid(teacher_uuid=teacher_uuid)
-        self.teacher_service.update_teacher_rank(
+        self.teacher_service.update_rank(
             teacher_id=teacher.id,
             rank=rank,
         )

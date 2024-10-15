@@ -35,16 +35,21 @@ router = Router(tags=["Rooms"])
 
 @router.get(
     'all',
-    response=ApiResponse,
+    response=ApiResponse[list[RoomSchema]],
     operation_id='get_all_rooms',
 
 )
-def get_all_rooms(request: HttpRequest) -> ApiResponse:
+def get_all_rooms(request: HttpRequest) -> ApiResponse[list[RoomSchema]]:
     container = get_container()
     use_case: GetAllRoomsUseCase = container.resolve(GetAllRoomsUseCase)
-    rooms = use_case.execute()
-    items = [RoomSchema.from_entity(obj) for obj in rooms]
-
+    try:
+        rooms = use_case.execute()
+        items = [RoomSchema.from_entity(obj) for obj in rooms]
+    except ServiceException as e:
+        raise HttpError(
+            status_code=403,
+            message=e.message,
+        )
     return ApiResponse(
         data=items,
     )
