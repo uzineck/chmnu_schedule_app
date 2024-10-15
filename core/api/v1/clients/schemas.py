@@ -98,16 +98,11 @@ class UpdateEmailInSchema(Schema):
     password: str
 
 
-class UpdateCredentialsInSchema(Schema):
+class CredentialsInSchema(Schema):
     last_name: str
     first_name: str
     middle_name: str
 
 
-class UpdateRoleInSchema(Schema):
-    client_email: str
+class RoleInSchema(Schema):
     role: ClientRole
-
-
-class ClientEmailInSchema(Schema):
-    headman_email: str

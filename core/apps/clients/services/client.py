@@ -12,8 +12,9 @@ from core.apps.clients.entities.token import Token as TokenEntity
 from core.apps.clients.exceptions.auth import InvalidAuthDataException
 from core.apps.clients.exceptions.client import (
     ClientAlreadyExistsException,
-    ClientEmailNotFoundException,
-    ClientRoleNotMatchingWithRequired,
+    ClientNotFoundException,
+    ClientRoleNotMatchingWithRequiredException,
+    ClientUpdateException,
 )
 from core.apps.clients.models.client import Client as ClientModel
 from core.apps.common.authentication.password import BasePasswordService
@@ -43,37 +44,41 @@ class BaseClientService(ABC):
         ...
 
     @abstractmethod
-    def update_email(self, client: ClientEntity, email: str) -> ClientEntity:
+    def update_email(self, client_id: int, email: str) -> None:
         ...
 
     @abstractmethod
-    def update_password(self, client: ClientEntity, hashed_password: str) -> ClientEntity:
+    def update_password(self, client_id: int, hashed_password: str) -> None:
         ...
 
     @abstractmethod
     def update_credentials(
         self,
-        client: ClientEntity,
+        client_id: int,
         first_name: str,
         last_name: str,
         middle_name: str,
-    ) -> ClientEntity:
+    ) -> None:
         ...
 
     @abstractmethod
     def update_role(
             self,
-            client: ClientEntity,
+            client_id: int,
             new_role: ClientRole,
-    ) -> ClientEntity:
+    ) -> None:
         ...
 
     @abstractmethod
-    def get_by_email(self, email: str) -> ClientEntity:
+    def get_by_email(self, client_email: str) -> ClientEntity:
         ...
 
     @abstractmethod
-    def validate_client(self, email: str, password: str) -> ClientEntity:
+    def get_by_id(self, client_id: int) -> ClientEntity:
+        ...
+
+    @abstractmethod
+    def validate_password(self, client_password: str, plain_password: str) -> None:
         ...
 
     @abstractmethod
@@ -142,70 +147,65 @@ class ORMClientService(BaseClientService):
 
         return client.to_entity()
 
-    def update_email(self, client: ClientEntity, email: str) -> ClientEntity:
-        ClientModel.objects.filter(email=client.email).update(email=email)
-        try:
-            updated_client = ClientModel.objects.get(email=email)
-        except ClientModel.DoesNotExist:
-            raise ClientEmailNotFoundException(email=email)
+    def update_email(self, client_id: int, email: str) -> None:
+        is_updated = ClientModel.objects.filter(id=client_id).update(email=email)
+        if not is_updated:
+            raise ClientUpdateException(id=client_id, email=email)
 
-        return updated_client.to_entity()
-
-    def update_password(self, client: ClientEntity, hashed_password: str) -> ClientEntity:
-        ClientModel.objects.filter(email=client.email).update(password=hashed_password)
-        updated_client = ClientModel.objects.get(email=client.email)
-
-        return updated_client.to_entity()
+    def update_password(self, client_id: int, hashed_password: str) -> None:
+        is_updated = ClientModel.objects.filter(id=client_id).update(password=hashed_password)
+        if not is_updated:
+            raise ClientUpdateException(id=client_id, password=hashed_password)
 
     def update_credentials(
         self,
-        client: ClientEntity,
+        client_id: int,
         first_name: str,
         last_name: str,
         middle_name: str,
-    ) -> ClientEntity:
-        ClientModel.objects.filter(email=client.email).update(
+    ) -> None:
+        is_updated = ClientModel.objects.filter(id=client_id).update(
             first_name=first_name,
             last_name=last_name,
             middle_name=middle_name,
         )
-        updated_client = ClientModel.objects.get(email=client.email)
-
-        return updated_client.to_entity()
+        if not is_updated:
+            raise ClientUpdateException(id=client_id)
 
     def update_role(
             self,
-            client: ClientEntity,
+            client_id: int,
             new_role: ClientRole,
-    ) -> ClientEntity:
-        ClientModel.objects.filter(email=client.email).update(
+    ) -> None:
+        is_updated = ClientModel.objects.filter(id=client_id).update(
             role=new_role,
         )
-        updated_client = ClientModel.objects.get(email=client.email)
-        return updated_client.to_entity()
+        if not is_updated:
+            raise ClientUpdateException(id=client_id)
 
-    def get_by_email(self, email: str) -> ClientEntity:
+    def get_by_email(self, client_email: str) -> ClientEntity:
         try:
-            client: ClientModel = ClientModel.objects.get(email=email)
+            client: ClientModel = ClientModel.objects.get(email=client_email)
         except ClientModel.DoesNotExist:
-            raise ClientEmailNotFoundException(email=email)
+            raise ClientNotFoundException(email=client_email)
 
         return client.to_entity()
 
-    def validate_client(self, email: str, password: str) -> ClientEntity:
+    def get_by_id(self, client_id: int) -> ClientEntity:
         try:
-            client = ClientModel.objects.get(email=email)
+            client: ClientModel = ClientModel.objects.get(id=client_id)
         except ClientModel.DoesNotExist:
-            raise InvalidAuthDataException(email=email)
-
-        if not self.password_service.verify_password(plain_password=password, hashed_password=client.password):
-            raise InvalidAuthDataException(email=email)
+            raise ClientNotFoundException(id=client_id)
 
         return client.to_entity()
+
+    def validate_password(self, client_password: str, plain_password: str) -> None:
+        if not self.password_service.verify_password(plain_password=plain_password, hashed_password=client_password):
+            raise InvalidAuthDataException(password=plain_password)
 
     def check_client_role(self, client_role: str, required_role: ClientRole) -> None:
         if client_role != required_role:
-            raise ClientRoleNotMatchingWithRequired(client_role=client_role)
+            raise ClientRoleNotMatchingWithRequiredException(client_role=client_role, required_role=required_role)
 
     def generate_tokens(self, client: ClientEntity) -> TokenEntity:
         device_id = get_new_uuid()

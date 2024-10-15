@@ -2,6 +2,7 @@ import pytest
 from tests.fixtures.client.client import ClientModelFactory
 
 from core.apps.clients.exceptions.auth import InvalidAuthDataException
+from core.apps.clients.exceptions.client import ClientNotFoundException
 from core.apps.clients.usecases.client.update_password import UpdateClientPasswordUseCase
 from core.apps.common.authentication.validators.exceptions import (
     InvalidPasswordPatternException,
@@ -38,13 +39,13 @@ def test_update_client_password_success(
 
 
 @pytest.mark.django_db
-def test_update_client_password_email_verification_failure(
+def test_update_client_password_email_not_found_failure(
         use_case,
         use_case_params,
 ):
     client = ClientModelFactory.build()
 
-    with pytest.raises(InvalidAuthDataException):
+    with pytest.raises(ClientNotFoundException):
         use_case.execute(
             email=client.email,
             old_password=use_case_params["old_password"],

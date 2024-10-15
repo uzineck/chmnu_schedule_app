@@ -5,7 +5,7 @@ from core.apps.common.exceptions import ServiceException
 
 @dataclass(eq=False)
 class InvalidAuthDataException(ServiceException):
-    email: str
+    password: str | None = None
 
     @property
     def message(self):

@@ -18,7 +18,7 @@ class UpdateGroupHeadmanUseCase:
         self.uuid_validator_service.validate(uuid_str=group_uuid)
 
         group = self.group_service.get_by_uuid(group_uuid=group_uuid)
-        client = self.client_service.get_by_email(email=new_headman_email)
+        client = self.client_service.get_by_email(client_email=new_headman_email)
 
         self.client_service.check_client_role(client.role, ClientRole.HEADMAN)
 

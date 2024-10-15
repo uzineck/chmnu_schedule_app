@@ -24,7 +24,7 @@ class HeadmanAddLessonToGroupUseCase:
     def execute(self, headman_email: str, subgroup: Subgroup, lesson_uuid: str) -> None:
         self.uuid_validator_service.validate(uuid_str=lesson_uuid)
 
-        client = self.client_service.get_by_email(email=headman_email)
+        client = self.client_service.get_by_email(client_email=headman_email)
         self.client_service.check_client_role(client_role=client.role, required_role=ClientRole.HEADMAN)
 
         group = self.group_service.get_group_from_headman(headman_id=client.id)

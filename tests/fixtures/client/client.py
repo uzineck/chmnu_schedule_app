@@ -7,6 +7,7 @@ from core.apps.common.models import ClientRole
 
 
 class ClientModelFactory(DjangoModelFactory):
+    id = factory.Sequence(lambda n: n)
     first_name = factory.Faker('first_name', locale='uk_UA')
     last_name = factory.Faker('last_name', locale='uk_UA')
     middle_name = factory.Faker('middle_name', locale='uk_UA')

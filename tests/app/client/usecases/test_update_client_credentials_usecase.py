@@ -1,7 +1,7 @@
 import pytest
 from tests.fixtures.client.client import ClientModelFactory
 
-from core.apps.clients.exceptions.client import ClientEmailNotFoundException
+from core.apps.clients.exceptions.client import ClientNotFoundException
 from core.apps.clients.usecases.client.update_credentials import UpdateClientCredentialsUseCase
 
 
@@ -35,10 +35,10 @@ def test_update_client_credentials_success(use_case: UpdateClientCredentialsUseC
 
 
 @pytest.mark.django_db
-def test_update_credentials_client_not_found_failure(use_case: UpdateClientCredentialsUseCase, use_case_params):
+def test_update_client_credentials_email_not_found_failure(use_case: UpdateClientCredentialsUseCase, use_case_params):
     client = ClientModelFactory.build()
 
-    with pytest.raises(ClientEmailNotFoundException):
+    with pytest.raises(ClientNotFoundException):
         use_case.execute(
             email=client.email,
             first_name=use_case_params['first_name'],

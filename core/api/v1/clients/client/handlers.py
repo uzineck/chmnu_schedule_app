@@ -8,11 +8,11 @@ from core.api.schemas import (
 )
 from core.api.v1.clients.schemas import (
     ClientSchemaPrivate,
+    CredentialsInSchema,
     LogInSchema,
     TokenClientOutSchema,
     TokenInSchema,
     TokenOutSchema,
-    UpdateCredentialsInSchema,
     UpdateEmailInSchema,
     UpdatePwInSchema,
 )
@@ -34,7 +34,11 @@ from core.project.containers.containers import get_container
 router = Router(tags=["Client"])
 
 
-@router.post("log-in", response=ApiResponse[TokenClientOutSchema], operation_id='login')
+@router.post(
+    "log-in",
+    response=ApiResponse[TokenClientOutSchema],
+    operation_id='login',
+)
 def login(request: HttpRequest, schema: LogInSchema) -> ApiResponse[TokenClientOutSchema]:
     container = get_container()
     use_case = container.resolve(LoginClientUseCase)
@@ -50,7 +54,12 @@ def login(request: HttpRequest, schema: LogInSchema) -> ApiResponse[TokenClientO
     )
 
 
-@router.post("log-out", response=ApiResponse[StatusResponse], operation_id='logout', auth=jwt_bearer)
+@router.post(
+    "log-out",
+    response=ApiResponse[StatusResponse],
+    operation_id='logout',
+    auth=jwt_bearer,
+)
 def logout(request: HttpRequest) -> ApiResponse[StatusResponse]:
     container = get_container()
     use_case: LogoutClientUseCase = container.resolve(LogoutClientUseCase)
@@ -66,7 +75,11 @@ def logout(request: HttpRequest) -> ApiResponse[StatusResponse]:
     )
 
 
-@router.patch("update_access_token", response=ApiResponse[TokenOutSchema], operation_id='update_access_token')
+@router.patch(
+    "update_access_token",
+    response=ApiResponse[TokenOutSchema],
+    operation_id='update_access_token',
+)
 def update_access_token(request: HttpRequest, schema: TokenInSchema) -> ApiResponse[TokenOutSchema]:
     container = get_container()
     use_case: UpdateAccessTokenUseCase = container.resolve(UpdateAccessTokenUseCase)
@@ -92,7 +105,7 @@ def update_access_token(request: HttpRequest, schema: TokenInSchema) -> ApiRespo
 def update_password(request: HttpRequest, schema: UpdatePwInSchema) -> ApiResponse[StatusResponse]:
     container = get_container()
     client_service = container.resolve(BaseClientService)
-    use_case = container.resolve(UpdateClientPasswordUseCase)
+    use_case: UpdateClientPasswordUseCase = container.resolve(UpdateClientPasswordUseCase)
     try:
         user_email: str = client_service.get_client_email_from_token(token=request.auth)
     except JWTKeyParsingException as e:
@@ -130,7 +143,7 @@ def update_password(request: HttpRequest, schema: UpdatePwInSchema) -> ApiRespon
 def update_email(request: HttpRequest, schema: UpdateEmailInSchema) -> ApiResponse[TokenClientOutSchema]:
     container = get_container()
     client_service = container.resolve(BaseClientService)
-    use_case = container.resolve(UpdateClientEmailUseCase)
+    use_case: UpdateClientEmailUseCase = container.resolve(UpdateClientEmailUseCase)
     try:
         user_email: str = client_service.get_client_email_from_token(token=request.auth)
     except JWTKeyParsingException as e:
@@ -161,7 +174,7 @@ def update_email(request: HttpRequest, schema: UpdateEmailInSchema) -> ApiRespon
     operation_id='update_credentials',
     auth=jwt_bearer,
 )
-def update_credentials(request: HttpRequest, schema: UpdateCredentialsInSchema) -> ApiResponse[ClientSchemaPrivate]:
+def update_credentials(request: HttpRequest, schema: CredentialsInSchema) -> ApiResponse[ClientSchemaPrivate]:
     container = get_container()
     client_service = container.resolve(BaseClientService)
     use_case = container.resolve(UpdateClientCredentialsUseCase)

@@ -15,9 +15,13 @@ class UpdateClientEmailUseCase:
     email_validator_service: BaseEmailValidatorService
 
     def execute(self, old_email: str, new_email: str, password: str) -> tuple[ClientEntity, TokenEntity]:
-        client = self.client_service.validate_client(email=old_email, password=password)
+        client = self.client_service.get_by_email(client_email=old_email)
+        self.client_service.validate_password(client_password=client.password, plain_password=password)
+
         self.email_validator_service.validate(email=new_email, old_email=old_email)
-        updated_client = self.client_service.update_email(client=client, email=new_email)
+
+        self.client_service.update_email(client_id=client.id, email=new_email)
+        updated_client = self.client_service.get_by_id(client_id=client.id)
 
         tokens: TokenEntity = self.client_service.generate_tokens(client=updated_client)
         raw_tokens = [self.client_service.get_raw_jwt(token) for token in [tokens.access_token, tokens.refresh_token]]

@@ -5,9 +5,8 @@ from ninja.errors import HttpError
 from core.api.schemas import ApiResponse
 from core.api.v1.clients.schemas import (
     ClientSchemaPrivate,
+    RoleInSchema,
     SignUpInSchema,
-    TokenClientOutSchema,
-    UpdateRoleInSchema,
 )
 from core.apps.clients.usecases.client.create import CreateClientUseCase
 from core.apps.clients.usecases.client.update_role import UpdateClientRoleUseCase
@@ -45,17 +44,21 @@ def sign_up_handler(request: HttpRequest, schema: SignUpInSchema) -> ApiResponse
 
 
 @router.patch(
-    "update_client_role",
-    response=ApiResponse[TokenClientOutSchema],
+    "{client_email}/update_role",
+    response=ApiResponse[ClientSchemaPrivate],
     operation_id='update_client_role',
     auth=jwt_bearer_admin,
 )
-def update_client_role(request: HttpRequest, schema: UpdateRoleInSchema) -> ApiResponse[TokenClientOutSchema]:
+def update_client_role(
+        request: HttpRequest,
+        client_email: str,
+        schema: RoleInSchema,
+) -> ApiResponse[ClientSchemaPrivate]:
     container = get_container()
     use_case: UpdateClientRoleUseCase = container.resolve(UpdateClientRoleUseCase)
     try:
-        client, jwt_tokens = use_case.execute(
-            email=schema.client_email,
+        client = use_case.execute(
+            email=client_email,
             new_role=schema.role,
         )
     except ServiceException as e:
@@ -64,5 +67,5 @@ def update_client_role(request: HttpRequest, schema: UpdateRoleInSchema) -> ApiR
             message=e.message,
         )
     return ApiResponse(
-        data=TokenClientOutSchema.from_entity_with_tokens(client=client, tokens=jwt_tokens),
+        data=ClientSchemaPrivate.from_entity(client=client),
     )

@@ -4,8 +4,9 @@ from tests.fixtures.client.client import ClientModelFactory
 from core.apps.clients.exceptions.auth import InvalidAuthDataException
 from core.apps.clients.exceptions.client import (
     ClientAlreadyExistsException,
-    ClientEmailNotFoundException,
-    ClientRoleNotMatchingWithRequired,
+    ClientNotFoundException,
+    ClientRoleNotMatchingWithRequiredException,
+    ClientUpdateException,
 )
 from core.apps.clients.services.client import BaseClientService
 from core.apps.common.models import (
@@ -51,35 +52,49 @@ def test_create_client_already_exists_failure(client_service: BaseClientService)
 
 
 @pytest.mark.django_db
-def test_get_client_success(client_service: BaseClientService):
+def test_get_client_by_email_success(client_service: BaseClientService):
     client = ClientModelFactory.create()
     found_client = client_service.get_by_email(
-        email=client.email,
+        client_email=client.email,
     )
     assert found_client.email == client.email
 
 
 @pytest.mark.django_db
-def test_get_client_not_found_failure(client_service: BaseClientService):
+def test_get_client_by_id_success(client_service: BaseClientService):
     client = ClientModelFactory.create()
-    with pytest.raises(ClientEmailNotFoundException):
-        client_service.get_by_email(email=f'wrong{client.email}')
+    found_client = client_service.get_by_id(
+        client_id=client.id,
+    )
+    assert found_client.email == client.email
+    assert found_client.id == client.id
 
 
 @pytest.mark.django_db
-def test_client_verification_success(client_service: BaseClientService, hash_password, generate_password):
+def test_get_client_by_email_not_found_failure(client_service: BaseClientService):
+    client = ClientModelFactory.build()
+    with pytest.raises(ClientNotFoundException):
+        client_service.get_by_email(client_email=client.email)
+
+
+@pytest.mark.django_db
+def test_get_client_by_id_not_found_failure(client_service: BaseClientService):
+    client = ClientModelFactory.build()
+    with pytest.raises(ClientNotFoundException):
+        client_service.get_by_id(client_id=client.id)
+
+
+@pytest.mark.django_db
+def test_client_password_validation_success(client_service: BaseClientService, hash_password, generate_password):
     plain_password = generate_password()
     hashed_password = hash_password(plain_password=plain_password)
     client = ClientModelFactory.create(password=hashed_password)
 
-    verified_client = client_service.validate_client(email=client.email, password=plain_password)
-
-    assert verified_client.email == client.email
-    assert verified_client.password == client.password
+    assert client_service.validate_password(client_password=client.password, plain_password=plain_password) is None
 
 
 @pytest.mark.django_db
-def test_client_verification_password_failure(
+def test_client_password_validation_failure(
         client_service: BaseClientService,
         hash_password,
         generate_password,
@@ -89,20 +104,7 @@ def test_client_verification_password_failure(
     hashed_password = hash_password(plain_password=plain_password)
     client = ClientModelFactory.create(password=hashed_password)
     with pytest.raises(InvalidAuthDataException):
-        client_service.validate_client(email=client.email, password=new_plain_password)
-
-
-@pytest.mark.django_db
-def test_client_verification_email_failure(
-        client_service: BaseClientService,
-        hash_password,
-        generate_password,
-):
-    plain_password = generate_password()
-    hashed_password = hash_password(plain_password=plain_password)
-    client = ClientModelFactory.create(password=hashed_password)
-    with pytest.raises(InvalidAuthDataException):
-        client_service.validate_client(email=f'wrong{client.email}', password=plain_password)
+        client_service.validate_password(client_password=client.password, plain_password=new_plain_password)
 
 
 @pytest.mark.django_db
@@ -125,16 +127,16 @@ def test_client_role_check_failure(client_service: BaseClientService):
     client_manager = ClientModelFactory.build(role=ClientRole.MANAGER)
     client_default = ClientModelFactory.build(role=ClientRole.DEFAULT)
 
-    with pytest.raises(ClientRoleNotMatchingWithRequired):
+    with pytest.raises(ClientRoleNotMatchingWithRequiredException):
         client_service.check_client_role(client_role=client_headman.role, required_role=ClientRole.ADMIN)
 
-    with pytest.raises(ClientRoleNotMatchingWithRequired):
+    with pytest.raises(ClientRoleNotMatchingWithRequiredException):
         client_service.check_client_role(client_role=client_admin.role, required_role=ClientRole.HEADMAN)
 
-    with pytest.raises(ClientRoleNotMatchingWithRequired):
+    with pytest.raises(ClientRoleNotMatchingWithRequiredException):
         client_service.check_client_role(client_role=client_manager.role, required_role=ClientRole.ADMIN)
 
-    with pytest.raises(ClientRoleNotMatchingWithRequired):
+    with pytest.raises(ClientRoleNotMatchingWithRequiredException):
         client_service.check_client_role(client_role=client_default.role, required_role=ClientRole.HEADMAN)
 
 
@@ -142,19 +144,20 @@ def test_client_role_check_failure(client_service: BaseClientService):
 def test_client_update_email_success(client_service: BaseClientService, generate_email):
     client = ClientModelFactory.create()
     new_email = generate_email()
-    updated_client = client_service.update_email(client=client, email=new_email)
+    client_service.update_email(client_id=client.id, email=new_email)
+    updated_client = client_service.get_by_id(client.id)
 
     assert updated_client.email == new_email
     assert updated_client.email != client.email
 
 
 @pytest.mark.django_db
-def test_client_update_email_email_not_found_failure(client_service: BaseClientService, generate_email):
+def test_client_update_email_failure(client_service: BaseClientService, generate_email):
     client = ClientModelFactory.build()
     new_email = generate_email()
 
-    with pytest.raises(ClientEmailNotFoundException):
-        client_service.update_email(client=client, email=new_email)
+    with pytest.raises(ClientUpdateException):
+        client_service.update_email(client_id=client.id, email=new_email)
 
 
 @pytest.mark.django_db
@@ -162,10 +165,19 @@ def test_client_update_password_success(client_service: BaseClientService, hash_
     client = ClientModelFactory.create()
     new_plain_password = generate_password()
     hashed_password = hash_password(plain_password=new_plain_password)
-    updated_client = client_service.update_password(client=client, hashed_password=hashed_password)
+    client_service.update_password(client_id=client.id, hashed_password=hashed_password)
+    updated_client = client_service.get_by_id(client.id)
 
     assert updated_client.password == hashed_password
     assert updated_client.password != client.password
+
+
+@pytest.mark.django_db
+def test_client_update_password_failure(client_service: BaseClientService, generate_password):
+    client = ClientModelFactory.build()
+    password = generate_password()
+    with pytest.raises(ClientUpdateException):
+        client_service.update_password(client_id=client.id, hashed_password=password)
 
 
 @pytest.mark.django_db
@@ -175,16 +187,51 @@ def test_client_update_credentials_success(client_service: BaseClientService, fa
     new_last_name = faker_ua.last_name()
     new_middle_name = faker_ua.last_name()
 
-    updated_client = client_service.update_credentials(
-        client=client,
+    client_service.update_credentials(
+        client_id=client.id,
         first_name=new_first_name,
         last_name=new_last_name,
         middle_name=new_middle_name,
     )
+    updated_client = client_service.get_by_id(client.id)
 
     assert updated_client.first_name == new_first_name, f'{new_first_name=}'
     assert updated_client.last_name == new_last_name, f'{new_last_name=}'
     assert updated_client.middle_name == new_middle_name, f'{new_middle_name=}'
+
+
+@pytest.mark.django_db
+def test_client_update_credentials_failure(client_service: BaseClientService, faker_ua):
+    client = ClientModelFactory.build()
+    new_first_name = faker_ua.first_name()
+    new_last_name = faker_ua.last_name()
+    new_middle_name = faker_ua.last_name()
+
+    with pytest.raises(ClientUpdateException):
+        client_service.update_credentials(
+            client_id=client.id,
+            first_name=new_first_name,
+            last_name=new_last_name,
+            middle_name=new_middle_name,
+        )
+
+
+@pytest.mark.django_db
+def test_client_update_role_success(client_service: BaseClientService):
+    client = ClientModelFactory.create(role=ClientRole.HEADMAN)
+    client_service.update_role(client_id=client.id, new_role=ClientRole.ADMIN)
+    updated_client = client_service.get_by_id(client.id)
+
+    assert updated_client.role == ClientRole.ADMIN
+    assert updated_client.role != client.role
+
+
+@pytest.mark.django_db
+def test_client_update_role_failure(client_service: BaseClientService, generate_email):
+    client = ClientModelFactory.build()
+
+    with pytest.raises(ClientUpdateException):
+        client_service.update_role(client_id=client.id, new_role=ClientRole.ADMIN)
 
 
 def test_generate_client_tokens(client_service: BaseClientService, get_current_timestamp):

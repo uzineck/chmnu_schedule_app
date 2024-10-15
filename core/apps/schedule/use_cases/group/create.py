@@ -17,7 +17,7 @@ class CreateGroupUseCase:
     group_validator_service: BaseGroupValidatorService
 
     def execute(self, group_number: str, faculty_uuid: str, headman_email: str, has_subgroups: bool) -> GroupEntity:
-        headman = self.client_service.get_by_email(email=headman_email)
+        headman = self.client_service.get_by_email(client_email=headman_email)
         self.client_service.check_client_role(client_role=headman.role, required_role=ClientRole.HEADMAN)
 
         faculty = self.faculty_service.get_by_uuid(faculty_uuid=faculty_uuid)

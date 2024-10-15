@@ -1,7 +1,7 @@
 import pytest
 from tests.fixtures.client.client import ClientModelFactory
 
-from core.apps.clients.exceptions.client import ClientEmailNotFoundException
+from core.apps.clients.exceptions.client import ClientNotFoundException
 from core.apps.clients.usecases.client.logout import LogoutClientUseCase
 
 
@@ -35,5 +35,5 @@ def test_logout_client_not_found_failure(
     payload = {"device_id": generate_device_id}
     access_token = token_service.create_access_token(client=client, payload=payload)
 
-    with pytest.raises(ClientEmailNotFoundException):
+    with pytest.raises(ClientNotFoundException):
         use_case.execute(token=access_token)

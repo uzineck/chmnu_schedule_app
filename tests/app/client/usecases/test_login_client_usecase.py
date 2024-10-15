@@ -2,6 +2,7 @@ import pytest
 from tests.fixtures.client.client import ClientModelFactory
 
 from core.apps.clients.exceptions.auth import InvalidAuthDataException
+from core.apps.clients.exceptions.client import ClientNotFoundException
 from core.apps.clients.usecases.client.login import LoginClientUseCase
 
 
@@ -36,7 +37,7 @@ def test_login_client_does_not_exist_failure(use_case: LoginClientUseCase, use_c
     use_case_params = use_case_params
     use_case_params['email'] = generate_email()
 
-    with pytest.raises(InvalidAuthDataException):
+    with pytest.raises(ClientNotFoundException):
         use_case.execute(**use_case_params)
 
 

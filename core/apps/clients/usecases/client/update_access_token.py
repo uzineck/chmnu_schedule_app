@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 
 from core.apps.clients.entities.token import Token as TokenEntity
+from core.apps.clients.exceptions.issuedjwttoken import ClientTokensRevokedException
 from core.apps.clients.services.client import BaseClientService
 from core.apps.clients.services.issuedjwttoken import BaseIssuedJwtTokenService
 from core.apps.common.exceptions import InvalidTokenTypeException
@@ -18,10 +19,11 @@ class UpdateAccessTokenUseCase:
             raise InvalidTokenTypeException
 
         client_email = self.client_service.get_client_email_from_token(token=token)
-        client = self.client_service.get_by_email(email=client_email)
+        client = self.client_service.get_by_email(client_email=client_email)
 
         if self.issued_jwt_token_service.check_revoked(jti=self.client_service.get_jti_from_token(token=token)):
             self.issued_jwt_token_service.revoke_client_tokens(subject=client)
+            raise ClientTokensRevokedException(client_email=client.email)
 
         device_id = self.client_service.get_device_id_from_token(token=token)
         token: TokenEntity = self.client_service.update_access_token(client=client, device_id=device_id)

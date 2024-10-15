@@ -1,6 +1,7 @@
 import pytest
 from tests.fixtures.client.client import ClientModelFactory
 
+from core.apps.clients.exceptions.client import ClientNotFoundException
 from core.apps.clients.usecases.client.update_role import UpdateClientRoleUseCase
 from core.apps.common.models import ClientRole
 
@@ -22,8 +23,20 @@ def use_case_params():
 
 @pytest.mark.django_db
 def test_update_client_role_success(use_case: UpdateClientRoleUseCase, use_case_params):
-    updated_client, tokens = use_case.execute(**use_case_params)
+    updated_client = use_case.execute(**use_case_params)
 
     assert updated_client.role == use_case_params['new_role']
-    assert tokens.access_token is not None
-    assert tokens.refresh_token is not None
+
+
+@pytest.mark.django_db
+def test_update_client_role_email_not_found_failure(
+        use_case,
+        use_case_params,
+):
+    client = ClientModelFactory.build()
+
+    with pytest.raises(ClientNotFoundException):
+        use_case.execute(
+            email=client.email,
+            new_role=use_case_params['new_role'],
+        )

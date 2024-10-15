@@ -1,7 +1,7 @@
 import pytest
 from tests.fixtures.client.client import ClientModelFactory
 
-from core.apps.clients.exceptions.client import ClientEmailNotFoundException
+from core.apps.clients.exceptions.client import ClientNotFoundException
 from core.apps.clients.exceptions.issuedjwttoken import ClientTokensRevokedException
 from core.apps.clients.services.client import BaseClientService
 from core.apps.clients.services.issuedjwttoken import BaseIssuedJwtTokenService
@@ -57,7 +57,7 @@ def test_update_access_token_client_not_found_failure(
     client = ClientModelFactory.build()
     tokens = client_service.generate_tokens(client=client)
 
-    with pytest.raises(ClientEmailNotFoundException):
+    with pytest.raises(ClientNotFoundException):
         use_case.execute(token=tokens.refresh_token)
 
 

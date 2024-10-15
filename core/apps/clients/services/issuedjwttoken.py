@@ -5,7 +5,6 @@ from abc import (
 from typing import Any
 
 from core.apps.clients.entities.client import Client as ClientEntity
-from core.apps.clients.exceptions.issuedjwttoken import ClientTokensRevokedException
 from core.apps.clients.models import IssuedJwtToken as IssuedJwtTokenModel
 
 
@@ -68,7 +67,6 @@ class ORMIssuedJwtTokenService(BaseIssuedJwtTokenService):
 
     def revoke_client_tokens(self, subject: ClientEntity) -> None:
         IssuedJwtTokenModel.objects.filter(subject_id=subject.id).update(revoked=True)
-        raise ClientTokensRevokedException(client_email=subject.email)
 
     def revoke_client_device_tokens(self, subject: ClientEntity, device_id: str) -> None:
         IssuedJwtTokenModel.objects.filter(subject_id=subject.id, device_id=device_id).update(revoked=True)
