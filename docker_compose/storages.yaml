@@ -27,6 +27,37 @@ services:
     env_file:
       - ../.env
 
+  redis:
+    image: redis:latest
+    container_name: chmnu-db-cache
+    ports:
+      - "${REDIS_PORT}:6379"
+    env_file:
+      - ../.env
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+    command: [ "--maxmemory", "250mb" ]
+    restart: always
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: "redis-cli --raw ping"
+      interval: 2s
+      timeout: 15s
+
+  redis-insight:
+    image: redis/redisinsight:latest
+    container_name: redisinsight
+    restart: always
+    env_file:
+      - ../.env
+    ports:
+      - "${REDISINSIGHT_PORT}:5540"
+    volumes:
+      - redis-insight:/data
+
 volumes:
   postgres_data:
   pgadmin-data:
+  redis_data:
+  redis-insight:
