@@ -1,5 +1,8 @@
 from django.http import HttpRequest
-from ninja import Router
+from ninja import (
+    Query,
+    Router,
+)
 from ninja.errors import HttpError
 
 from core.api.filters import (
@@ -65,8 +68,8 @@ def get_all_teachers(request: HttpRequest) -> ApiResponse[list[TeacherSchema]]:
 )
 def get_teacher_list(
         request: HttpRequest,
-        filters: TeacherFilter,
-        pagination_in: PaginationIn,
+        filters: Query[TeacherFilter],
+        pagination_in: Query[PaginationIn],
 ) -> ApiResponse[ListPaginatedResponse[TeacherSchema]]:
     container = get_container()
     use_case: GetTeacherListUseCase = container.resolve(GetTeacherListUseCase)

@@ -28,7 +28,6 @@ class GroupAlreadyExistsException(ServiceException):
 @dataclass(eq=False)
 class HeadmanAssignedToAnotherGroupException(ServiceException):
     headman_email: str
-    group_number: str
 
     @property
     def message(self):

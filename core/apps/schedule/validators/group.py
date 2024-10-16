@@ -13,10 +13,11 @@ from core.apps.schedule.services.group import BaseGroupService
 
 
 class BaseGroupValidatorService(ABC):
+
     @abstractmethod
     def validate(
             self,
-            group_number: str,
+            group_number: str | None = None,
             headman: ClientEntity | None = None,
     ):
         ...
@@ -26,7 +27,7 @@ class BaseGroupValidatorService(ABC):
 class GroupAlreadyExistsValidatorService(BaseGroupValidatorService):
     group_service: BaseGroupService
 
-    def validate(self, group_number: str, *args, **kwargs):
+    def validate(self, group_number: str | None = None, *args, **kwargs):
         if self.group_service.check_exists_by_number(group_number=group_number):
             raise GroupAlreadyExistsException(group_number=group_number)
 
@@ -35,11 +36,9 @@ class GroupAlreadyExistsValidatorService(BaseGroupValidatorService):
 class HeadmanAssignedToAnotherGroupValidatorService(BaseGroupValidatorService):
     group_service: BaseGroupService
 
-    def validate(self, group_number: str, headman: ClientEntity | None = None, *args, **kwargs):
+    def validate(self, headman: ClientEntity | None = None, *args, **kwargs):
         if self.group_service.check_if_headman_assigned_to_group(headman_id=headman.id):
-            headman_group = self.group_service.get_group_from_headman(headman_id=headman.id)
-            if headman_group != group_number:
-                raise HeadmanAssignedToAnotherGroupException(headman_email=headman.email, group_number=group_number)
+            raise HeadmanAssignedToAnotherGroupException(headman_email=headman.email)
 
 
 @dataclass
@@ -48,7 +47,7 @@ class ComposedGroupValidatorService(BaseGroupValidatorService):
 
     def validate(
             self,
-            group_number: str,
+            group_number: str | None = None,
             headman: ClientEntity | None = None,
     ):
         for validator in self.validators:

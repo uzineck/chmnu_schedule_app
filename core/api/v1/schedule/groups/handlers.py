@@ -18,7 +18,7 @@ from core.api.v1.schedule.groups.schemas import (
     GroupLessonsOutSchema,
     GroupSchemaWithHeadman,
     GroupUuidNumberFacultyOutSchema,
-    UpdateGroupHeadmanSchema,
+    HeadmanEmailInSchema,
 )
 from core.apps.clients.services.client import BaseClientService
 from core.apps.clients.usecases.headman.get_headman_info import GetHeadmanInfoUseCase
@@ -182,18 +182,22 @@ def create_group(request: HttpRequest, schema: CreateGroupSchema) -> ApiResponse
 
 
 @router.patch(
-    "update_group_headman",
+    "{group_uuid}/update_headman",
     response=ApiResponse[GroupSchemaWithHeadman],
     operation_id='update_group_headman',
     auth=jwt_bearer_admin,
 )
-def update_group_headman(request: HttpRequest, schema: UpdateGroupHeadmanSchema) -> ApiResponse[GroupSchemaWithHeadman]:
+def update_group_headman(
+        request: HttpRequest,
+        group_uuid: str,
+        schema: HeadmanEmailInSchema,
+) -> ApiResponse[GroupSchemaWithHeadman]:
     container = get_container()
     use_case: UpdateGroupHeadmanUseCase = container.resolve(UpdateGroupHeadmanUseCase)
     try:
         group = use_case.execute(
-            group_uuid=schema.group_uuid,
-            new_headman_email=schema.new_headman_email,
+            group_uuid=group_uuid,
+            new_headman_email=schema.headman_email,
         )
     except ServiceException as e:
         raise HttpError(

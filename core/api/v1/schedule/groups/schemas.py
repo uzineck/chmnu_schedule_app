@@ -61,11 +61,6 @@ class CreateGroupSchema(Schema):
     has_subgroups: bool
 
 
-class UpdateGroupHeadmanSchema(Schema):
-    group_uuid: str
-    new_headman_email: str
-
-
 class GroupUuidNumberFacultyOutSchema(Schema):
     uuid: str
     number: str
@@ -113,3 +108,7 @@ class GroupLessonsOutSchema(GroupSchema):
             subgroups=[subgroup],
             lessons=entity.lessons if entity.lessons else None,
         )
+
+
+class HeadmanEmailInSchema(Schema):
+    headman_email: str
