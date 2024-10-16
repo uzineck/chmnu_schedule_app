@@ -58,20 +58,29 @@ class ORMLessonService(BaseLessonService):
 
     def get_by_uuid(self, lesson_uuid: str) -> LessonEntity:
         try:
-            lesson = LessonModel.objects.get(lesson_uuid=lesson_uuid)
+            lesson = (
+                LessonModel.objects.
+                select_related("subject", "teacher", "room", "timeslot").
+                get(lesson_uuid=lesson_uuid)
+            )
         except LessonModel.DoesNotExist:
             raise LessonNotFoundException(uuid=lesson_uuid)
 
         return lesson.to_entity()
 
     def get_by_lesson_entity(self, lesson: LessonEntity) -> LessonEntity:
-        lesson = LessonModel.objects.filter(
-            subject_id=lesson.subject.id,
-            teacher_id=lesson.teacher.id,
-            room_id=lesson.room.id,
-            timeslot_id=lesson.timeslot.id,
-            type=lesson.type,
-        ).first()
+        lesson = (
+            LessonModel.objects.
+            filter(
+                subject_id=lesson.subject.id,
+                teacher_id=lesson.teacher.id,
+                room_id=lesson.room.id,
+                timeslot_id=lesson.timeslot.id,
+                type=lesson.type,
+            ).
+            select_related("subject", "teacher", "room", "timeslot").
+            first()
+        )
 
         return lesson.to_entity()
 
@@ -86,11 +95,19 @@ class ORMLessonService(BaseLessonService):
 
     def get_lessons_for_group(self, group_id: int, filter_query: GroupLessonFilter) -> Iterable[LessonEntity]:
         query = self._build_lesson_query(filter_query)
-        queryset = LessonModel.objects.filter(Q(lesson__group_id=group_id) & query)
+        queryset = (
+            LessonModel.objects.
+            filter(Q(lesson__group_id=group_id) & query).
+            select_related("subject", "teacher", "room", "timeslot")
+        )
 
         return [lesson.to_entity() for lesson in queryset]
 
     def get_lessons_for_teacher(self, teacher_id: int) -> Iterable[LessonEntity]:
-        queryset = LessonModel.objects.filter(teacher_id=teacher_id)
+        queryset = (
+            LessonModel.objects.
+            filter(teacher_id=teacher_id).
+            select_related("subject", "teacher", "room", "timeslot")
+        )
 
         return [lesson.to_entity() for lesson in queryset]

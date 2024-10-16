@@ -87,14 +87,22 @@ class ORMGroupService(BaseGroupService):
         return group.to_entity()
 
     def get_all(self) -> Iterable[GroupEntity]:
-        groups = GroupModel.objects.all()
+        groups = (
+            GroupModel.objects.
+            all().
+            select_related("headman", "faculty")
+        )
 
         for group in groups:
             yield group.to_entity()
 
     def get_by_uuid(self, group_uuid: str) -> GroupEntity:
         try:
-            group = GroupModel.objects.get(group_uuid=group_uuid)
+            group = (
+                GroupModel.objects.
+                select_related("headman", "faculty").
+                get(group_uuid=group_uuid)
+            )
         except GroupModel.DoesNotExist:
             raise GroupNotFoundException(uuid=group_uuid)
 
@@ -102,7 +110,11 @@ class ORMGroupService(BaseGroupService):
 
     def get_by_id(self, group_id: int) -> GroupEntity:
         try:
-            group = GroupModel.objects.get(id=group_id)
+            group = (
+                GroupModel.objects.
+                select_related("headman", "faculty").
+                get(id=group_id)
+            )
         except GroupModel.DoesNotExist:
             raise GroupNotFoundException(id=group_id)
 
@@ -118,7 +130,11 @@ class ORMGroupService(BaseGroupService):
         return True
 
     def get_group_list_from_lesson(self, lesson_id: int) -> Iterable[GroupEntity]:
-        groups = GroupModel.objects.filter(group__lesson_id=lesson_id)
+        groups = (
+            GroupModel.objects.
+            filter(group__lesson_id=lesson_id).
+            select_related("headman", "faculty")
+        )
 
         return [group.to_entity() for group in groups]
 
@@ -126,7 +142,11 @@ class ORMGroupService(BaseGroupService):
         return GroupModel.objects.filter(headman__id=headman_id).exists()
 
     def get_group_from_headman(self, headman_id: int) -> GroupEntity:
-        group: GroupModel = GroupModel.objects.filter(headman__id=headman_id).first()
+        group: GroupModel = (
+            GroupModel.objects.filter(headman__id=headman_id).
+            select_related("headman", "faculty").
+            first()
+        )
 
         if not group:
             raise HeadmanNotAssignedToAnyGroup(headman_id=headman_id)
