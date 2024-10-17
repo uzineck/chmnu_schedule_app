@@ -81,12 +81,12 @@ class ORMTeacherService(BaseTeacherService):
     def _build_teacher_query(self, filters: TeacherFilter) -> Q:
         query = Q(is_active=True)
 
-        if filters.name is not None:
-            query &= (
-                Q(first_name__icontains=filters.name) |
-                Q(last_name__icontains=filters.name) |
-                Q(middle_name__icontains=filters.name)
-            )
+        if filters.first_name is not None:
+            query &= (Q(first_name__icontains=filters.first_name))
+        if filters.last_name is not None:
+            query &= (Q(last_name__icontains=filters.last_name))
+        if filters.middle_name is not None:
+            query &= (Q(middle_name__icontains=filters.middle_name))
         if filters.rank is not None:
             query &= (Q(rank__icontains=filters.rank))
 

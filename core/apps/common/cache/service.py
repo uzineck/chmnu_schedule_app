@@ -9,7 +9,7 @@ from typing import Any
 
 class BaseCacheService(ABC):
     @abstractmethod
-    def get_cache_key(
+    def generate_cache_key(
             self,
             model_prefix: str,
             identifier: str | None = None,
@@ -45,7 +45,7 @@ class BaseCacheService(ABC):
 
 
 class RedisCacheService(BaseCacheService):
-    def get_cache_key(
+    def generate_cache_key(
             self,
             model_prefix: str,
             identifier: str | None = None,
@@ -80,8 +80,8 @@ class RedisCacheService(BaseCacheService):
             cache.delete(key=key)
 
     def invalidate_cache_pattern(self, key: str) -> None:
-        cache.delete_pattern(f'{key}*')
+        cache.delete_pattern(key)
 
     def invalidate_cache_pattern_list(self, keys: list[str]) -> None:
         for key in keys:
-            cache.delete_pattern(f'{key}*')
+            cache.delete_pattern(key)

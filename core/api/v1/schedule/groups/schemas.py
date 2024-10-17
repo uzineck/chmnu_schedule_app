@@ -15,7 +15,7 @@ class GroupSchema(Schema):
     number: str
     faculty: FacultyCodeNameSchema
     has_subgroups: bool
-    subgroups: list[Subgroup] | None = None
+    subgroup: Subgroup | None = None
 
     @classmethod
     def from_entity(cls, entity: GroupEntity) -> 'GroupSchema':
@@ -27,10 +27,28 @@ class GroupSchema(Schema):
         )
 
     @classmethod
-    def from_entity_with_subgroup(cls, entity: GroupEntity) -> 'GroupSchema':
+    def from_entity_with_subgroup(cls, entity: GroupEntity, subgroup: Subgroup | None = None) -> 'GroupSchema':
         return cls(
             uuid=entity.uuid,
             number=entity.number,
+            faculty=entity.faculty,
+            has_subgroups=entity.has_subgroups,
+            subgroup=subgroup,
+        )
+
+
+class GroupSchemaForTeacherLesson(Schema):
+    uuid: str
+    number: str
+    faculty: FacultyCodeNameSchema
+    subgroups: list[Subgroup] | None = None
+
+    @classmethod
+    def from_entity(cls, entity: GroupEntity) -> 'GroupSchemaForTeacherLesson':
+        return cls(
+            uuid=entity.uuid,
+            number=entity.number,
+            faculty=entity.faculty,
             has_subgroups=entity.has_subgroups,
             subgroups=entity.subgroups,
         )
@@ -75,7 +93,8 @@ class GroupUuidNumberFacultyOutSchema(Schema):
         )
 
 
-class GroupLessonsOutSchema(GroupSchema):
+class GroupLessonsOutSchema(Schema):
+    group: GroupSchema
     lessons: list[LessonForGroupOutSchema] | None = None
 
     @classmethod
@@ -86,27 +105,8 @@ class GroupLessonsOutSchema(GroupSchema):
             subgroup: Subgroup | None = None,
     ) -> 'GroupLessonsOutSchema':
         return cls(
-            uuid=group_entity.uuid,
-            number=group_entity.number,
-            faculty=group_entity.faculty,
-            has_subgroups=group_entity.has_subgroups,
-            subgroups=[subgroup],
+            group=GroupSchema.from_entity_with_subgroup(entity=group_entity, subgroup=subgroup),
             lessons=[LessonForGroupOutSchema.from_entity(obj) for obj in lesson_entities] if lesson_entities else None,
-        )
-
-    @classmethod
-    def from_entity(
-            cls,
-            entity: GroupEntity,
-            subgroup: Subgroup | None = None,
-    ) -> 'GroupLessonsOutSchema':
-        return cls(
-            uuid=entity.uuid,
-            number=entity.number,
-            faculty=entity.faculty,
-            has_subgroups=entity.has_subgroups,
-            subgroups=[subgroup],
-            lessons=entity.lessons if entity.lessons else None,
         )
 
 

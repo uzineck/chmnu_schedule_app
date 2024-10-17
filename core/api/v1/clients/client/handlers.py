@@ -75,7 +75,7 @@ def logout(request: HttpRequest) -> ApiResponse[StatusResponse]:
     )
 
 
-@router.patch(
+@router.post(
     "update_access_token",
     response=ApiResponse[TokenOutSchema],
     operation_id='update_access_token',

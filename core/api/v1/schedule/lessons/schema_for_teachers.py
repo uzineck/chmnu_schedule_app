@@ -2,7 +2,7 @@ from ninja import Schema
 
 from datetime import datetime
 
-from core.api.v1.schedule.groups.schemas import GroupSchema
+from core.api.v1.schedule.groups.schemas import GroupSchemaForTeacherLesson
 from core.api.v1.schedule.rooms.schemas import RoomSchema
 from core.api.v1.schedule.subjects.schemas import SubjectSchema
 from core.api.v1.schedule.teachers.schemas import TeacherSchema
@@ -15,7 +15,7 @@ from core.apps.schedule.entities.lesson import Lesson as LessonEntity
 class LessonForTeacherOutSchema(Schema):
     uuid: str
     type: LessonType
-    groups: list[GroupSchema]
+    groups: list[GroupSchemaForTeacherLesson]
     subject: SubjectSchema
     room: RoomSchema
     timeslot: TimeslotSchema

@@ -25,7 +25,10 @@ from core.apps.clients.usecases.headman.get_headman_info import GetHeadmanInfoUs
 from core.apps.common.authentication.bearer import (
     jwt_bearer_admin,
     jwt_bearer_headman,
+    jwt_bearer_manager,
 )
+from core.apps.common.cache.service import BaseCacheService
+from core.apps.common.cache.timeouts import Timeout
 from core.apps.common.exceptions import (
     JWTKeyParsingException,
     ServiceException,
@@ -55,10 +58,17 @@ router = Router(tags=['Group'])
 )
 def get_all_groups(request: HttpRequest) -> ApiResponse[list[GroupUuidNumberFacultyOutSchema]]:
     container = get_container()
+    cache_service: BaseCacheService = container.resolve(BaseCacheService)
     use_case: GetAllGroupsUseCase = container.resolve(GetAllGroupsUseCase)
     try:
         groups = use_case.execute()
-        items = [GroupUuidNumberFacultyOutSchema.from_entity(group) for group in groups]
+
+        cache_key = cache_service.generate_cache_key(model_prefix="group", func_prefix="all")
+        items = cache_service.get_cache_value(key=cache_key)
+        if not items:
+            items = [GroupUuidNumberFacultyOutSchema.from_entity(group) for group in groups]
+            cache_service.set_cache(key=cache_key, value=items, timeout=Timeout.MONTH)
+
     except ServiceException as e:
         raise HttpError(
             status_code=403,
@@ -70,7 +80,7 @@ def get_all_groups(request: HttpRequest) -> ApiResponse[list[GroupUuidNumberFacu
 
 
 @router.get(
-    "{group_uuid}/lessons",
+    "{group_uuid}/lessons/{filters}",
     response=ApiResponse[GroupLessonsOutSchema],
     operation_id="get_group_lessons",
 )
@@ -80,14 +90,24 @@ def get_group_lessons(
         filters: Query[GroupFilter],
 ) -> ApiResponse[GroupLessonsOutSchema]:
     container = get_container()
+    cache_service: BaseCacheService = container.resolve(BaseCacheService)
     use_case: GetGroupLessonsUseCase = container.resolve(GetGroupLessonsUseCase)
     try:
-        group_lesson_filter_entity = GroupFilterEntity(subgroup=filters.subgroup, is_even=filters.is_even)
-        group, lessons = use_case.execute(
-            group_uuid=group_uuid,
-            filters=group_lesson_filter_entity,
+        cache_key = cache_service.generate_cache_key(
+            model_prefix="group",
+            identifier=group_uuid,
+            func_prefix="lessons",
+            filters=filters,
         )
+        group_lessons = cache_service.get_cache_value(key=cache_key)
+        if not group_lessons:
+            group_lessons = use_case.execute(
+                group_uuid=group_uuid,
+                filters=GroupFilterEntity(subgroup=filters.subgroup, is_even=filters.is_even),
+            )
+            cache_service.set_cache(key=cache_key, value=group_lessons, timeout=Timeout.DAY)
 
+        group, lessons = group_lessons
     except ServiceException as e:
         raise HttpError(
             status_code=401,
@@ -98,7 +118,7 @@ def get_group_lessons(
         data=GroupLessonsOutSchema.from_entity_with_lesson_entities(
             group_entity=group,
             lesson_entities=lessons,
-            subgroup=group_lesson_filter_entity.subgroup,
+            subgroup=filters.subgroup,
         ),
     )
 
@@ -107,16 +127,26 @@ def get_group_lessons(
     "{group_uuid}/info",
     response=ApiResponse[GroupSchemaWithHeadman],
     operation_id="get_group_info",
-    auth=jwt_bearer_admin,
+    auth=[jwt_bearer_admin, jwt_bearer_manager],
 )
 def get_group_info(
         request: HttpRequest,
         group_uuid: str,
 ) -> ApiResponse[GroupSchemaWithHeadman]:
     container = get_container()
+    cache_service: BaseCacheService = container.resolve(BaseCacheService)
     use_case: GetGroupInfoUseCase = container.resolve(GetGroupInfoUseCase)
     try:
-        group = use_case.execute(group_uuid=group_uuid)
+        cache_key = cache_service.generate_cache_key(
+            model_prefix="group",
+            identifier=group_uuid,
+            func_prefix="info",
+        )
+        group = cache_service.get_cache_value(key=cache_key)
+        if not group:
+            group = use_case.execute(group_uuid=group_uuid)
+            cache_service.set_cache(key=cache_key, value=group, timeout=Timeout.WEEK)
+
     except ServiceException as e:
         raise HttpError(
             status_code=401,
@@ -129,21 +159,33 @@ def get_group_info(
 
 
 @router.get(
-    "{headman_email}/headman_info",
+    "{headman_email}/info",
     response=ApiResponse[Union[GroupSchemaWithHeadman, ClientSchemaPrivate]],
     operation_id='get_headman_info',
-    auth=jwt_bearer_admin,
+    auth=[jwt_bearer_admin, jwt_bearer_manager],
 )
 def get_headman_info(
         request: HttpRequest,
         headman_email: str,
 ) -> ApiResponse[Union[GroupSchemaWithHeadman, ClientSchemaPrivate]]:
     container = get_container()
+    cache_service: BaseCacheService = container.resolve(BaseCacheService)
     use_case: GetHeadmanInfoUseCase = container.resolve(GetHeadmanInfoUseCase)
     try:
-        group, headman = use_case.execute(
-            email=headman_email,
+        cache_key = cache_service.generate_cache_key(
+            model_prefix="group",
+            identifier=headman_email,
+            func_prefix="info",
         )
+        group_headman = cache_service.get_cache_value(key=cache_key)
+        if not group_headman:
+            group_headman = use_case.execute(
+                email=headman_email,
+            )
+            cache_service.set_cache(key=cache_key, value=group_headman, timeout=Timeout.WEEK)
+
+        group, headman = group_headman
+
     except ServiceException as e:
         raise HttpError(
             status_code=400,
@@ -159,9 +201,15 @@ def get_headman_info(
         )
 
 
-@router.post('', response=ApiResponse[GroupSchemaWithHeadman], operation_id='create_group', auth=jwt_bearer_admin)
+@router.post(
+    '',
+    response=ApiResponse[GroupSchemaWithHeadman],
+    operation_id='create_group',
+    auth=[jwt_bearer_admin, jwt_bearer_manager],
+)
 def create_group(request: HttpRequest, schema: CreateGroupSchema) -> ApiResponse[GroupSchemaWithHeadman]:
     container = get_container()
+    cache_service: BaseCacheService = container.resolve(BaseCacheService)
     use_case: CreateGroupUseCase = container.resolve(CreateGroupUseCase)
     try:
         group = use_case.execute(
@@ -169,6 +217,14 @@ def create_group(request: HttpRequest, schema: CreateGroupSchema) -> ApiResponse
             faculty_uuid=schema.faculty_uuid,
             headman_email=schema.headman_email,
             has_subgroups=schema.has_subgroups,
+        )
+        cache_service.invalidate_cache_pattern_list(
+            keys=[
+                cache_service.generate_cache_key(
+                    model_prefix="group",
+                    func_prefix="all",
+                ),
+            ],
         )
     except ServiceException as e:
         raise HttpError(
@@ -185,7 +241,7 @@ def create_group(request: HttpRequest, schema: CreateGroupSchema) -> ApiResponse
     "{group_uuid}/update_headman",
     response=ApiResponse[GroupSchemaWithHeadman],
     operation_id='update_group_headman',
-    auth=jwt_bearer_admin,
+    auth=[jwt_bearer_admin, jwt_bearer_manager],
 )
 def update_group_headman(
         request: HttpRequest,
@@ -194,10 +250,20 @@ def update_group_headman(
 ) -> ApiResponse[GroupSchemaWithHeadman]:
     container = get_container()
     use_case: UpdateGroupHeadmanUseCase = container.resolve(UpdateGroupHeadmanUseCase)
+    cache_service: BaseCacheService = container.resolve(BaseCacheService)
     try:
         group = use_case.execute(
             group_uuid=group_uuid,
             new_headman_email=schema.headman_email,
+        )
+        cache_service.invalidate_cache_pattern_list(
+            keys=[
+                cache_service.generate_cache_key(
+                    model_prefix="group",
+                    identifier="*",
+                    func_prefix="info",
+                ),
+            ],
         )
     except ServiceException as e:
         raise HttpError(
@@ -213,7 +279,7 @@ def update_group_headman(
     '{group_uuid}/add/{lesson_uuid}',
     response=ApiResponse[StatusResponse],
     operation_id='add_lesson_to_group_admin',
-    auth=jwt_bearer_admin,
+    auth=[jwt_bearer_admin, jwt_bearer_manager],
 )
 def add_lesson_to_group_admin(
         request: HttpRequest,
@@ -223,8 +289,24 @@ def add_lesson_to_group_admin(
 ) -> ApiResponse[StatusResponse]:
     container = get_container()
     use_case: AdminAddLessonToGroupUseCase = container.resolve(AdminAddLessonToGroupUseCase)
+    cache_service: BaseCacheService = container.resolve(BaseCacheService)
     try:
-        use_case.execute(group_uuid=group_uuid, subgroup=subgroup, lesson_uuid=lesson_uuid)
+        group, lesson = use_case.execute(group_uuid=group_uuid, subgroup=subgroup, lesson_uuid=lesson_uuid)
+        cache_service.invalidate_cache_pattern_list(
+            keys=[
+                cache_service.generate_cache_key(
+                    model_prefix="group",
+                    identifier=group.uuid,
+                    func_prefix="lessons",
+                    filters="*",
+                ),
+                cache_service.generate_cache_key(
+                    model_prefix="teacher",
+                    identifier=lesson.teacher.uuid,
+                    func_prefix="lessons",
+                ),
+            ],
+        )
     except ServiceException as e:
         raise HttpError(
             status_code=404,
@@ -240,7 +322,7 @@ def add_lesson_to_group_admin(
     '{group_uuid}/remove/{lesson_uuid}',
     response=ApiResponse[StatusResponse],
     operation_id='remove_lesson_from_group_admin',
-    auth=jwt_bearer_admin,
+    auth=[jwt_bearer_admin, jwt_bearer_manager],
 )
 def remove_lesson_from_group_admin(
         request: HttpRequest,
@@ -250,8 +332,24 @@ def remove_lesson_from_group_admin(
 ) -> ApiResponse[StatusResponse]:
     container = get_container()
     use_case: AdminRemoveLessonFromGroupUseCase = container.resolve(AdminRemoveLessonFromGroupUseCase)
+    cache_service: BaseCacheService = container.resolve(BaseCacheService)
     try:
-        use_case.execute(group_uuid=group_uuid, subgroup=subgroup, lesson_uuid=lesson_uuid)
+        group, lesson = use_case.execute(group_uuid=group_uuid, subgroup=subgroup, lesson_uuid=lesson_uuid)
+        cache_service.invalidate_cache_pattern_list(
+            keys=[
+                cache_service.generate_cache_key(
+                    model_prefix="group",
+                    identifier=group.uuid,
+                    func_prefix="lessons",
+                    filters="*",
+                ),
+                cache_service.generate_cache_key(
+                    model_prefix="teacher",
+                    identifier=lesson.teacher.uuid,
+                    func_prefix="lessons",
+                ),
+            ],
+        )
     except ServiceException as e:
         raise HttpError(
             status_code=404,
@@ -276,6 +374,7 @@ def add_lesson_to_group_headman(
     container = get_container()
     client_service = container.resolve(BaseClientService)
     use_case: HeadmanAddLessonToGroupUseCase = container.resolve(HeadmanAddLessonToGroupUseCase)
+    cache_service: BaseCacheService = container.resolve(BaseCacheService)
     try:
         user_email: str = client_service.get_client_email_from_token(token=request.auth)
     except JWTKeyParsingException as e:
@@ -284,7 +383,22 @@ def add_lesson_to_group_headman(
             message=e.message,
         )
     try:
-        use_case.execute(headman_email=user_email, subgroup=subgroup, lesson_uuid=lesson_uuid)
+        group, lesson = use_case.execute(headman_email=user_email, subgroup=subgroup, lesson_uuid=lesson_uuid)
+        cache_service.invalidate_cache_pattern_list(
+            keys=[
+                cache_service.generate_cache_key(
+                    model_prefix="group",
+                    identifier=group.uuid,
+                    func_prefix="lessons",
+                    filters="*",
+                ),
+                cache_service.generate_cache_key(
+                    model_prefix="teacher",
+                    identifier=lesson.teacher.uuid,
+                    func_prefix="lessons",
+                ),
+            ],
+        )
     except ServiceException as e:
         raise HttpError(
             status_code=404,
@@ -310,6 +424,7 @@ def remove_lesson_to_group_headman(
     container = get_container()
     client_service = container.resolve(BaseClientService)
     use_case: HeadmanRemoveLessonFromGroupUseCase = container.resolve(HeadmanRemoveLessonFromGroupUseCase)
+    cache_service: BaseCacheService = container.resolve(BaseCacheService)
     try:
         user_email: str = client_service.get_client_email_from_token(token=request.auth)
     except JWTKeyParsingException as e:
@@ -318,7 +433,22 @@ def remove_lesson_to_group_headman(
             message=e.message,
         )
     try:
-        use_case.execute(headman_email=user_email, subgroup=subgroup, lesson_uuid=lesson_uuid)
+        group, lesson = use_case.execute(headman_email=user_email, subgroup=subgroup, lesson_uuid=lesson_uuid)
+        cache_service.invalidate_cache_pattern_list(
+            keys=[
+                cache_service.generate_cache_key(
+                    model_prefix="group",
+                    identifier=group.uuid,
+                    func_prefix="lessons",
+                    filters="*",
+                ),
+                cache_service.generate_cache_key(
+                    model_prefix="teacher",
+                    identifier=lesson.teacher.uuid,
+                    func_prefix="lessons",
+                ),
+            ],
+        )
     except ServiceException as e:
         raise HttpError(
             status_code=404,

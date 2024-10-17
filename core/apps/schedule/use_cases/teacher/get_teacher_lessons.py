@@ -1,3 +1,4 @@
+from collections import defaultdict
 from dataclasses import dataclass
 from typing import Iterable
 
@@ -26,17 +27,16 @@ class GetLessonsForTeacherUseCase:
         teacher = self.teacher_service.get_by_uuid(teacher_uuid=teacher_uuid)
         lessons = self.lesson_service.get_lessons_for_teacher(teacher_id=teacher.id)
 
-        groups = {}
+        groups = defaultdict(list)
+
         for lesson in lessons:
             lesson_groups = self.group_service.get_group_list_from_lesson(lesson_id=lesson.id)
-            groups[lesson.id] = []
 
             for group in lesson_groups:
-                subgroups = self.group_lesson_service.get_subgroup_from_group_lesson(
+                group.subgroups = self.group_lesson_service.get_subgroup_from_group_lesson(
                     group_id=group.id,
                     lesson_id=lesson.id,
                 )
-                group.subgroups = subgroups
                 groups[lesson.id].append(group)
 
         return teacher, lessons, groups

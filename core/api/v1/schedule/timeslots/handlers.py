@@ -10,7 +10,10 @@ from core.api.v1.schedule.timeslots.schemas import (
     CreateTimeslotSchema,
     TimeslotSchema,
 )
-from core.apps.common.authentication.bearer import jwt_bearer_admin
+from core.apps.common.authentication.bearer import (
+    jwt_bearer_admin,
+    jwt_bearer_manager,
+)
 from core.apps.common.exceptions import ServiceException
 from core.apps.schedule.use_cases.timeslot.get_or_create import CreateTimeslotUseCase
 from core.project.containers.containers import get_container
@@ -23,7 +26,7 @@ router = Router(tags=["Timeslots"])
     "",
     response=ApiResponse[TimeslotSchema],
     operation_id="get_or_create_timeslot",
-    auth=jwt_bearer_admin,
+    auth=[jwt_bearer_admin, jwt_bearer_manager],
 )
 def get_or_create_timeslot(request: HttpRequest, schema: Form[CreateTimeslotSchema]) -> ApiResponse[TimeslotSchema]:
     container = get_container()
