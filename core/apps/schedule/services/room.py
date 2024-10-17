@@ -82,7 +82,7 @@ class ORMRoomService(BaseRoomService):
     def get_all(self) -> Iterable[RoomEntity]:
         rooms = RoomModel.objects.all()
 
-        for room in rooms:
+        for room in rooms:  # RoomModel.objects.iterator():
             yield room.to_entity()
 
     def get_list(self, filters: SearchFiltersEntity, pagination: PaginationIn) -> list[RoomEntity]:
