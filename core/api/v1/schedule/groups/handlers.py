@@ -5,13 +5,10 @@ from ninja import (
 )
 from ninja.errors import HttpError
 
-from typing import Union
-
 from core.api.schemas import (
     ApiResponse,
     StatusResponse,
 )
-from core.api.v1.clients.schemas import ClientSchemaPrivate
 from core.api.v1.schedule.groups.filters import GroupFilter
 from core.api.v1.schedule.groups.schemas import (
     CreateGroupSchema,
@@ -80,7 +77,7 @@ def get_all_groups(request: HttpRequest) -> ApiResponse[list[GroupUuidNumberFacu
 
 
 @router.get(
-    "{group_uuid}/lessons/{filters}",
+    "{group_uuid}/lessons",
     response=ApiResponse[GroupLessonsOutSchema],
     operation_id="get_group_lessons",
 )
@@ -159,15 +156,15 @@ def get_group_info(
 
 
 @router.get(
-    "{headman_email}/info",
-    response=ApiResponse[Union[GroupSchemaWithHeadman, ClientSchemaPrivate]],
+    "{headman_email}/headman_info",
+    response=ApiResponse[GroupSchemaWithHeadman],
     operation_id='get_headman_info',
     auth=[jwt_bearer_admin, jwt_bearer_manager],
 )
 def get_headman_info(
         request: HttpRequest,
         headman_email: str,
-) -> ApiResponse[Union[GroupSchemaWithHeadman, ClientSchemaPrivate]]:
+) -> ApiResponse[GroupSchemaWithHeadman]:
     container = get_container()
     cache_service: BaseCacheService = container.resolve(BaseCacheService)
     use_case: GetHeadmanInfoUseCase = container.resolve(GetHeadmanInfoUseCase)
@@ -191,14 +188,10 @@ def get_headman_info(
             status_code=400,
             message=e.message,
         )
-    if group is None:
-        return ApiResponse(
-            data=ClientSchemaPrivate.from_entity(client=headman),
-        )
-    else:
-        return ApiResponse(
-            data=GroupSchemaWithHeadman.from_entity(entity=group),
-        )
+
+    return ApiResponse(
+        data=GroupSchemaWithHeadman.from_entity(entity=group),
+    )
 
 
 @router.post(

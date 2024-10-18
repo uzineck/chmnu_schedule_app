@@ -150,28 +150,6 @@ ELASTIC_APM = {
     'USE_ELASTIC_EXCEPTHOOK': True,
 }
 
-# LOGGING = {
-#     'version': 1,
-#     'filters': {
-#         'require_debug_true': {
-#             '()': 'django.utils.log.RequireDebugTrue',
-#         },
-#     },
-#     'handlers': {
-#         'console': {
-#             'level': 'DEBUG',
-#             'filters': ['require_debug_true'],
-#             'class': 'logging.StreamHandler',
-#         },
-#     },
-#     'loggers': {
-#         'django.db.backends': {
-#             'level': 'DEBUG',
-#             'handlers': ['console'],
-#         },
-#     },
-# }
-
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
@@ -179,6 +157,46 @@ CACHES = {
         "KEY_PREFIX": 'django-ninja-cache',
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        },
+    },
+}
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'base': {
+            'format': '[%(asctime)s] - [%(levelname)s] -  %(name)s.%(funcName)s(%(lineno)d) - "%(message)s"',
+        },
+    },
+    'handlers': {
+        'file_schedule': {
+            'level': 'INFO',
+            'class': 'logging.handlers.TimedRotatingFileHandler',
+            'filename': f'{BASE_DIR}/logs/apps/schedule/app.log',
+            'backupCount': 7,
+            'when': 'midnight',
+            'interval': 1,
+            'formatter': 'base',
+        },
+        'file_client': {
+            'level': 'INFO',
+            'class': 'logging.handlers.TimedRotatingFileHandler',
+            'filename': f'{BASE_DIR}/logs/apps/client/app.log',
+            'backupCount': 7,
+            'when': 'midnight',
+            'interval': 1,
+            'formatter': 'base',
+        },
+        'elasticapm': {
+            'level': 'DEBUG',
+            'class': 'elasticapm.contrib.django.handlers.LoggingHandler',
+        },
+    },
+    'loggers': {
+        'core.apps.schedule': {
+            'handlers': ['file_schedule', 'elasticapm'],
+            'level': 'DEBUG',
         },
     },
 }

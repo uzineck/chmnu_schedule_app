@@ -4,3 +4,4 @@
 .env.prod
 static/*
 !static/.gitkeep
+logs/

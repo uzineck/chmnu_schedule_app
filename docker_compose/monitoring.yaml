@@ -2,8 +2,8 @@ version: '3.9'
 
 services:
   apm-server:
-    container_name: apm-server
     image: docker.elastic.co/apm/apm-server:7.17.20
+    container_name: apm-server
     depends_on:
       elasticsearch:
         condition: service_healthy
@@ -13,6 +13,8 @@ services:
     cap_drop: ["ALL"]
     ports:
     - '8200:8200'
+#    env_file:
+#      - ../.env
     command: >
        apm-server -e
          -E apm-server.rum.enabled=true
@@ -27,8 +29,8 @@ services:
       test: curl --write-out 'HTTP %{http_code}' --fail --silent --output /dev/null http://localhost:8200/
 
   elasticsearch:
-    container_name: elasticsearch
     image: docker.elastic.co/elasticsearch/elasticsearch:7.17.20
+    container_name: elasticsearch
     environment:
     - bootstrap.memory_lock=true
     - cluster.name=docker-cluster
@@ -43,14 +45,16 @@ services:
     - esdata:/usr/share/elasticsearch/data
     ports:
     - '9200:9200'
+#    env_file:
+#      - ../.env
     healthcheck:
       interval: 20s
       retries: 10
       test: curl -s http://localhost:9200/_cluster/health | grep -vq '"status":"red"'
 
   kibana:
-    container_name: kibana
     image: docker.elastic.co/kibana/kibana:7.17.20
+    container_name: kibana
     depends_on:
       elasticsearch:
         condition: service_healthy
@@ -59,6 +63,8 @@ services:
       ELASTICSEARCH_HOSTS: http://elasticsearch:9200
     ports:
     - '5601:5601'
+#    env_file:
+#      - ../.env
     healthcheck:
       interval: 10s
       retries: 20

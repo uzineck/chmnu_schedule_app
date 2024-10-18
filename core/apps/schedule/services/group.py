@@ -1,5 +1,6 @@
 from django.db import IntegrityError
 
+import logging
 from abc import (
     ABC,
     abstractmethod,
@@ -16,6 +17,9 @@ from core.apps.schedule.exceptions.group import (
     HeadmanNotAssignedToAnyGroup,
 )
 from core.apps.schedule.models.group import Group as GroupModel
+
+
+logger = logging.getLogger(__name__)
 
 
 class BaseGroupService(ABC):
@@ -82,6 +86,7 @@ class ORMGroupService(BaseGroupService):
                 headman_id=headman_id,
             )
         except IntegrityError:
+            logger.info(f"Group Creation Error ({group_number=}, {headman_id=})")
             raise GroupAlreadyExistsException(group_number=group_number, headman_id=headman_id)
 
         return group.to_entity()
@@ -92,7 +97,6 @@ class ORMGroupService(BaseGroupService):
             all().
             select_related("headman", "faculty")
         )
-
         for group in groups:
             yield group.to_entity()
 
@@ -104,6 +108,7 @@ class ORMGroupService(BaseGroupService):
                 get(group_uuid=group_uuid)
             )
         except GroupModel.DoesNotExist:
+            logger.warning(f"Group Does Not Exist Error ({group_uuid=})")
             raise GroupNotFoundException(uuid=group_uuid)
 
         return group.to_entity()
@@ -116,6 +121,7 @@ class ORMGroupService(BaseGroupService):
                 get(id=group_id)
             )
         except GroupModel.DoesNotExist:
+            logger.info(f"Group Does Not Exist Error ({group_id=})")
             raise GroupNotFoundException(id=group_id)
 
         return group.to_entity()
@@ -125,6 +131,10 @@ class ORMGroupService(BaseGroupService):
 
     def check_if_group_has_subgroup(self, group: GroupEntity, subgroup: Subgroup) -> bool:
         if not group.has_subgroups and subgroup != Subgroup.A:
+            logger.info(
+                f"Group Does Not Has Subgroup Error "
+                f"(group_number={group.number}, group_has_subgroups={group.has_subgroups}, {subgroup=})",
+            )
             raise GroupWithoutSubgroupsInvalidSubgroupException(subgroup=subgroup)
 
         return True
@@ -149,6 +159,7 @@ class ORMGroupService(BaseGroupService):
         )
 
         if not group:
+            logger.info(f"Headman Not Assigned To Any Group Error ({headman_id=})")
             raise HeadmanNotAssignedToAnyGroup(headman_id=headman_id)
 
         return group.to_entity()
@@ -157,4 +168,5 @@ class ORMGroupService(BaseGroupService):
         is_updated = GroupModel.objects.filter(id=group_id).update(headman_id=headman_id)
 
         if not is_updated:
+            logger.error(f"Group Update Headman Error ({group_id=}, {headman_id=})")
             raise GroupHeadmanUpdateException(group_id=group_id, headman_id=headman_id)
