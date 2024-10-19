@@ -1,6 +1,7 @@
 from django.db import IntegrityError
 from django.db.models import Q
 
+import logging
 from abc import (
     ABC,
     abstractmethod,
@@ -17,6 +18,9 @@ from core.apps.schedule.exceptions.teacher import (
 )
 from core.apps.schedule.filters.teacher import TeacherFilter
 from core.apps.schedule.models.teacher import Teacher as TeacherModel
+
+
+logger = logging.getLogger(__name__)
 
 
 class BaseTeacherService(ABC):
@@ -107,6 +111,7 @@ class ORMTeacherService(BaseTeacherService):
                 rank=rank,
             )
         except IntegrityError:
+            logger.error(f"Teacher Creation Error ({first_name=}, {last_name=}, {middle_name=}, {rank=})")
             raise TeacherAlreadyExistsException(first_name=first_name, last_name=last_name, middle_name=middle_name)
 
         return teacher.to_entity()
@@ -117,22 +122,6 @@ class ORMTeacherService(BaseTeacherService):
         for teacher in teachers:
             yield teacher.to_entity()
 
-    def get_by_uuid(self, teacher_uuid: str) -> TeacherEntity:
-        try:
-            teacher = TeacherModel.objects.get(teacher_uuid=teacher_uuid, is_active=True)
-        except TeacherModel.DoesNotExist:
-            raise TeacherNotFoundException(uuid=teacher_uuid)
-
-        return teacher.to_entity()
-
-    def get_by_id(self, teacher_id: int) -> TeacherEntity:
-        try:
-            teacher = TeacherModel.objects.get(id=teacher_id, is_active=True)
-        except TeacherModel.DoesNotExist:
-            raise TeacherNotFoundException(id=teacher_id)
-
-        return teacher.to_entity()
-
     def get_list(self, filters: TeacherFilter, pagination: PaginationIn) -> Iterable[TeacherEntity]:
         query = self._build_teacher_query(filters)
         qs = TeacherModel.objects.filter(query)[pagination.offset:pagination.offset + pagination.limit]
@@ -142,6 +131,24 @@ class ORMTeacherService(BaseTeacherService):
         query = self._build_teacher_query(filters)
 
         return TeacherModel.objects.filter(query).count()
+
+    def get_by_uuid(self, teacher_uuid: str) -> TeacherEntity:
+        try:
+            teacher = TeacherModel.objects.get(teacher_uuid=teacher_uuid, is_active=True)
+        except TeacherModel.DoesNotExist:
+            logger.error(f"Teacher Does Not Exist Error ({teacher_uuid=})")
+            raise TeacherNotFoundException(uuid=teacher_uuid)
+
+        return teacher.to_entity()
+
+    def get_by_id(self, teacher_id: int) -> TeacherEntity:
+        try:
+            teacher = TeacherModel.objects.get(id=teacher_id, is_active=True)
+        except TeacherModel.DoesNotExist:
+            logger.error(f"Teacher Does Not Exist Error ({teacher_id=})")
+            raise TeacherNotFoundException(id=teacher_id)
+
+        return teacher.to_entity()
 
     def update_name(
             self,
@@ -156,6 +163,7 @@ class ORMTeacherService(BaseTeacherService):
             middle_name=middle_name,
         )
         if not is_updated:
+            logger.error(f"Teacher Update Full Name Error ({teacher_id=}, {first_name=}, {last_name=}, {middle_name=})")
             raise TeacherUpdateException(id=teacher_id)
 
     def update_rank(
@@ -167,6 +175,7 @@ class ORMTeacherService(BaseTeacherService):
             rank=rank,
         )
         if not is_updated:
+            logger.error(f"Teacher Update Rank Error ({teacher_id=}, {rank=})")
             raise TeacherUpdateException(id=teacher_id)
 
     def update_is_active(
@@ -177,4 +186,5 @@ class ORMTeacherService(BaseTeacherService):
         is_updated = TeacherModel.objects.filter(id=teacher_id).update(is_active=is_active)
 
         if not is_updated:
+            logger.error(f"Teacher Update Is Active(Deactivate) Error ({teacher_id=}, {is_active=})")
             raise TeacherUpdateException(id=teacher_id)

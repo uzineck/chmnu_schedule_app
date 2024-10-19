@@ -1,3 +1,4 @@
+import logging
 from abc import (
     ABC,
     abstractmethod,
@@ -5,7 +6,11 @@ from abc import (
 
 from core.apps.common.models import Subgroup
 from core.apps.schedule.entities.group_lessons import GroupLesson as GroupLessonEntity
+from core.apps.schedule.exceptions.group_lesson import GroupLessonDeleteError
 from core.apps.schedule.models.group import GroupLesson as GroupLessonModel
+
+
+logger = logging.getLogger(__name__)
 
 
 class BaseGroupLessonService(ABC):
@@ -46,7 +51,15 @@ class ORMGroupLessonService(BaseGroupLessonService):
         ).delete()
 
         if not is_deleted:
-            ...
+            logger.error(
+                f"Group Lesson Subgroup Relation Delete Error"
+                f" ({group_lesson.lesson.id=}, {group_lesson.group.number=}, {group_lesson.subgroup=})",
+            )
+            raise GroupLessonDeleteError(
+                group_number=group_lesson.group.number,
+                lesson_uuid=group_lesson.lesson.uuid,
+                subgroup=group_lesson.subgroup,
+            )
 
     def get_subgroup_from_group_lesson(self, group_id: int, lesson_id: int) -> list[Subgroup]:
         subgroups = GroupLessonModel.objects.filter(

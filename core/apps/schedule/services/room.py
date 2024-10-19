@@ -1,6 +1,7 @@
 from django.db import IntegrityError
 from django.db.models import Q
 
+import logging
 from abc import (
     ABC,
     abstractmethod,
@@ -17,6 +18,9 @@ from core.apps.schedule.exceptions.room import (
     RoomUpdateException,
 )
 from core.apps.schedule.models import Room as RoomModel
+
+
+logger = logging.getLogger(__name__)
 
 
 class BaseRoomService(ABC):
@@ -76,6 +80,7 @@ class ORMRoomService(BaseRoomService):
         try:
             room = RoomModel.objects.create(number=number)
         except IntegrityError:
+            logger.error(f"Room Creation Error ({number=})")
             raise RoomAlreadyExistException(number=number)
         return room.to_entity()
 
@@ -99,6 +104,7 @@ class ORMRoomService(BaseRoomService):
         try:
             room = RoomModel.objects.get(room_uuid=room_uuid)
         except RoomModel.DoesNotExist:
+            logger.error(f"Room Does Not Exist Error ({room_uuid=})")
             raise RoomNotFoundException(uuid=room_uuid)
 
         return room.to_entity()
@@ -107,6 +113,7 @@ class ORMRoomService(BaseRoomService):
         try:
             room = RoomModel.objects.get(id=room_id)
         except RoomModel.DoesNotExist:
+            logger.error(f"Room Does Not Exist Error ({room_id=})")
             raise RoomNotFoundException(id=room_id)
 
         return room.to_entity()
@@ -122,16 +129,19 @@ class ORMRoomService(BaseRoomService):
         is_updated = RoomModel.objects.filter(id=room_id).update(number=number)
 
         if not is_updated:
+            logger.error(f"Room Update Number Error ({room_id=}, {number=})")
             raise RoomUpdateException(id=room_id)
 
     def update_description(self, room_id: int, description: str) -> None:
         is_updated = RoomModel.objects.filter(id=room_id).update(description=description)
 
         if not is_updated:
+            logger.error(f"Room Update Description Error ({room_id=}, {description=})")
             raise RoomUpdateException(id=room_id)
 
     def delete(self, room_id: int) -> None:
         is_deleted = RoomModel.objects.filter(id=room_id).delete()
 
         if not is_deleted:
+            logger.error(f"Room Delete Error ({room_id=})")
             raise RoomDeleteException(id=room_id)

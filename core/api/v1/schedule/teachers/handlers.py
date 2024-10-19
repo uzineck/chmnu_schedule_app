@@ -51,8 +51,8 @@ router = Router(tags=["Teachers"])
 )
 def get_all_teachers(request: HttpRequest) -> ApiResponse[list[TeacherSchema]]:
     container = get_container()
-    use_case: GetAllTeachersUseCase = container.resolve(GetAllTeachersUseCase)
     cache_service: BaseCacheService = container.resolve(BaseCacheService)
+    use_case: GetAllTeachersUseCase = container.resolve(GetAllTeachersUseCase)
     try:
         teachers = use_case.execute()
 
@@ -79,6 +79,7 @@ def get_all_teachers(request: HttpRequest) -> ApiResponse[list[TeacherSchema]]:
     "",
     response=ApiResponse[ListPaginatedResponse[TeacherSchema]],
     operation_id="get_teacher_list",
+    auth=[jwt_bearer_admin, jwt_bearer_manager],
 )
 def get_teacher_list(
         request: HttpRequest,
@@ -106,16 +107,16 @@ def get_teacher_list(
                 ),
                 pagination=pagination_in,
             )
-            teacher_items = [TeacherSchema.from_entity(obj) for obj in teacher_list]
+            teacher_list = [TeacherSchema.from_entity(obj) for obj in teacher_list]
             pagination_out = PaginationOut(
                 offset=pagination_in.offset,
                 limit=pagination_in.limit,
                 total=teacher_count,
             )
-            items = teacher_items, pagination_out
+            items = teacher_list, pagination_out
             cache_service.set_cache(key=cache_key, value=items, timeout=Timeout.DAY)
 
-        items, pagination_out = items
+        teacher_list, pagination_out = items
     except ServiceException as e:
         raise HttpError(
             status_code=401,
@@ -124,7 +125,7 @@ def get_teacher_list(
 
     return ApiResponse(
         data=ListPaginatedResponse(
-            items=items,
+            items=teacher_list,
             pagination=pagination_out,
         ),
     )
@@ -152,7 +153,7 @@ def get_lessons_for_teacher(request: HttpRequest, teacher_uuid: str) -> ApiRespo
             teacher_lessons = teacher, items
             cache_service.set_cache(key=cache_key, value=teacher_lessons, timeout=Timeout.DAY)
 
-        teacher, items = teacher_lessons
+        teacher, lessons = teacher_lessons
 
     except ServiceException as e:
         raise HttpError(
@@ -163,7 +164,7 @@ def get_lessons_for_teacher(request: HttpRequest, teacher_uuid: str) -> ApiRespo
     return ApiResponse(
         data=TeacherLessonsOutSchema(
             teacher=teacher,
-            lessons=items,
+            lessons=lessons,
         ),
     )
 

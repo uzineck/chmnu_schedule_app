@@ -49,7 +49,7 @@ def create_lesson(
 
 
 @router.post(
-    "{lesson_uuid}/",
+    "{lesson_uuid}",
     response=ApiResponse[LessonForGroupOutSchema],
     operation_id="update_lesson",
     auth=jwt_bearer,

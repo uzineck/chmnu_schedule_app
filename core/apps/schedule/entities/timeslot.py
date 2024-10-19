@@ -18,4 +18,3 @@ class Timeslot:
     is_even: bool | None = field(default=None, kw_only=True)
     created_at: datetime = field(default_factory=datetime.utcnow)
     updated_at: datetime | None = field(default=None)
-

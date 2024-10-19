@@ -44,6 +44,3 @@ This is the backend part of the schedule app for CHMNU students and teachers.
     - `make superuser` - create admin user
     - `make loaddata` - Searches for and loads the contents of the named fixture into the database
     - `make dumpdata` - Outputs to standard output all data in the database associated with the named application
-
-
-

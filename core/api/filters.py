@@ -14,4 +14,3 @@ class PaginationIn(Schema):
 
 class SearchFilter(Schema):
     search: str | None = None
-

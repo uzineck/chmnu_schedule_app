@@ -37,23 +37,6 @@ class GroupSchema(Schema):
         )
 
 
-class GroupSchemaForTeacherLesson(Schema):
-    uuid: str
-    number: str
-    faculty: FacultyCodeNameSchema
-    subgroups: list[Subgroup] | None = None
-
-    @classmethod
-    def from_entity(cls, entity: GroupEntity) -> 'GroupSchemaForTeacherLesson':
-        return cls(
-            uuid=entity.uuid,
-            number=entity.number,
-            faculty=entity.faculty,
-            has_subgroups=entity.has_subgroups,
-            subgroups=entity.subgroups,
-        )
-
-
 class GroupSchemaWithHeadman(Schema):
     uuid: str
     number: str
@@ -107,6 +90,23 @@ class GroupLessonsOutSchema(Schema):
         return cls(
             group=GroupSchema.from_entity_with_subgroup(entity=group_entity, subgroup=subgroup),
             lessons=[LessonForGroupOutSchema.from_entity(obj) for obj in lesson_entities] if lesson_entities else None,
+        )
+
+
+class GroupSchemaForTeacherLesson(Schema):
+    uuid: str
+    number: str
+    faculty: FacultyCodeNameSchema
+    subgroups: list[Subgroup] | None = None
+
+    @classmethod
+    def from_entity(cls, entity: GroupEntity) -> 'GroupSchemaForTeacherLesson':
+        return cls(
+            uuid=entity.uuid,
+            number=entity.number,
+            faculty=entity.faculty,
+            has_subgroups=entity.has_subgroups,
+            subgroups=entity.subgroups,
         )
 
 

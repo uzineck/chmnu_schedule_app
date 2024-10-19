@@ -211,8 +211,8 @@ def update_faculty_code_name(
         schema: FacultyCodeNameSchema,
 ) -> ApiResponse[FacultySchema]:
     container = get_container()
-    use_case: UpdateFacultyCodeNameUseCase = container.resolve(UpdateFacultyCodeNameUseCase)
     cache_service: BaseCacheService = container.resolve(BaseCacheService)
+    use_case: UpdateFacultyCodeNameUseCase = container.resolve(UpdateFacultyCodeNameUseCase)
     try:
         faculty = use_case.execute(faculty_uuid=faculty_uuid, code_name=schema.code_name)
         cache_service.invalidate_cache_pattern_list(

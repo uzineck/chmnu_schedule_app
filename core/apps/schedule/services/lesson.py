@@ -1,5 +1,6 @@
 from django.db.models import Q
 
+import logging
 from abc import (
     ABC,
     abstractmethod,
@@ -10,6 +11,9 @@ from core.apps.schedule.entities.lesson import Lesson as LessonEntity
 from core.apps.schedule.exceptions.lesson import LessonNotFoundException
 from core.apps.schedule.filters.group import GroupLessonFilter
 from core.apps.schedule.models import Lesson as LessonModel
+
+
+logger = logging.getLogger(__name__)
 
 
 class BaseLessonService(ABC):
@@ -64,6 +68,7 @@ class ORMLessonService(BaseLessonService):
                 get(lesson_uuid=lesson_uuid)
             )
         except LessonModel.DoesNotExist:
+            logger.error(f"Lesson Does Not Exist Error ({lesson_uuid=})")
             raise LessonNotFoundException(uuid=lesson_uuid)
 
         return lesson.to_entity()

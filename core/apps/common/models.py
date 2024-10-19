@@ -64,4 +64,3 @@ class ClientRole(models.TextChoices):
 class TokenType(models.TextChoices):
     ACCESS = "access", "ACCESS"
     REFRESH = "refresh", "REFRESH"
-

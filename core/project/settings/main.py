@@ -192,11 +192,19 @@ LOGGING = {
             'level': 'DEBUG',
             'class': 'elasticapm.contrib.django.handlers.LoggingHandler',
         },
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+        },
     },
     'loggers': {
         'core.apps.schedule': {
             'handlers': ['file_schedule', 'elasticapm'],
             'level': 'DEBUG',
+        },
+        'django.db.backends': {
+            'level': 'DEBUG',
+            'handlers': ['console'],
         },
     },
 }

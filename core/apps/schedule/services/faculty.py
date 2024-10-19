@@ -1,6 +1,7 @@
 from django.db import IntegrityError
 from django.db.models import Q
 
+import logging
 from abc import (
     ABC,
     abstractmethod,
@@ -17,6 +18,9 @@ from core.apps.schedule.exceptions.faculty import (
     FacultyUpdateException,
 )
 from core.apps.schedule.models import Faculty as FacultyModel
+
+
+logger = logging.getLogger(__name__)
 
 
 class BaseFacultyService(ABC):
@@ -73,6 +77,7 @@ class ORMFacultyService(BaseFacultyService):
                 name=name,
             )
         except IntegrityError:
+            logger.error(f"Faculty Creation Error ({name=}, {code_name=})")
             raise FacultyAlreadyExistsException(code_name=code_name, name=name)
 
         return faculty.to_entity()
@@ -99,6 +104,7 @@ class ORMFacultyService(BaseFacultyService):
         try:
             faculty = FacultyModel.objects.get(faculty_uuid=faculty_uuid)
         except FacultyModel.DoesNotExist:
+            logger.error(f"Faculty Does Not Exist Error ({faculty_uuid=})")
             raise FacultyNotFoundException(uuid=faculty_uuid)
 
         return faculty.to_entity()
@@ -107,6 +113,7 @@ class ORMFacultyService(BaseFacultyService):
         try:
             faculty = FacultyModel.objects.get(id=faculty_id)
         except FacultyModel.DoesNotExist:
+            logger.error(f"Faculty Does Not Exist Error ({faculty_id=})")
             raise FacultyNotFoundException(id=faculty_id)
 
         return faculty.to_entity()
@@ -115,16 +122,19 @@ class ORMFacultyService(BaseFacultyService):
         is_updated = FacultyModel.objects.filter(id=faculty_id).update(name=new_name)
 
         if not is_updated:
+            logger.error(f"Faculty Update Name Error ({faculty_id=}, {new_name=})")
             raise FacultyUpdateException(id=faculty_id)
 
     def update_code_name(self, faculty_id: int, new_code_name: str) -> None:
         is_updated = FacultyModel.objects.filter(id=faculty_id).update(code_name=new_code_name)
 
         if not is_updated:
+            logger.error(f"Faculty Update Code Name Error ({faculty_id=}, {new_code_name=})")
             raise FacultyUpdateException(id=faculty_id)
 
     def delete(self, faculty_id: int) -> None:
         is_deleted = FacultyModel.objects.filter(id=faculty_id).delete()
 
         if not is_deleted:
+            logger.error(f"Faculty Delete Error ({faculty_id=})")
             raise FacultyDeleteException(id=faculty_id)

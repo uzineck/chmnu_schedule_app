@@ -1,6 +1,6 @@
 from ninja import Schema
 
-from datetime import datetime
+from typing import Iterable
 
 from core.api.v1.schedule.groups.schemas import GroupSchemaForTeacherLesson
 from core.api.v1.schedule.rooms.schemas import RoomSchema
@@ -10,6 +10,7 @@ from core.api.v1.schedule.timeslots.schemas import TimeslotSchema
 from core.apps.common.models import LessonType
 from core.apps.schedule.entities.group import Group as GroupEntity
 from core.apps.schedule.entities.lesson import Lesson as LessonEntity
+from core.apps.schedule.entities.teacher import Teacher as TeacherEntity
 
 
 class LessonForTeacherOutSchema(Schema):
@@ -19,8 +20,6 @@ class LessonForTeacherOutSchema(Schema):
     subject: SubjectSchema
     room: RoomSchema
     timeslot: TimeslotSchema
-    created_at: datetime
-    updated_at: datetime
 
     @classmethod
     def from_entity(cls, lesson: LessonEntity, groups: list[GroupEntity]) -> 'LessonForTeacherOutSchema':
@@ -32,11 +31,26 @@ class LessonForTeacherOutSchema(Schema):
             timeslot=lesson.timeslot,
             teacher=lesson.teacher,
             subject=lesson.subject,
-            created_at=lesson.created_at,
-            updated_at=lesson.updated_at,
         )
 
 
 class TeacherLessonsOutSchema(Schema):
     teacher: TeacherSchema
     lessons: list[LessonForTeacherOutSchema] | None = None
+
+    @classmethod
+    def from_entity_with_lesson_entities(
+            cls,
+            teacher_entity: TeacherEntity,
+            lesson_entities: Iterable[LessonEntity],
+            group_entities: dict[int, [GroupEntity]],
+    ) -> 'TeacherLessonsOutSchema':
+        return cls(
+            teacher=TeacherSchema.from_entity(entity=teacher_entity),
+            lessons=[
+                LessonForTeacherOutSchema.from_entity(
+                    lesson,
+                    group_entities.get(lesson.id, []),
+                ) for lesson in lesson_entities
+            ],
+        )

@@ -242,8 +242,8 @@ def update_group_headman(
         schema: HeadmanEmailInSchema,
 ) -> ApiResponse[GroupSchemaWithHeadman]:
     container = get_container()
-    use_case: UpdateGroupHeadmanUseCase = container.resolve(UpdateGroupHeadmanUseCase)
     cache_service: BaseCacheService = container.resolve(BaseCacheService)
+    use_case: UpdateGroupHeadmanUseCase = container.resolve(UpdateGroupHeadmanUseCase)
     try:
         group = use_case.execute(
             group_uuid=group_uuid,
@@ -281,8 +281,8 @@ def add_lesson_to_group_admin(
         lesson_uuid: str,
 ) -> ApiResponse[StatusResponse]:
     container = get_container()
-    use_case: AdminAddLessonToGroupUseCase = container.resolve(AdminAddLessonToGroupUseCase)
     cache_service: BaseCacheService = container.resolve(BaseCacheService)
+    use_case: AdminAddLessonToGroupUseCase = container.resolve(AdminAddLessonToGroupUseCase)
     try:
         group, lesson = use_case.execute(group_uuid=group_uuid, subgroup=subgroup, lesson_uuid=lesson_uuid)
         cache_service.invalidate_cache_pattern_list(
@@ -324,8 +324,8 @@ def remove_lesson_from_group_admin(
         lesson_uuid: str,
 ) -> ApiResponse[StatusResponse]:
     container = get_container()
-    use_case: AdminRemoveLessonFromGroupUseCase = container.resolve(AdminRemoveLessonFromGroupUseCase)
     cache_service: BaseCacheService = container.resolve(BaseCacheService)
+    use_case: AdminRemoveLessonFromGroupUseCase = container.resolve(AdminRemoveLessonFromGroupUseCase)
     try:
         group, lesson = use_case.execute(group_uuid=group_uuid, subgroup=subgroup, lesson_uuid=lesson_uuid)
         cache_service.invalidate_cache_pattern_list(
@@ -366,8 +366,8 @@ def add_lesson_to_group_headman(
 ) -> ApiResponse[StatusResponse]:
     container = get_container()
     client_service = container.resolve(BaseClientService)
-    use_case: HeadmanAddLessonToGroupUseCase = container.resolve(HeadmanAddLessonToGroupUseCase)
     cache_service: BaseCacheService = container.resolve(BaseCacheService)
+    use_case: HeadmanAddLessonToGroupUseCase = container.resolve(HeadmanAddLessonToGroupUseCase)
     try:
         user_email: str = client_service.get_client_email_from_token(token=request.auth)
     except JWTKeyParsingException as e:
@@ -416,8 +416,8 @@ def remove_lesson_to_group_headman(
 ) -> ApiResponse[StatusResponse]:
     container = get_container()
     client_service = container.resolve(BaseClientService)
-    use_case: HeadmanRemoveLessonFromGroupUseCase = container.resolve(HeadmanRemoveLessonFromGroupUseCase)
     cache_service: BaseCacheService = container.resolve(BaseCacheService)
+    use_case: HeadmanRemoveLessonFromGroupUseCase = container.resolve(HeadmanRemoveLessonFromGroupUseCase)
     try:
         user_email: str = client_service.get_client_email_from_token(token=request.auth)
     except JWTKeyParsingException as e:

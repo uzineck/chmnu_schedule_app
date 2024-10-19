@@ -86,7 +86,7 @@ class ORMGroupService(BaseGroupService):
                 headman_id=headman_id,
             )
         except IntegrityError:
-            logger.info(f"Group Creation Error ({group_number=}, {headman_id=})")
+            logger.error(f"Group Creation Error ({group_number=}, {headman_id=})")
             raise GroupAlreadyExistsException(group_number=group_number, headman_id=headman_id)
 
         return group.to_entity()
@@ -108,7 +108,7 @@ class ORMGroupService(BaseGroupService):
                 get(group_uuid=group_uuid)
             )
         except GroupModel.DoesNotExist:
-            logger.warning(f"Group Does Not Exist Error ({group_uuid=})")
+            logger.error(f"Group Does Not Exist Error ({group_uuid=})")
             raise GroupNotFoundException(uuid=group_uuid)
 
         return group.to_entity()
@@ -121,7 +121,7 @@ class ORMGroupService(BaseGroupService):
                 get(id=group_id)
             )
         except GroupModel.DoesNotExist:
-            logger.info(f"Group Does Not Exist Error ({group_id=})")
+            logger.error(f"Group Does Not Exist Error ({group_id=})")
             raise GroupNotFoundException(id=group_id)
 
         return group.to_entity()
@@ -131,7 +131,7 @@ class ORMGroupService(BaseGroupService):
 
     def check_if_group_has_subgroup(self, group: GroupEntity, subgroup: Subgroup) -> bool:
         if not group.has_subgroups and subgroup != Subgroup.A:
-            logger.info(
+            logger.warning(
                 f"Group Does Not Has Subgroup Error "
                 f"(group_number={group.number}, group_has_subgroups={group.has_subgroups}, {subgroup=})",
             )
@@ -159,7 +159,7 @@ class ORMGroupService(BaseGroupService):
         )
 
         if not group:
-            logger.info(f"Headman Not Assigned To Any Group Error ({headman_id=})")
+            logger.error(f"Headman Not Assigned To Any Group Error ({headman_id=})")
             raise HeadmanNotAssignedToAnyGroup(headman_id=headman_id)
 
         return group.to_entity()

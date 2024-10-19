@@ -1,7 +1,5 @@
 from ninja import Schema
 
-from datetime import datetime
-
 from core.api.v1.schedule.rooms.schemas import RoomSchema
 from core.api.v1.schedule.subjects.schemas import SubjectSchema
 from core.api.v1.schedule.teachers.schemas import TeacherSchema
@@ -17,8 +15,6 @@ class LessonForGroupOutSchema(Schema):
     teacher: TeacherSchema
     room: RoomSchema
     timeslot: TimeslotSchema
-    created_at: datetime
-    updated_at: datetime
 
     @classmethod
     def from_entity(cls, lesson: LessonEntity) -> 'LessonForGroupOutSchema':
@@ -29,6 +25,4 @@ class LessonForGroupOutSchema(Schema):
             teacher=lesson.teacher,
             room=lesson.room,
             timeslot=lesson.timeslot,
-            created_at=lesson.created_at,
-            updated_at=lesson.updated_at,
         )

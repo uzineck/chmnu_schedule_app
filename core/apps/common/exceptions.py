@@ -22,4 +22,3 @@ class InvalidTokenTypeException(ServiceException):
     @property
     def message(self):
         return 'Invalid token type'
-

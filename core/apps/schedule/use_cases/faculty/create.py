@@ -12,4 +12,3 @@ class CreateFacultyUseCase:
         faculty = self.faculty_service.create(name=name, code_name=code_name)
 
         return faculty
-

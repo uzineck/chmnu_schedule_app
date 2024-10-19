@@ -10,6 +10,8 @@ from core.api.v1.clients.schemas import (
     ClientSchemaPrivate,
     CredentialsInSchema,
     LogInSchema,
+    RoleInSchema,
+    SignUpInSchema,
     TokenClientOutSchema,
     TokenInSchema,
     TokenOutSchema,
@@ -17,13 +19,18 @@ from core.api.v1.clients.schemas import (
     UpdatePwInSchema,
 )
 from core.apps.clients.services.client import BaseClientService
+from core.apps.clients.usecases.client.create import CreateClientUseCase
 from core.apps.clients.usecases.client.login import LoginClientUseCase
 from core.apps.clients.usecases.client.logout import LogoutClientUseCase
 from core.apps.clients.usecases.client.update_access_token import UpdateAccessTokenUseCase
 from core.apps.clients.usecases.client.update_credentials import UpdateClientCredentialsUseCase
 from core.apps.clients.usecases.client.update_email import UpdateClientEmailUseCase
 from core.apps.clients.usecases.client.update_password import UpdateClientPasswordUseCase
-from core.apps.common.authentication.bearer import jwt_bearer
+from core.apps.clients.usecases.client.update_role import UpdateClientRoleUseCase
+from core.apps.common.authentication.bearer import (
+    jwt_bearer,
+    jwt_bearer_admin,
+)
 from core.apps.common.exceptions import (
     JWTKeyParsingException,
     ServiceException,
@@ -35,13 +42,43 @@ router = Router(tags=["Client"])
 
 
 @router.post(
+    "sign-up",
+    response=ApiResponse[ClientSchemaPrivate],
+    operation_id='sign_up',
+    auth=jwt_bearer_admin,
+)
+def sign_up_handler(request: HttpRequest, schema: SignUpInSchema) -> ApiResponse[ClientSchemaPrivate]:
+    container = get_container()
+    use_case: CreateClientUseCase = container.resolve(CreateClientUseCase)
+    try:
+        client = use_case.execute(
+            first_name=schema.first_name,
+            last_name=schema.last_name,
+            middle_name=schema.middle_name,
+            role=schema.role,
+            email=schema.email,
+            password=schema.password,
+            verify_password=schema.verify_password,
+        )
+    except ServiceException as e:
+        raise HttpError(
+            status_code=401,
+            message=e.message,
+        )
+
+    return ApiResponse(
+        data=ClientSchemaPrivate.from_entity(client=client),
+    )
+
+
+@router.post(
     "log-in",
     response=ApiResponse[TokenClientOutSchema],
     operation_id='login',
 )
 def login(request: HttpRequest, schema: LogInSchema) -> ApiResponse[TokenClientOutSchema]:
     container = get_container()
-    use_case = container.resolve(LoginClientUseCase)
+    use_case: LoginClientUseCase = container.resolve(LoginClientUseCase)
     try:
         client, jwt_tokens = use_case.execute(email=schema.email, password=schema.password)
     except ServiceException as e:
@@ -104,7 +141,7 @@ def update_access_token(request: HttpRequest, schema: TokenInSchema) -> ApiRespo
 )
 def update_password(request: HttpRequest, schema: UpdatePwInSchema) -> ApiResponse[StatusResponse]:
     container = get_container()
-    client_service = container.resolve(BaseClientService)
+    client_service: BaseClientService = container.resolve(BaseClientService)
     use_case: UpdateClientPasswordUseCase = container.resolve(UpdateClientPasswordUseCase)
     try:
         user_email: str = client_service.get_client_email_from_token(token=request.auth)
@@ -176,8 +213,8 @@ def update_email(request: HttpRequest, schema: UpdateEmailInSchema) -> ApiRespon
 )
 def update_credentials(request: HttpRequest, schema: CredentialsInSchema) -> ApiResponse[ClientSchemaPrivate]:
     container = get_container()
-    client_service = container.resolve(BaseClientService)
-    use_case = container.resolve(UpdateClientCredentialsUseCase)
+    client_service: BaseClientService = container.resolve(BaseClientService)
+    use_case: UpdateClientCredentialsUseCase = container.resolve(UpdateClientCredentialsUseCase)
     try:
         user_email: str = client_service.get_client_email_from_token(token=request.auth)
     except JWTKeyParsingException as e:
@@ -192,6 +229,34 @@ def update_credentials(request: HttpRequest, schema: CredentialsInSchema) -> Api
             first_name=schema.first_name,
             last_name=schema.last_name,
             middle_name=schema.middle_name,
+        )
+    except ServiceException as e:
+        raise HttpError(
+            status_code=400,
+            message=e.message,
+        )
+    return ApiResponse(
+        data=ClientSchemaPrivate.from_entity(client=client),
+    )
+
+
+@router.patch(
+    "{client_email}/update_role",
+    response=ApiResponse[ClientSchemaPrivate],
+    operation_id='update_client_role',
+    auth=jwt_bearer_admin,
+)
+def update_client_role(
+        request: HttpRequest,
+        client_email: str,
+        schema: RoleInSchema,
+) -> ApiResponse[ClientSchemaPrivate]:
+    container = get_container()
+    use_case: UpdateClientRoleUseCase = container.resolve(UpdateClientRoleUseCase)
+    try:
+        client = use_case.execute(
+            email=client_email,
+            new_role=schema.role,
         )
     except ServiceException as e:
         raise HttpError(

@@ -1,6 +1,7 @@
 from django.db import IntegrityError
 from django.db.models import Q
 
+import logging
 from abc import (
     ABC,
     abstractmethod,
@@ -17,6 +18,9 @@ from core.apps.schedule.exceptions.subject import (
     SubjectUpdateException,
 )
 from core.apps.schedule.models import Subject as SubjectModel
+
+
+logger = logging.getLogger(__name__)
 
 
 class BaseSubjectService(ABC):
@@ -66,7 +70,9 @@ class ORMSubjectService(BaseSubjectService):
         try:
             subject = SubjectModel.objects.create(title=title, slug=slug)
         except IntegrityError:
+            logger.info(f"Subject Creation Error ({title=}, {slug=})")
             raise SubjectAlreadyExistException(title=title)
+
         return subject.to_entity()
 
     def get_all(self) -> Iterable[SubjectEntity]:
@@ -91,6 +97,7 @@ class ORMSubjectService(BaseSubjectService):
         try:
             subject = SubjectModel.objects.get(subject_uuid=subject_uuid)
         except SubjectModel.DoesNotExist:
+            logger.error(f"Subject Does Not Exist Error ({subject_uuid=})")
             raise SubjectNotFoundException(uuid=subject_uuid)
         return subject.to_entity()
 
@@ -98,6 +105,7 @@ class ORMSubjectService(BaseSubjectService):
         try:
             subject = SubjectModel.objects.get(id=subject_id)
         except SubjectModel.DoesNotExist:
+            logger.error(f"Subject Does Not Exist Error ({subject_id=})")
             raise SubjectNotFoundException(id=subject_id)
         return subject.to_entity()
 
@@ -105,10 +113,12 @@ class ORMSubjectService(BaseSubjectService):
         is_updated = SubjectModel.objects.filter(id=subject_id).update(title=title, slug=slug)
 
         if not is_updated:
+            logger.error(f"Subject Update Description Error ({subject_id=}, {title=}, {slug=})")
             raise SubjectUpdateException(id=subject_id)
 
     def delete(self, subject_id: int) -> None:
         is_deleted = SubjectModel.objects.filter(id=subject_id).delete()
 
         if not is_deleted:
+            logger.error(f"Subject Delete Error ({subject_id=})")
             raise SubjectDeleteException(id=subject_id)

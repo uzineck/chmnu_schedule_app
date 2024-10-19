@@ -11,10 +11,10 @@ from core.api.v1.schedule.timeslots.handlers import router as timeslot_router
 
 router = Router(tags=['Schedule'])
 
-router.add_router(prefix="group/", router=group_router)
 router.add_router(prefix="lesson/", router=lesson_router)
+router.add_router(prefix="group/", router=group_router)
 router.add_router(prefix="teacher/", router=teacher_router)
-router.add_router(prefix="faculty/", router=faculty_router)
 router.add_router(prefix="subject/", router=subject_router)
 router.add_router(prefix="room/", router=room_router)
+router.add_router(prefix="faculty/", router=faculty_router)
 router.add_router(prefix="timeslot/", router=timeslot_router)

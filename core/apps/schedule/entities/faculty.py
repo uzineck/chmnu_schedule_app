@@ -15,4 +15,3 @@ class Faculty:
     name: str | None = field(default=None, kw_only=True)
     created_at: datetime = field(default_factory=datetime.utcnow)
     updated_at: datetime | None = field(default=None)
-

@@ -1,3 +1,4 @@
+import logging
 from abc import (
     ABC,
     abstractmethod,
@@ -10,6 +11,9 @@ from core.apps.common.models import (
 from core.apps.schedule.entities.timeslot import Timeslot as TimeslotEntity
 from core.apps.schedule.exceptions.timeslot import TimeslotNotFoundException
 from core.apps.schedule.models import Timeslot as TimeslotModel
+
+
+logger = logging.getLogger(__name__)
 
 
 class BaseTimeslotService(ABC):
@@ -31,6 +35,7 @@ class ORMTimeslotService(BaseTimeslotService):
         try:
             timeslot = TimeslotModel.objects.get(id=timeslot_id)
         except TimeslotModel.DoesNotExist:
+            logger.error(f"Timeslot Does Not Exist Error ({timeslot_id=})")
             raise TimeslotNotFoundException(timeslot_id=timeslot_id)
 
         return timeslot.to_entity()

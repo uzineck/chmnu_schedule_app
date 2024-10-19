@@ -5,6 +5,7 @@ services:
     build:
       context: ..
       dockerfile: Dockerfile
+    image: backend_chmnu_schedule:latest
     container_name: main-app
     ports:
       - "${DJANGO_PORT}:8000"
