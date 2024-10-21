@@ -5,6 +5,7 @@ APP_FILE = docker_compose/app.yaml
 MONITORING_FILE = docker_compose/monitoring.yaml
 
 APP_CONTAINER = main-app
+PROXY_CONTAINER = proxy
 
 EXEC = docker exec -it
 LOGS = docker logs
@@ -19,6 +20,7 @@ DB_NAME = chmnu_schedule
 MANAGE_PY = python manage.py
 
 .PHONY: app, app-logs, app-down, # main app on docker commands
+.PHONY: proxy-reload, proxy-reload-test, proxy-logs # proxy server in docker commands
 .PHONY: storages, storages-logs, storages-down,  # storages in docker commands
 .PHONY: monitoring, monitoring-logs, monitoring-down, # elastic apm in docker commands
 .PHONY: postgres, db-logs, # postgres in docker commands
@@ -26,13 +28,28 @@ MANAGE_PY = python manage.py
 
 
 app:
-		${DC} ${ENV} -f ${APP_FILE} -f ${STORAGES_FILE} -f ${MONITORING_FILE} up --build -d
+		${DC} ${ENV} -f ${APP_FILE} -f ${STORAGES_FILE} up --build -d
 
 app-logs:
 		${LOGS} ${APP_CONTAINER} -f
 
 app-down:
 		${DC} -f ${APP_FILE} -f ${STORAGES_FILE} -f ${MONITORING_FILE} down
+
+#proxy:
+#		${DC} -f ${PROXY_FILE} ${ENV} up -d
+#
+#proxy-down:
+#		${DC} -f ${PROXY_FILE} down
+
+proxy-logs:
+		${LOGS} ${PROXY_CONTAINER} -f
+
+proxy-reload-test:
+		${EXEC} ${PROXY_CONTAINER} nginx -t
+
+proxy-reload:
+		${EXEC} ${PROXY_CONTAINER} nginx -s reload
 
 storages:
 		${DC} -f ${STORAGES_FILE} ${ENV} up -d
@@ -50,7 +67,7 @@ postgres:
 		${EXEC} ${DB_CONTAINER} psql -U ${DB_USER} -d ${DB_NAME}
 
 monitoring:
-	${DC} -f ${MONITORING_FILE} ${ENV} up --build -d
+	${DC} -f ${MONITORING_FILE} ${ENV} up -d
 
 monitoring-logs:
 	${DC} -f ${MONITORING_FILE} ${ENV} logs -f

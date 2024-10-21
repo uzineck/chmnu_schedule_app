@@ -19,6 +19,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    restart: always
 
 
   pgadmin:
@@ -34,6 +35,7 @@ services:
       - pgadmin-data:/var/lib/pgadmin
     env_file:
       - ../.env
+    restart: always
 
   redis:
     image: redis:latest
@@ -45,24 +47,24 @@ services:
     environment:
       - REDIS_PASSWORD=${REDIS_PASSWORD}
     command: [ "--maxmemory", "250mb" ]
-    restart: always
     volumes:
       - redis_data:/data
     healthcheck:
       test: "redis-cli --raw ping"
       interval: 2s
       timeout: 15s
+    restart: always
 
   redis-insight:
     image: redis/redisinsight:latest
     container_name: redisinsight
-    restart: always
     env_file:
       - ../.env
     ports:
       - "${REDISINSIGHT_PORT}:5540"
     volumes:
       - redis-insight:/data
+    restart: always
 
 volumes:
   postgres_data:

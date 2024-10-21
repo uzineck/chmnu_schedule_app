@@ -15,16 +15,15 @@ pyjwt = "^2.8.0"
 pytils = "^0.4.1"
 elastic-apm = "^6.22.0"
 punq = "^0.7.0"
-uvicorn = "^0.30.6"
 django-redis = "^5.4.0"
 psycopg = {extras = ["pool"], version = "^3.2.3"}
+gunicorn = "^23.0.0"
 
 
 [tool.poetry.group.dev.dependencies]
 isort = "^5.13.2"
 flake8 = "^7.0.0"
 pre-commit = "^3.7.0"
-gunicorn = "^23.0.0"
 pytest = "^8.3.3"
 pytest-django = "^4.9.0"
 factory-boy = "^3.3.1"
