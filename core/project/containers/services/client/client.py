@@ -9,6 +9,7 @@ from core.apps.clients.services.issuedjwttoken import (
     ORMIssuedJwtTokenService,
 )
 from core.apps.clients.usecases.client.create import CreateClientUseCase
+from core.apps.clients.usecases.client.get_headman_info import GetHeadmanInfoUseCase
 from core.apps.clients.usecases.client.login import LoginClientUseCase
 from core.apps.clients.usecases.client.logout import LogoutClientUseCase
 from core.apps.clients.usecases.client.update_access_token import UpdateAccessTokenUseCase
@@ -16,7 +17,6 @@ from core.apps.clients.usecases.client.update_credentials import UpdateClientCre
 from core.apps.clients.usecases.client.update_email import UpdateClientEmailUseCase
 from core.apps.clients.usecases.client.update_password import UpdateClientPasswordUseCase
 from core.apps.clients.usecases.client.update_role import UpdateClientRoleUseCase
-from core.apps.clients.usecases.headman.get_headman_info import GetHeadmanInfoUseCase
 from core.apps.common.authentication.password import (
     BasePasswordService,
     BcryptPasswordService,

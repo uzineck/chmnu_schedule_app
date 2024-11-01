@@ -1,30 +1,31 @@
 DC = docker-compose
 
+# Docker-compose file paths
 STORAGES_FILE = docker_compose/storages.yaml
 APP_FILE = docker_compose/app.yaml
 MONITORING_FILE = docker_compose/monitoring.yaml
 
+# Docker-compose container names
 APP_CONTAINER = main-app
 PROXY_CONTAINER = proxy
+DB_CONTAINER = chmnu-db
 
+# Docker commands
 EXEC = docker exec -it
 LOGS = docker logs
 
+# Env file path(with docker argument)
 ENV = --env-file .env
 
-# TODO hide this
-DB_CONTAINER = chmnu-db
-DB_USER = myuser
-DB_NAME = chmnu_schedule
-
+# Django application specific command
 MANAGE_PY = python manage.py
 
-.PHONY: app, app-logs, app-down, # main app on docker commands
-.PHONY: proxy-reload, proxy-reload-test, proxy-logs # proxy server in docker commands
-.PHONY: storages, storages-logs, storages-down,  # storages in docker commands
-.PHONY: monitoring, monitoring-logs, monitoring-down, # elastic apm in docker commands
-.PHONY: postgres, db-logs, # postgres in docker commands
-.PHONY: migrations, migrate, superuser_default, loaddata, dumpdata, collectstatic # django manage.py commands
+.PHONY: app, app-down, app-logs, # start,end,logs of the main app
+.PHONY: proxy-reload, proxy-reload-test, proxy-logs # proxy server commands
+.PHONY: storages, storages-logs, storages-down,  # storages(postgres, pgadmin, redis, redisinsight) commands
+.PHONY: monitoring, monitoring-logs, monitoring-down, # elastic apm stack commands
+.PHONY: postgres, db-logs, # postgres specific commands
+.PHONY: migrations, migrate, superuser, loaddata, dumpdata, collectstatic # django manage.py commands
 
 
 app:
@@ -35,12 +36,6 @@ app-logs:
 
 app-down:
 		${DC} -f ${APP_FILE} -f ${STORAGES_FILE} -f ${MONITORING_FILE} down
-
-#proxy:
-#		${DC} -f ${PROXY_FILE} ${ENV} up -d
-#
-#proxy-down:
-#		${DC} -f ${PROXY_FILE} down
 
 proxy-logs:
 		${LOGS} ${PROXY_CONTAINER} -f
@@ -58,13 +53,13 @@ storages-down:
 		${DC} -f ${STORAGES_FILE} down
 
 storages-logs:
-		${LOGS} ${DB_CONTAINER} -f
-
-db-logs:
 		${DC} -f ${STORAGES_FILE} logs -f
 
+db-logs:
+		${LOGS} ${DB_CONTAINER} -f
+
 postgres:
-		${EXEC} ${DB_CONTAINER} psql -U ${DB_USER} -d ${DB_NAME}
+		@DB_USER=${DB_USER} DB_NAME=${DB_NAME} ${EXEC} ${DB_CONTAINER} psql -U ${DB_USER} -d ${DB_NAME}
 
 monitoring:
 	${DC} -f ${MONITORING_FILE} ${ENV} up -d
@@ -81,19 +76,14 @@ migrate:
 migrations:
 		${EXEC} ${APP_CONTAINER} ${MANAGE_PY} makemigrations
 
-superuser_default:
-		${EXEC} ${APP_CONTAINER} ${MANAGE_PY} createsuperuser --username admin --email admin@admin.com
+superuser:
+		${EXEC} ${APP_CONTAINER} ${MANAGE_PY} createsuperuser --no-input
 
 collectstatic:
 		${EXEC} ${APP_CONTAINER} ${MANAGE_PY} collectstatic
 
 dumpdata:
-		${EXEC} ${APP_CONTAINER} ${MANAGE_PY} dumpdata schedule --indent=4 -o data.json
+		APP_NAME=${APP_NAME} FILE=${FILE} ${EXEC} ${APP_CONTAINER} ${MANAGE_PY} dumpdata ${APP_NAME} --indent=4 -o ${FILE}
 
 loaddata:
-		${EXEC} ${APP_CONTAINER} ${MANAGE_PY} loaddata --app=schedule --format=json
-
-run-test:
-		${EXEC} ${APP_CONTAINER} pytest -v
-
-#docker exec -it main-app python manage.py
+		APP_NAME=${APP_NAME} ${EXEC} ${APP_CONTAINER} ${MANAGE_PY} loaddata --app=${APP_NAME} --format=json

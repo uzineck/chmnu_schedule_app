@@ -49,7 +49,7 @@ class BaseRoomService(ABC):
         ...
 
     @abstractmethod
-    def check_room_number_exists(self, room_number: str) -> bool:
+    def check_exists_by_number(self, room_number: str) -> bool:
         ...
 
     @abstractmethod
@@ -118,7 +118,7 @@ class ORMRoomService(BaseRoomService):
 
         return room.to_entity()
 
-    def check_room_number_exists(self, room_number: str) -> bool:
+    def check_exists_by_number(self, room_number: str) -> bool:
         return RoomModel.objects.filter(number=room_number).exists()
 
     def update_number(

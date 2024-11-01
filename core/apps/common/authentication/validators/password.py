@@ -31,8 +31,9 @@ class MatchingVerifyPasswordsValidatorService(BasePasswordValidatorService):
             *args,
             **kwargs,
     ):
-        if not (password == verify_password):
-            raise PasswordsNotMatchingException(password1=password, password2=verify_password)
+        if verify_password is not None:
+            if not (password == verify_password):
+                raise PasswordsNotMatchingException(password1=password, password2=verify_password)
 
 
 class PasswordPatternValidatorService(BasePasswordValidatorService):
@@ -44,8 +45,9 @@ class PasswordPatternValidatorService(BasePasswordValidatorService):
 
 class SimilarOldAndNewPasswordValidatorService(BasePasswordValidatorService):
     def validate(self, password: str, old_password: str | None = None, *args, **kwargs):
-        if old_password == password:
-            raise OldAndNewPasswordsAreSimilarException(old_password=old_password, new_password=password)
+        if old_password is not None:
+            if old_password == password:
+                raise OldAndNewPasswordsAreSimilarException(old_password=old_password, new_password=password)
 
 
 @dataclass

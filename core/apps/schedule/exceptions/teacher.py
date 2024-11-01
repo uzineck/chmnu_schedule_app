@@ -31,3 +31,27 @@ class TeacherUpdateException(ServiceException):
     @property
     def message(self):
         return 'An error occurred while updating teacher'
+
+
+@dataclass(eq=False)
+class OldAndNewTeacherNamesAreSimilarException(ServiceException):
+    first_name: str
+    last_name: str
+    middle_name: str
+    old_first_name: str
+    old_last_name: str
+    old_middle_name: str
+
+    @property
+    def message(self):
+        return 'Old teacher name and the new one are similar'
+
+
+@dataclass(eq=False)
+class OldAndNewTeacherRanksAreSimilarException(ServiceException):
+    old_rank: str
+    new_rank: str
+
+    @property
+    def message(self):
+        return 'Old teacher rank and the new one are similar'

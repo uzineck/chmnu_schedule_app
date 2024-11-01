@@ -19,7 +19,7 @@ class SubjectAlreadyExistException(ServiceException):
 
     @property
     def message(self):
-        return 'Subject with provided title already exists'
+        return f'Subject with provided title already exists {self.title=}'
 
 
 @dataclass(eq=False)
@@ -38,3 +38,13 @@ class SubjectDeleteException(ServiceException):
     @property
     def message(self):
         return 'An error occurred while deleting subject'
+
+
+@dataclass(eq=False)
+class OldAndNewSubjectsAreSimilarException(ServiceException):
+    old_title: str
+    new_title: str
+
+    @property
+    def message(self):
+        return 'Old subject title and the new one are similar'

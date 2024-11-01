@@ -49,6 +49,14 @@ class BaseFacultyService(ABC):
         ...
 
     @abstractmethod
+    def check_exists_by_name(self, faculty_name: str) -> bool:
+        ...
+
+    @abstractmethod
+    def check_exists_by_code_name(self, faculty_code_name: str) -> bool:
+        ...
+
+    @abstractmethod
     def update_name(self, faculty_id: int, new_name: str) -> None:
         ...
 
@@ -117,6 +125,12 @@ class ORMFacultyService(BaseFacultyService):
             raise FacultyNotFoundException(id=faculty_id)
 
         return faculty.to_entity()
+
+    def check_exists_by_name(self, faculty_name: str) -> bool:
+        return FacultyModel.objects.filter(name=faculty_name).exists()
+
+    def check_exists_by_code_name(self, faculty_code_name: str) -> bool:
+        return FacultyModel.objects.filter(code_name=faculty_code_name).exists()
 
     def update_name(self, faculty_id: int, new_name: str) -> None:
         is_updated = FacultyModel.objects.filter(id=faculty_id).update(name=new_name)

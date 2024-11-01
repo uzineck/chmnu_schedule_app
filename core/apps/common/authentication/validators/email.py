@@ -30,8 +30,9 @@ class EmailPatternValidatorService(BaseEmailValidatorService):
 
 class SimilarOldAndNewEmailValidatorService(BaseEmailValidatorService):
     def validate(self, email: str, old_email: str | None = None, *args, **kwargs):
-        if email == old_email:
-            raise OldAndNewEmailsAreSimilarException(old_email=old_email, new_email=email)
+        if old_email is not None:
+            if email == old_email:
+                raise OldAndNewEmailsAreSimilarException(old_email=old_email, new_email=email)
 
 
 @dataclass

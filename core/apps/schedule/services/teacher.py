@@ -55,6 +55,10 @@ class BaseTeacherService(ABC):
         ...
 
     @abstractmethod
+    def check_exists_by_full_name(self, first_name: str, last_name: str, middle_name: str) -> bool:
+        ...
+
+    @abstractmethod
     def update_name(
             self,
             teacher_id: int,
@@ -149,6 +153,13 @@ class ORMTeacherService(BaseTeacherService):
             raise TeacherNotFoundException(id=teacher_id)
 
         return teacher.to_entity()
+
+    def check_exists_by_full_name(self, first_name: str, last_name: str, middle_name: str) -> bool:
+        return TeacherModel.objects.filter(
+            first_name=first_name,
+            last_name=last_name,
+            middle_name=middle_name,
+        ).exists()
 
     def update_name(
             self,

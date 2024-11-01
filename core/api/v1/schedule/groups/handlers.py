@@ -18,7 +18,7 @@ from core.api.v1.schedule.groups.schemas import (
     HeadmanEmailInSchema,
 )
 from core.apps.clients.services.client import BaseClientService
-from core.apps.clients.usecases.headman.get_headman_info import GetHeadmanInfoUseCase
+from core.apps.clients.usecases.client.get_headman_info import GetHeadmanInfoUseCase
 from core.apps.common.authentication.bearer import (
     jwt_bearer_admin,
     jwt_bearer_headman,

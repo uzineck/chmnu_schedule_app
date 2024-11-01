@@ -20,7 +20,7 @@ class RoomAlreadyExistException(ServiceException):
 
     @property
     def message(self):
-        return 'Room with provided number already exists'
+        return f'Room with provided number already exists {self.number=}'
 
 
 @dataclass(eq=False)
@@ -39,3 +39,23 @@ class RoomDeleteException(ServiceException):
     @property
     def message(self):
         return 'An error occurred while deleting room'
+
+
+@dataclass(eq=False)
+class OldAndNewRoomsAreSimilarException(ServiceException):
+    old_number: str
+    new_number: str
+
+    @property
+    def message(self):
+        return 'Old room number and the new one are similar'
+
+
+@dataclass(eq=False)
+class OldAndNewRoomDescriptionsAreSimilarException(ServiceException):
+    old_description: str
+    new_description: str
+
+    @property
+    def message(self):
+        return 'Old room description and the new one are similar'

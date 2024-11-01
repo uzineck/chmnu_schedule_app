@@ -49,6 +49,10 @@ class BaseSubjectService(ABC):
         ...
 
     @abstractmethod
+    def check_exists_by_title(self, title: str) -> bool:
+        ...
+
+    @abstractmethod
     def update(self, subject_id: int, title: str, slug: str) -> None:
         ...
 
@@ -108,6 +112,9 @@ class ORMSubjectService(BaseSubjectService):
             logger.error(f"Subject Does Not Exist Error ({subject_id=})")
             raise SubjectNotFoundException(id=subject_id)
         return subject.to_entity()
+
+    def check_exists_by_title(self, title: str) -> bool:
+        return SubjectModel.objects.filter(title=title).exists()
 
     def update(self, subject_id: int, title: str, slug: str) -> None:
         is_updated = SubjectModel.objects.filter(id=subject_id).update(title=title, slug=slug)

@@ -39,3 +39,23 @@ class FacultyDeleteException(ServiceException):
     @property
     def message(self):
         return 'An error occurred while deleting faculty'
+
+
+@dataclass(eq=False)
+class OldAndNewFacultyNamesAreSimilarException(ServiceException):
+    old_name: str
+    new_name: str
+
+    @property
+    def message(self):
+        return 'Old faculty name and the new one are similar'
+
+
+@dataclass(eq=False)
+class OldAndNewFacultyCodeNamesAreSimilarException(ServiceException):
+    old_code_name: str
+    new_code_name: str
+
+    @property
+    def message(self):
+        return 'Old faculty code name and the new one are similar'

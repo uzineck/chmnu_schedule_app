@@ -1,5 +1,6 @@
 from django.db.utils import IntegrityError
 
+import logging
 from abc import (
     ABC,
     abstractmethod,
@@ -24,6 +25,9 @@ from core.apps.common.models import (
     ClientRole,
     TokenType,
 )
+
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass(eq=False)
@@ -143,6 +147,7 @@ class ORMClientService(BaseClientService):
             )
 
         except IntegrityError:
+            logger.warning(f"Client Creation Error ({email=}, {role=})")
             raise ClientAlreadyExistsException(email=email)
 
         return client.to_entity()
@@ -150,11 +155,13 @@ class ORMClientService(BaseClientService):
     def update_email(self, client_id: int, email: str) -> None:
         is_updated = ClientModel.objects.filter(id=client_id).update(email=email)
         if not is_updated:
+            logger.error(f"Client Update Email Error ({client_id=}, {email=})")
             raise ClientUpdateException(id=client_id, email=email)
 
     def update_password(self, client_id: int, hashed_password: str) -> None:
         is_updated = ClientModel.objects.filter(id=client_id).update(password=hashed_password)
         if not is_updated:
+            logger.error(f"Client Update Password Error ({client_id=})")
             raise ClientUpdateException(id=client_id, password=hashed_password)
 
     def update_credentials(
@@ -170,6 +177,7 @@ class ORMClientService(BaseClientService):
             middle_name=middle_name,
         )
         if not is_updated:
+            logger.error(f"Client Update Credentials Error ({client_id=})")
             raise ClientUpdateException(id=client_id)
 
     def update_role(
@@ -181,12 +189,14 @@ class ORMClientService(BaseClientService):
             role=new_role,
         )
         if not is_updated:
+            logger.error(f"Client Update Role Error ({client_id=}, {new_role=})")
             raise ClientUpdateException(id=client_id)
 
     def get_by_email(self, client_email: str) -> ClientEntity:
         try:
             client: ClientModel = ClientModel.objects.get(email=client_email)
         except ClientModel.DoesNotExist:
+            logger.info(f"Client Does Not Exist Error ({client_email=})")
             raise ClientNotFoundException(email=client_email)
 
         return client.to_entity()
@@ -195,16 +205,19 @@ class ORMClientService(BaseClientService):
         try:
             client: ClientModel = ClientModel.objects.get(id=client_id)
         except ClientModel.DoesNotExist:
+            logger.error(f"Client Does Not Exist Error ({client_id=})")
             raise ClientNotFoundException(id=client_id)
 
         return client.to_entity()
 
     def validate_password(self, client_password: str, plain_password: str) -> None:
         if not self.password_service.verify_password(plain_password=plain_password, hashed_password=client_password):
-            raise InvalidAuthDataException(password=plain_password)
+            logger.info("Client Validate Password Error")
+            raise InvalidAuthDataException
 
     def check_client_role(self, client_role: str, required_role: ClientRole) -> None:
         if client_role != required_role:
+            logger.warning(f"Client Role Not Matching Error ({client_role=}, {required_role=})")
             raise ClientRoleNotMatchingWithRequiredException(client_role=client_role, required_role=required_role)
 
     def generate_tokens(self, client: ClientEntity) -> TokenEntity:
