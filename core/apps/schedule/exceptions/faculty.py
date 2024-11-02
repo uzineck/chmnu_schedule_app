@@ -20,7 +20,7 @@ class FacultyAlreadyExistsException(ServiceException):
 
     @property
     def message(self):
-        return 'Faculty with provided code name or name already exists'
+        return 'Faculty with provided parameters already exists'
 
 
 @dataclass(eq=False)

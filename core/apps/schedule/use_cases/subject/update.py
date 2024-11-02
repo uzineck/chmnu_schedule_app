@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from pytils.translit import slugify
+from transliterate import slugify
 
 from core.apps.schedule.entities.subject import Subject as SubjectEntity
 from core.apps.schedule.services.subject import BaseSubjectService
@@ -20,7 +20,7 @@ class UpdateSubjectUseCase:
         subject = self.subject_service.get_by_uuid(subject_uuid=subject_uuid)
         self.subject_validator_service.validate(title=title, old_title=subject.title)
 
-        slug = slugify(title)
+        slug = slugify(text=title, language_code='uk')
         self.subject_service.update(subject_id=subject.id, title=title, slug=slug)
         updated_subject = self.subject_service.get_by_id(subject_id=subject.id)
 

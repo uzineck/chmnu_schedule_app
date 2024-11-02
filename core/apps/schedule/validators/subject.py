@@ -27,14 +27,14 @@ class SubjectAlreadyExistsValidatorService(BaseSubjectValidatorService):
     subject_service: BaseSubjectService
 
     def validate(self, title: str | None = None, *args, **kwargs):
-        if title is not None:
+        if title:
             if self.subject_service.check_exists_by_title(title=title):
                 raise SubjectAlreadyExistException(title=title)
 
 
 class SimilarOldAndNewSubjectTitlesValidatorService(BaseSubjectValidatorService):
     def validate(self, title: str | None = None, old_title: str | None = None, *args, **kwargs):
-        if (title is not None) and (old_title is not None):
+        if title and old_title:
             if title == old_title:
                 raise OldAndNewSubjectsAreSimilarException(old_title=old_title, new_title=old_title)
 

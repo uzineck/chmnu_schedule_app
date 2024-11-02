@@ -19,7 +19,7 @@ class SubjectAlreadyExistException(ServiceException):
 
     @property
     def message(self):
-        return f'Subject with provided title already exists {self.title=}'
+        return 'Subject with provided parameters already exists'
 
 
 @dataclass(eq=False)

@@ -22,7 +22,7 @@ class GroupAlreadyExistsException(ServiceException):
 
     @property
     def message(self):
-        return 'Group with provided number already exists'
+        return 'Group with provided parameters already exists'
 
 
 @dataclass(eq=False)

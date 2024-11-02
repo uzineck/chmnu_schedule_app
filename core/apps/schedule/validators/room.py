@@ -30,7 +30,7 @@ class RoomAlreadyExistsValidatorService(BaseRoomValidatorService):
     room_service: BaseRoomService
 
     def validate(self, number: str | None = None, *args, **kwargs):
-        if number is not None:
+        if number:
             if self.room_service.check_exists_by_number(room_number=number):
                 raise RoomAlreadyExistException(number=number)
 
@@ -43,7 +43,7 @@ class SimilarOldAndNewRoomValidatorService(BaseRoomValidatorService):
             *args,
             **kwargs,
     ):
-        if (number is not None) and (old_number is not None):
+        if number and old_number:
             if number == old_number:
                 raise OldAndNewRoomsAreSimilarException(old_number=old_number, new_number=number)
 
@@ -56,7 +56,7 @@ class SimilarOldAndNewRoomDescriptionValidatorService(BaseRoomValidatorService):
             *args,
             **kwargs,
     ):
-        if description is not None:
+        if description:
             if description == old_description:
                 raise OldAndNewRoomDescriptionsAreSimilarException(
                     old_description=old_description,

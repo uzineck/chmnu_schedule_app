@@ -20,7 +20,7 @@ class RoomAlreadyExistException(ServiceException):
 
     @property
     def message(self):
-        return f'Room with provided number already exists {self.number=}'
+        return 'Room with provided parameters already exists'
 
 
 @dataclass(eq=False)

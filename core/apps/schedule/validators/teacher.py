@@ -42,7 +42,7 @@ class TeacherAlreadyExistsValidatorService(BaseTeacherValidatorService):
             *args,
             **kwargs,
     ):
-        if first_name is not None and last_name is not None and middle_name is not None:
+        if first_name and last_name and middle_name:
             if self.teacher_service.check_exists_by_full_name(
                     first_name=first_name,
                     last_name=last_name,
@@ -67,7 +67,7 @@ class SimilarOldAndNewTeacherNameValidatorService(BaseTeacherValidatorService):
             *args,
             **kwargs,
     ):
-        if first_name is not None and last_name is not None and middle_name is not None:
+        if first_name and last_name and middle_name and old_first_name and old_last_name and old_middle_name:
             if first_name == old_first_name and last_name == old_last_name and middle_name == old_middle_name:
                 raise OldAndNewTeacherNamesAreSimilarException(
                     first_name=first_name,
@@ -87,7 +87,7 @@ class SimilarOldAndNewTeacherRanksValidatorService(BaseTeacherValidatorService):
             *args,
             **kwargs,
     ):
-        if rank is not None and old_rank is not None:
+        if rank and old_rank:
             if rank == old_rank:
                 raise OldAndNewTeacherRanksAreSimilarException(old_rank=old_rank, new_rank=rank)
 
