@@ -18,6 +18,7 @@ django-redis = "^5.4.0"
 psycopg = {extras = ["pool"], version = "^3.2.3"}
 gunicorn = "^23.0.0"
 transliterate = "^1.10.2"
+pytz = "^2024.2"
 
 
 [tool.poetry.group.dev.dependencies]

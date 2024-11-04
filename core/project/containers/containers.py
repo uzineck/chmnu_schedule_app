@@ -4,6 +4,7 @@ from functools import lru_cache
 from core.project.containers.services.cache.cache import register_cache_services
 from core.project.containers.services.client.client import register_client_services
 from core.project.containers.services.schedule import register_schedule_services
+from core.project.containers.services.time.time import register_time_services
 from core.project.containers.validators import register_validators
 
 
@@ -26,5 +27,8 @@ def _initialize_container() -> punq.Container:
 
     # Cache containers
     register_cache_services(container=container)
+
+    # Time containers
+    register_time_services(container=container)
 
     return container
