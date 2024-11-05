@@ -2,10 +2,19 @@ from abc import (
     ABC,
     abstractmethod,
 )
+from datetime import (
+    datetime,
+    timezone,
+)
+from django_apscheduler import util
 from typing import Any
 
 from core.apps.clients.entities.client import Client as ClientEntity
-from core.apps.clients.models import IssuedJwtToken as IssuedJwtTokenModel
+from core.apps.clients.models import (
+    IssuedJwtToken,
+    IssuedJwtToken as IssuedJwtTokenModel,
+)
+from core.apps.common.factory import convert_to_timestamp
 
 
 class BaseIssuedJwtTokenService(ABC):
@@ -39,6 +48,10 @@ class BaseIssuedJwtTokenService(ABC):
     def revoke_client_device_tokens(self, subject: ClientEntity, device_id: str) -> None:
         ...
 
+    @abstractmethod
+    def delete_expired_tokens(self) -> None:
+        ...
+
 
 class ORMIssuedJwtTokenService(BaseIssuedJwtTokenService):
     def create(self, subject: ClientEntity, jti: str, device_id: str, expiration_time: int) -> None:
@@ -70,3 +83,8 @@ class ORMIssuedJwtTokenService(BaseIssuedJwtTokenService):
 
     def revoke_client_device_tokens(self, subject: ClientEntity, device_id: str) -> None:
         IssuedJwtTokenModel.objects.filter(subject_id=subject.id, device_id=device_id).update(revoked=True)
+
+    @util.close_old_connections
+    def delete_expired_tokens(self) -> None:
+        current_timestamp = convert_to_timestamp(datetime.now(tz=timezone.utc))
+        IssuedJwtToken.objects.filter(expiration_time__lt=current_timestamp).delete()

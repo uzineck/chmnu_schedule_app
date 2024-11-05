@@ -87,3 +87,6 @@ dumpdata:
 
 loaddata:
 		APP_NAME=${APP_NAME} ${EXEC} ${APP_CONTAINER} ${MANAGE_PY} loaddata --app=${APP_NAME} --format=json
+
+runapscheduler:
+		${EXEC} ${APP_CONTAINER} ${MANAGE_PY} runscheduler

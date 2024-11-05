@@ -46,6 +46,7 @@ INSTALLED_APPS = [
 
     # third party
     'elasticapm.contrib.django',
+    'django_apscheduler',
 
 ]
 
@@ -200,6 +201,10 @@ LOGGING = {
     'loggers': {
         'core.apps.schedule': {
             'handlers': ['file_schedule', 'elasticapm'],
+            'level': 'DEBUG',
+        },
+        'core.apps.clients': {
+            'handlers': ['file_client', 'elasticapm'],
             'level': 'DEBUG',
         },
         # 'django.db.backends': {
