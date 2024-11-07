@@ -1,5 +1,5 @@
 import pytest
-from tests.fixtures.client.client import ClientModelFactory
+from tests.factories.client.client import ClientModelFactory
 
 from core.apps.clients.exceptions.auth import InvalidAuthDataException
 from core.apps.clients.exceptions.client import ClientNotFoundException

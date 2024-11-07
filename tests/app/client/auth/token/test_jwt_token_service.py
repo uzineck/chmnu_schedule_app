@@ -1,5 +1,5 @@
 import pytest
-from tests.fixtures.client.client import ClientModelFactory
+from tests.factories.client.client import ClientModelFactory
 
 from core.apps.common.authentication.token import BaseTokenService
 from core.apps.common.models import TokenType

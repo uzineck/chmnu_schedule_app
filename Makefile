@@ -20,13 +20,15 @@ ENV = --env-file .env
 # Django application specific command
 MANAGE_PY = python manage.py
 
+.PHONY: all,
 .PHONY: app, app-down, app-logs, # start,end,logs of the main app
 .PHONY: proxy-reload, proxy-reload-test, proxy-logs # proxy server commands
 .PHONY: storages, storages-logs, storages-down,  # storages(postgres, pgadmin, redis, redisinsight) commands
 .PHONY: monitoring, monitoring-logs, monitoring-down, # elastic apm stack commands
 .PHONY: postgres, db-logs, # postgres specific commands
-.PHONY: migrations, migrate, superuser, loaddata, dumpdata, collectstatic # django manage.py commands
+.PHONY: migrations, migrate, superuser, loaddata, dumpdata, collectstatic, runscheduler # django manage.py commands
 
+all: app monitoring runscheduler app-logs
 
 app:
 		${DC} ${ENV} -f ${APP_FILE} -f ${STORAGES_FILE} up --build -d
@@ -88,5 +90,8 @@ dumpdata:
 loaddata:
 		APP_NAME=${APP_NAME} ${EXEC} ${APP_CONTAINER} ${MANAGE_PY} loaddata --app=${APP_NAME} --format=json
 
-runapscheduler:
+run-test:
+		${EXEC} ${APP_CONTAINER} pytest -v
+
+runscheduler:
 		${EXEC} ${APP_CONTAINER} ${MANAGE_PY} runscheduler

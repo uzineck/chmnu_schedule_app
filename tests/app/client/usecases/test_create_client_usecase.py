@@ -1,5 +1,5 @@
 import pytest
-from tests.fixtures.client.client import ClientModelFactory
+from tests.factories.client.client import ClientModelFactory
 
 from core.apps.clients.exceptions.client import ClientAlreadyExistsException
 from core.apps.clients.usecases.client.create import CreateClientUseCase

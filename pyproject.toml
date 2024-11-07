@@ -59,6 +59,7 @@ skip_glob=[
     ".vscode",
     "venv",
     ".venv",
+    ".sh"
 ]
 known_django=["django","ninja"]
 known_first_party=["core"]
