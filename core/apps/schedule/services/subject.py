@@ -124,7 +124,7 @@ class ORMSubjectService(BaseSubjectService):
             raise SubjectUpdateException(id=subject_id)
 
     def delete(self, subject_id: int) -> None:
-        is_deleted = SubjectModel.objects.filter(id=subject_id).delete()
+        is_deleted, _ = SubjectModel.objects.filter(id=subject_id).delete()
 
         if not is_deleted:
             logger.error(f"Subject Delete Error ({subject_id=})")

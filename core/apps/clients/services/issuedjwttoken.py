@@ -1,3 +1,4 @@
+import logging
 from abc import (
     ABC,
     abstractmethod,
@@ -15,6 +16,9 @@ from core.apps.clients.models import (
     IssuedJwtToken as IssuedJwtTokenModel,
 )
 from core.apps.common.factory import convert_to_timestamp
+
+
+logger = logging.getLogger(__name__)
 
 
 class BaseIssuedJwtTokenService(ABC):
@@ -80,11 +84,14 @@ class ORMIssuedJwtTokenService(BaseIssuedJwtTokenService):
 
     def revoke_client_tokens(self, subject: ClientEntity) -> None:
         IssuedJwtTokenModel.objects.filter(subject_id=subject.id).update(revoked=True)
+        logger.warning(f'All client tokens were revoked ({subject.email=})')
 
     def revoke_client_device_tokens(self, subject: ClientEntity, device_id: str) -> None:
         IssuedJwtTokenModel.objects.filter(subject_id=subject.id, device_id=device_id).update(revoked=True)
+        logger.info(f'Client device_id tokens were revoked ({subject.email=}, {device_id=})')
 
     @util.close_old_connections
     def delete_expired_tokens(self) -> None:
         current_timestamp = convert_to_timestamp(datetime.now(tz=timezone.utc))
         IssuedJwtToken.objects.filter(expiration_time__lt=current_timestamp).delete()
+        logger.info('Expired tokens were successfully deleted')

@@ -80,7 +80,7 @@ class BaseTeacherService(ABC):
     def update_is_active(
             self,
             teacher_id: int,
-            is_active: bool,
+            is_active: bool = False,
     ) -> None:
         ...
 
@@ -192,7 +192,7 @@ class ORMTeacherService(BaseTeacherService):
     def update_is_active(
             self,
             teacher_id: int,
-            is_active: bool,
+            is_active: bool = False,
     ) -> None:
         is_updated = TeacherModel.objects.filter(id=teacher_id).update(is_active=is_active)
 

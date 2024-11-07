@@ -44,7 +44,7 @@ class ORMGroupLessonService(BaseGroupLessonService):
         ).exists()
 
     def delete(self, group_lesson: GroupLessonEntity) -> None:
-        is_deleted = GroupLessonModel.objects.filter(
+        is_deleted, _ = GroupLessonModel.objects.filter(
             group_id=group_lesson.group.id,
             lesson_id=group_lesson.lesson.id,
             subgroup=group_lesson.subgroup,

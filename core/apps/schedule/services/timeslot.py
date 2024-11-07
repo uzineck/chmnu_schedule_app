@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 class BaseTimeslotService(ABC):
     @abstractmethod
-    def get_or_create(self, day: str, ord_number: int, is_even: bool) -> TimeslotEntity:
+    def get_or_create(self, day: Day, ord_number: OrdinaryNumber, is_even: bool) -> TimeslotEntity:
         ...
 
     @abstractmethod

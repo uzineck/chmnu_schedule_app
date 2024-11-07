@@ -145,7 +145,6 @@ class ORMClientService(BaseClientService):
                 email=email,
                 password=hashed_password,
             )
-
         except IntegrityError:
             logger.warning(f"Client Creation Error ({email=}, {role=})")
             raise ClientAlreadyExistsException(email=email)

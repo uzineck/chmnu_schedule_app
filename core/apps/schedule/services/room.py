@@ -140,7 +140,7 @@ class ORMRoomService(BaseRoomService):
             raise RoomUpdateException(id=room_id)
 
     def delete(self, room_id: int) -> None:
-        is_deleted = RoomModel.objects.filter(id=room_id).delete()
+        is_deleted, _ = RoomModel.objects.filter(id=room_id).delete()
 
         if not is_deleted:
             logger.error(f"Room Delete Error ({room_id=})")

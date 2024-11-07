@@ -108,7 +108,7 @@ class ORMGroupService(BaseGroupService):
                 get(group_uuid=group_uuid)
             )
         except GroupModel.DoesNotExist:
-            logger.error(f"Group Does Not Exist Error ({group_uuid=})")
+            logger.warning(f"Group Does Not Exist Error ({group_uuid=})")
             raise GroupNotFoundException(uuid=group_uuid)
 
         return group.to_entity()

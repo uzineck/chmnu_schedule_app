@@ -147,7 +147,7 @@ class ORMFacultyService(BaseFacultyService):
             raise FacultyUpdateException(id=faculty_id)
 
     def delete(self, faculty_id: int) -> None:
-        is_deleted = FacultyModel.objects.filter(id=faculty_id).delete()
+        is_deleted, _ = FacultyModel.objects.filter(id=faculty_id).delete()
 
         if not is_deleted:
             logger.error(f"Faculty Delete Error ({faculty_id=})")
