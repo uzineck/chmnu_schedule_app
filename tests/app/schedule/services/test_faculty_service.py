@@ -1,5 +1,4 @@
 import pytest
-from tests.factories.schedule.faculty import FacultyModelFactory
 
 from core.api.filters import PaginationIn
 from core.apps.common.filters import SearchFilter
@@ -13,8 +12,8 @@ from core.apps.schedule.services.faculty import BaseFacultyService
 
 
 @pytest.mark.django_db
-def test_create_faculty_success(faculty_service: BaseFacultyService):
-    faculty = FacultyModelFactory.build()
+def test_create_faculty_success(faculty_service: BaseFacultyService, faculty_build):
+    faculty = faculty_build()
 
     created_faculty = faculty_service.create(name=faculty.name, code_name=faculty.code_name)
 
@@ -23,8 +22,8 @@ def test_create_faculty_success(faculty_service: BaseFacultyService):
 
 
 @pytest.mark.django_db
-def test_create_faculty_already_exists_failure(faculty_service: BaseFacultyService):
-    faculty = FacultyModelFactory.create()
+def test_create_faculty_already_exists_failure(faculty_service: BaseFacultyService, faculty_create):
+    faculty = faculty_create()
 
     with pytest.raises(FacultyAlreadyExistsException):
         faculty_service.create(name=faculty.name, code_name=faculty.code_name)
@@ -37,9 +36,9 @@ def test_get_count_faculty_zero(faculty_service: BaseFacultyService):
 
 
 @pytest.mark.django_db
-def test_get_count_faculty_exist(faculty_service: BaseFacultyService):
+def test_get_count_faculty_exist(faculty_service: BaseFacultyService, faculty_create_batch):
     expected_count = 5
-    faculties = FacultyModelFactory.create_batch(size=expected_count)
+    faculties = faculty_create_batch(size=expected_count)
     faculty_names = {faculty.name for faculty in faculties}
     faculty_code_names = {faculty.code_name for faculty in faculties}
 
@@ -50,9 +49,9 @@ def test_get_count_faculty_exist(faculty_service: BaseFacultyService):
 
 
 @pytest.mark.django_db
-def test_get_all_faculties_success(faculty_service: BaseFacultyService):
+def test_get_all_faculties_success(faculty_service: BaseFacultyService, faculty_create_batch):
     expected_count = 5
-    faculties = FacultyModelFactory.create_batch(size=expected_count)
+    faculties = faculty_create_batch(size=expected_count)
     faculty_names = {faculty.name for faculty in faculties}
 
     fetched_faculty = faculty_service.get_all()
@@ -63,9 +62,9 @@ def test_get_all_faculties_success(faculty_service: BaseFacultyService):
 
 
 @pytest.mark.django_db
-def test_get_list_faculties_success(faculty_service: BaseFacultyService):
+def test_get_list_faculties_success(faculty_service: BaseFacultyService, faculty_create_batch):
     expected_count = 5
-    faculties = FacultyModelFactory.create_batch(size=expected_count)
+    faculties = faculty_create_batch(size=expected_count)
     faculty_names = {faculty.name for faculty in faculties}
 
     fetched_faculty = faculty_service.get_list(filters=SearchFilter(), pagination=PaginationIn())
@@ -76,8 +75,8 @@ def test_get_list_faculties_success(faculty_service: BaseFacultyService):
 
 
 @pytest.mark.django_db
-def test_get_by_uuid_faculty_success(faculty_service: BaseFacultyService):
-    faculty = FacultyModelFactory.create()
+def test_get_by_uuid_faculty_success(faculty_service: BaseFacultyService, faculty_create):
+    faculty = faculty_create()
 
     found_faculty = faculty_service.get_by_uuid(faculty_uuid=faculty.faculty_uuid)
 
@@ -86,16 +85,16 @@ def test_get_by_uuid_faculty_success(faculty_service: BaseFacultyService):
 
 
 @pytest.mark.django_db
-def test_get_by_uuid_faculty_not_found_failure(faculty_service: BaseFacultyService):
-    faculty = FacultyModelFactory.build()
+def test_get_by_uuid_faculty_not_found_failure(faculty_service: BaseFacultyService, faculty_build):
+    faculty = faculty_build()
 
     with pytest.raises(FacultyNotFoundException):
         faculty_service.get_by_uuid(faculty_uuid=faculty.faculty_uuid)
 
 
 @pytest.mark.django_db
-def test_get_by_id_faculty_success(faculty_service: BaseFacultyService):
-    faculty = FacultyModelFactory.create()
+def test_get_by_id_faculty_success(faculty_service: BaseFacultyService, faculty_create):
+    faculty = faculty_create()
 
     found_faculty = faculty_service.get_by_id(faculty_id=faculty.id)
 
@@ -104,83 +103,83 @@ def test_get_by_id_faculty_success(faculty_service: BaseFacultyService):
 
 
 @pytest.mark.django_db
-def test_get_by_id_faculty_not_found_failure(faculty_service: BaseFacultyService):
-    faculty = FacultyModelFactory.build()
+def test_get_by_id_faculty_not_found_failure(faculty_service: BaseFacultyService, faculty_build):
+    faculty = faculty_build()
 
     with pytest.raises(FacultyNotFoundException):
         faculty_service.get_by_id(faculty_id=faculty.id)
 
 
 @pytest.mark.django_db
-def test_check_exists_by_name_faculty_true(faculty_service: BaseFacultyService):
-    faculty = FacultyModelFactory.create()
+def test_check_exists_by_name_faculty_true(faculty_service: BaseFacultyService, faculty_create):
+    faculty = faculty_create()
 
     assert faculty_service.check_exists_by_name(faculty_name=faculty.name) is True
 
 
 @pytest.mark.django_db
-def test_check_exists_by_name_faculty_false(faculty_service: BaseFacultyService):
-    faculty = FacultyModelFactory.build()
+def test_check_exists_by_name_faculty_false(faculty_service: BaseFacultyService, faculty_build):
+    faculty = faculty_build()
 
     assert faculty_service.check_exists_by_name(faculty_name=faculty.name) is False
 
 
 @pytest.mark.django_db
-def test_check_exists_by_code_name_faculty_true(faculty_service: BaseFacultyService):
-    faculty = FacultyModelFactory.create()
+def test_check_exists_by_code_name_faculty_true(faculty_service: BaseFacultyService, faculty_create):
+    faculty = faculty_create()
 
     assert faculty_service.check_exists_by_code_name(faculty_code_name=faculty.code_name) is True
 
 
 @pytest.mark.django_db
-def test_check_exists_by_code_name_faculty_false(faculty_service: BaseFacultyService):
-    faculty = FacultyModelFactory.build()
+def test_check_exists_by_code_name_faculty_false(faculty_service: BaseFacultyService, faculty_build):
+    faculty = faculty_build()
 
     assert faculty_service.check_exists_by_code_name(faculty_code_name=faculty.code_name) is False
 
 
 @pytest.mark.django_db
-def test_update_name_faculty_success(faculty_service: BaseFacultyService):
-    faculty = FacultyModelFactory.create()
-    new_faculty = FacultyModelFactory.build()
+def test_update_name_faculty_success(faculty_service: BaseFacultyService, faculty_create, faculty_build):
+    faculty = faculty_create()
+    new_faculty = faculty_build()
 
     assert faculty_service.update_name(faculty_id=faculty.id, new_name=new_faculty.name) is None
 
 
 @pytest.mark.django_db
-def test_update_name_faculty_failure(faculty_service: BaseFacultyService):
-    faculty = FacultyModelFactory.build()
+def test_update_name_faculty_failure(faculty_service: BaseFacultyService, faculty_build):
+    faculty = faculty_build()
 
     with pytest.raises(FacultyUpdateException):
         faculty_service.update_name(faculty_id=faculty.id, new_name=faculty.name)
 
 
 @pytest.mark.django_db
-def test_update_code_name_faculty_success(faculty_service: BaseFacultyService):
-    faculty = FacultyModelFactory.create()
-    new_faculty = FacultyModelFactory.build()
+def test_update_code_name_faculty_success(faculty_service: BaseFacultyService, faculty_create, faculty_build):
+    faculty = faculty_create()
+    new_faculty = faculty_build()
 
     assert faculty_service.update_code_name(faculty_id=faculty.id, new_code_name=new_faculty.code_name) is None
 
 
 @pytest.mark.django_db
-def test_update_code_name_faculty_failure(faculty_service: BaseFacultyService):
-    faculty = FacultyModelFactory.build()
+def test_update_code_name_faculty_failure(faculty_service: BaseFacultyService, faculty_build):
+    faculty = faculty_build()
 
     with pytest.raises(FacultyUpdateException):
         faculty_service.update_code_name(faculty_id=faculty.id, new_code_name=faculty.code_name)
 
 
 @pytest.mark.django_db
-def test_delete_faculty_success(faculty_service: BaseFacultyService):
-    faculty = FacultyModelFactory.create()
+def test_delete_faculty_success(faculty_service: BaseFacultyService, faculty_create):
+    faculty = faculty_create()
 
     assert faculty_service.delete(faculty_id=faculty.id) is None
 
 
 @pytest.mark.django_db
-def test_delete_faculty_failure(faculty_service: BaseFacultyService):
-    faculty = FacultyModelFactory.build()
+def test_delete_faculty_failure(faculty_service: BaseFacultyService, faculty_build):
+    faculty = faculty_build()
 
     with pytest.raises(FacultyDeleteException):
         faculty_service.delete(faculty_id=faculty.id)

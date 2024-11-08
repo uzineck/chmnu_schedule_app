@@ -1,5 +1,4 @@
 import pytest
-from tests.factories.schedule.subject import SubjectModelFactory
 
 from core.api.filters import PaginationIn
 from core.apps.common.filters import SearchFilter
@@ -13,8 +12,8 @@ from core.apps.schedule.services.subject import BaseSubjectService
 
 
 @pytest.mark.django_db
-def test_create_subject_success(subject_service: BaseSubjectService):
-    subject = SubjectModelFactory.build()
+def test_create_subject_success(subject_service: BaseSubjectService, subject_build):
+    subject = subject_build()
     created_subject = subject_service.create(
         title=subject.title,
         slug=subject.slug,
@@ -25,8 +24,8 @@ def test_create_subject_success(subject_service: BaseSubjectService):
 
 
 @pytest.mark.django_db
-def test_create_subject_already_exists_failure(subject_service: BaseSubjectService):
-    subject = SubjectModelFactory.create()
+def test_create_subject_already_exists_failure(subject_service: BaseSubjectService, subject_create):
+    subject = subject_create()
 
     with pytest.raises(SubjectAlreadyExistException):
         subject_service.create(
@@ -42,18 +41,18 @@ def test_get_count_subject_zero(subject_service: BaseSubjectService):
 
 
 @pytest.mark.django_db
-def test_get_count_subject_exist(subject_service: BaseSubjectService):
+def test_get_count_subject_exist(subject_service: BaseSubjectService, subject_create_batch):
     expected_count = 5
-    SubjectModelFactory.create_batch(size=expected_count)
+    subject_create_batch(size=expected_count)
 
     subject_count = subject_service.get_count(filters=SearchFilter())
     assert subject_count == expected_count, f"{subject_count=}"
 
 
 @pytest.mark.django_db
-def test_get_all_subjects_success(subject_service: BaseSubjectService):
+def test_get_all_subjects_success(subject_service: BaseSubjectService, subject_create_batch):
     expected_count = 5
-    subjects = SubjectModelFactory.create_batch(size=expected_count)
+    subjects = subject_create_batch(size=expected_count)
     subject_titles = {subject.title for subject in subjects}
 
     fetched_subjects = subject_service.get_all()
@@ -64,9 +63,9 @@ def test_get_all_subjects_success(subject_service: BaseSubjectService):
 
 
 @pytest.mark.django_db
-def test_get_list_subject_success(subject_service: BaseSubjectService):
+def test_get_list_subject_success(subject_service: BaseSubjectService, subject_create_batch):
     expected_count = 5
-    subjects = SubjectModelFactory.create_batch(size=expected_count)
+    subjects = subject_create_batch(size=expected_count)
     subject_titles = {subject.title for subject in subjects}
 
     fetched_subjects = subject_service.get_list(filters=SearchFilter(), pagination=PaginationIn())
@@ -77,8 +76,8 @@ def test_get_list_subject_success(subject_service: BaseSubjectService):
 
 
 @pytest.mark.django_db
-def test_get_by_uuid_subject_success(subject_service: BaseSubjectService):
-    subject = SubjectModelFactory.create()
+def test_get_by_uuid_subject_success(subject_service: BaseSubjectService, subject_create):
+    subject = subject_create()
 
     found_subject = subject_service.get_by_uuid(subject_uuid=subject.subject_uuid)
 
@@ -88,16 +87,16 @@ def test_get_by_uuid_subject_success(subject_service: BaseSubjectService):
 
 
 @pytest.mark.django_db
-def test_get_by_uuid_subject_not_found_failure(subject_service: BaseSubjectService):
-    subject = SubjectModelFactory.build()
+def test_get_by_uuid_subject_not_found_failure(subject_service: BaseSubjectService, subject_build):
+    subject = subject_build()
 
     with pytest.raises(SubjectNotFoundException):
         subject_service.get_by_uuid(subject_uuid=subject.subject_uuid)
 
 
 @pytest.mark.django_db
-def test_get_by_id_subject_success(subject_service: BaseSubjectService):
-    subject = SubjectModelFactory.create()
+def test_get_by_id_subject_success(subject_service: BaseSubjectService, subject_create):
+    subject = subject_create()
 
     found_subject = subject_service.get_by_id(subject_id=subject.id)
 
@@ -107,54 +106,54 @@ def test_get_by_id_subject_success(subject_service: BaseSubjectService):
 
 
 @pytest.mark.django_db
-def test_get_by_id_subject_not_found_failure(subject_service: BaseSubjectService):
-    subject = SubjectModelFactory.build()
+def test_get_by_id_subject_not_found_failure(subject_service: BaseSubjectService, subject_build):
+    subject = subject_build()
 
     with pytest.raises(SubjectNotFoundException):
         subject_service.get_by_id(subject_id=subject.id)
 
 
 @pytest.mark.django_db
-def test_check_exists_by_title_subject_true(subject_service: BaseSubjectService):
-    subject = SubjectModelFactory.create()
+def test_check_exists_by_title_subject_true(subject_service: BaseSubjectService, subject_create):
+    subject = subject_create()
 
     assert subject_service.check_exists_by_title(title=subject.title) is True
 
 
 @pytest.mark.django_db
-def test_check_exists_by_title_subject_false(subject_service: BaseSubjectService):
-    subject = SubjectModelFactory.build()
+def test_check_exists_by_title_subject_false(subject_service: BaseSubjectService, subject_build):
+    subject = subject_build()
 
     assert subject_service.check_exists_by_title(title=subject.title) is False
 
 
 @pytest.mark.django_db
-def test_update_subject_success(subject_service: BaseSubjectService):
-    subject = SubjectModelFactory.create()
+def test_update_subject_success(subject_service: BaseSubjectService, subject_create, subject_build):
+    subject = subject_create()
 
-    new_subject = SubjectModelFactory.build()
+    new_subject = subject_build()
 
     assert subject_service.update(subject_id=subject.id, title=new_subject.title, slug=new_subject.slug) is None
 
 
 @pytest.mark.django_db
-def test_update_subject_failure(subject_service: BaseSubjectService):
-    subject = SubjectModelFactory.build()
+def test_update_subject_failure(subject_service: BaseSubjectService, subject_build):
+    subject = subject_build()
 
     with pytest.raises(SubjectUpdateException):
         subject_service.update(subject_id=subject.id, title=subject.title, slug=subject.slug)
 
 
 @pytest.mark.django_db
-def test_delete_subject_success(subject_service: BaseSubjectService):
-    subject = SubjectModelFactory.create()
+def test_delete_subject_success(subject_service: BaseSubjectService, subject_create):
+    subject = subject_create()
 
     assert subject_service.delete(subject_id=subject.id) is None
 
 
 @pytest.mark.django_db
-def test_delete_subject_failure(subject_service: BaseSubjectService):
-    subject = SubjectModelFactory.build()
+def test_delete_subject_failure(subject_service: BaseSubjectService, subject_build):
+    subject = subject_build()
 
     with pytest.raises(SubjectDeleteException):
         subject_service.delete(subject_id=subject.id)

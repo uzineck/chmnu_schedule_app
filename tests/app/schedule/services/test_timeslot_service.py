@@ -1,13 +1,12 @@
 import pytest
-from tests.factories.schedule.timeslot import TimeslotModelFactory
 
 from core.apps.schedule.exceptions.timeslot import TimeslotNotFoundException
 from core.apps.schedule.services.timeslot import BaseTimeslotService
 
 
 @pytest.mark.django_db
-def test_get_or_create_create_timeslot_success(timeslot_service: BaseTimeslotService):
-    timeslot = TimeslotModelFactory.build()
+def test_get_or_create_create_timeslot_success(timeslot_service: BaseTimeslotService, timeslot_build):
+    timeslot = timeslot_build()
 
     created_timeslot = timeslot_service.get_or_create(
         day=timeslot.day,
@@ -21,8 +20,8 @@ def test_get_or_create_create_timeslot_success(timeslot_service: BaseTimeslotSer
 
 
 @pytest.mark.django_db
-def test_get_or_create_get_timeslot_success(timeslot_service: BaseTimeslotService):
-    timeslot = TimeslotModelFactory.create()
+def test_get_or_create_get_timeslot_success(timeslot_service: BaseTimeslotService, timeslot_create):
+    timeslot = timeslot_create()
 
     found_timeslot = timeslot_service.get_or_create(
         day=timeslot.day,
@@ -36,8 +35,8 @@ def test_get_or_create_get_timeslot_success(timeslot_service: BaseTimeslotServic
 
 
 @pytest.mark.django_db
-def test_get_by_id_timeslot_success(timeslot_service: BaseTimeslotService):
-    timeslot = TimeslotModelFactory.create()
+def test_get_by_id_timeslot_success(timeslot_service: BaseTimeslotService, timeslot_create):
+    timeslot = timeslot_create()
 
     found_timeslot = timeslot_service.get_by_id(timeslot_id=timeslot.id)
 
@@ -48,8 +47,8 @@ def test_get_by_id_timeslot_success(timeslot_service: BaseTimeslotService):
 
 
 @pytest.mark.django_db
-def test_get_by_id_timeslot_not_found_failure(timeslot_service: BaseTimeslotService):
-    timeslot = TimeslotModelFactory.build()
+def test_get_by_id_timeslot_not_found_failure(timeslot_service: BaseTimeslotService, timeslot_build):
+    timeslot = timeslot_build()
 
     with pytest.raises(TimeslotNotFoundException):
         timeslot_service.get_by_id(timeslot_id=timeslot.id)

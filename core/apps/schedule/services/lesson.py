@@ -68,7 +68,7 @@ class ORMLessonService(BaseLessonService):
                 get(lesson_uuid=lesson_uuid)
             )
         except LessonModel.DoesNotExist:
-            logger.error(f"Lesson Does Not Exist Error ({lesson_uuid=})")
+            logger.warning(f"Lesson Does Not Exist Error ({lesson_uuid=})")
             raise LessonNotFoundException(uuid=lesson_uuid)
 
         return lesson.to_entity()
@@ -86,6 +86,9 @@ class ORMLessonService(BaseLessonService):
             select_related("subject", "teacher", "room", "timeslot").
             first()
         )
+        if lesson is None:
+            logger.error("Lesson Entity Does Not Exist Error")
+            raise LessonNotFoundException
 
         return lesson.to_entity()
 

@@ -49,7 +49,7 @@ proxy-reload:
 		${EXEC} ${PROXY_CONTAINER} nginx -s reload
 
 storages:
-		${DC} -f ${STORAGES_FILE} ${ENV} up -d
+		${DC} ${ENV} -f ${STORAGES_FILE} up -d
 
 storages-down:
 		${DC} -f ${STORAGES_FILE} down
@@ -64,7 +64,7 @@ postgres:
 		@DB_USER=${DB_USER} DB_NAME=${DB_NAME} ${EXEC} ${DB_CONTAINER} psql -U ${DB_USER} -d ${DB_NAME}
 
 monitoring:
-	${DC} -f ${MONITORING_FILE} ${ENV} up -d
+	${DC} ${ENV} -f ${MONITORING_FILE} up -d
 
 monitoring-logs:
 	${DC} -f ${MONITORING_FILE} ${ENV} logs -f

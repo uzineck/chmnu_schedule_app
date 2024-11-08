@@ -1,5 +1,4 @@
 import pytest
-from tests.factories.schedule.teacher import TeacherModelFactory
 
 from core.api.filters import PaginationIn
 from core.apps.schedule.exceptions.teacher import (
@@ -11,8 +10,8 @@ from core.apps.schedule.services.teacher import BaseTeacherService
 
 
 @pytest.mark.django_db
-def test_create_teacher_success(teacher_service: BaseTeacherService):
-    teacher = TeacherModelFactory.build()
+def test_create_teacher_success(teacher_service: BaseTeacherService, teacher_build):
+    teacher = teacher_build()
 
     created_teacher = teacher_service.create(
         first_name=teacher.first_name,
@@ -28,8 +27,8 @@ def test_create_teacher_success(teacher_service: BaseTeacherService):
 
 
 # @pytest.mark.django_db
-# def test_create_teacher_already_exists_failure(teacher_service: BaseTeacherService):
-#     teacher = TeacherModelFactory.create()
+# def test_create_teacher_already_exists_failure(teacher_service: BaseTeacherService, teacher_create):
+#     teacher = teacher_create()
 #
 #     with pytest.raises(TeacherAlreadyExistsException):
 #         teacher_service.create(
@@ -47,18 +46,18 @@ def test_get_count_teacher_zero(teacher_service: BaseTeacherService):
 
 
 @pytest.mark.django_db
-def test_get_count_teacher_exist(teacher_service: BaseTeacherService):
+def test_get_count_teacher_exist(teacher_service: BaseTeacherService, teacher_create_batch):
     expected_count = 5
-    TeacherModelFactory.create_batch(size=expected_count)
+    teacher_create_batch(size=expected_count)
 
     teacher_count = teacher_service.get_count(filters=TeacherFilter())
     assert teacher_count == expected_count, f"{teacher_count=}"
 
 
 @pytest.mark.django_db
-def test_get_all_teachers_success(teacher_service: BaseTeacherService):
+def test_get_all_teachers_success(teacher_service: BaseTeacherService, teacher_create_batch):
     expected_count = 5
-    teachers = TeacherModelFactory.create_batch(size=expected_count)
+    teachers = teacher_create_batch(size=expected_count)
     teacher_last_names = {teacher.last_name for teacher in teachers}
 
     fetched_teacher = teacher_service.get_all()
@@ -69,9 +68,9 @@ def test_get_all_teachers_success(teacher_service: BaseTeacherService):
 
 
 @pytest.mark.django_db
-def test_get_list_teachers_success(teacher_service: BaseTeacherService):
+def test_get_list_teachers_success(teacher_service: BaseTeacherService, teacher_create_batch):
     expected_count = 5
-    teachers = TeacherModelFactory.create_batch(size=expected_count)
+    teachers = teacher_create_batch(size=expected_count)
     teacher_last_names = {teacher.last_name for teacher in teachers}
 
     fetched_teacher = teacher_service.get_list(filters=TeacherFilter(), pagination=PaginationIn())
@@ -82,8 +81,8 @@ def test_get_list_teachers_success(teacher_service: BaseTeacherService):
 
 
 @pytest.mark.django_db
-def test_get_by_uuid_teacher_success(teacher_service: BaseTeacherService):
-    teacher = TeacherModelFactory.create()
+def test_get_by_uuid_teacher_success(teacher_service: BaseTeacherService, teacher_create):
+    teacher = teacher_create()
 
     found_teacher = teacher_service.get_by_uuid(teacher_uuid=teacher.teacher_uuid)
 
@@ -92,16 +91,16 @@ def test_get_by_uuid_teacher_success(teacher_service: BaseTeacherService):
 
 
 @pytest.mark.django_db
-def test_get_by_uuid_teacher_not_found_failure(teacher_service: BaseTeacherService):
-    teacher = TeacherModelFactory.build()
+def test_get_by_uuid_teacher_not_found_failure(teacher_service: BaseTeacherService, teacher_build):
+    teacher = teacher_build()
 
     with pytest.raises(TeacherNotFoundException):
         teacher_service.get_by_uuid(teacher_uuid=teacher.teacher_uuid)
 
 
 @pytest.mark.django_db
-def test_get_by_id_teacher_success(teacher_service: BaseTeacherService):
-    teacher = TeacherModelFactory.create()
+def test_get_by_id_teacher_success(teacher_service: BaseTeacherService, teacher_create):
+    teacher = teacher_create()
 
     found_teacher = teacher_service.get_by_id(teacher_id=teacher.id)
 
@@ -110,16 +109,16 @@ def test_get_by_id_teacher_success(teacher_service: BaseTeacherService):
 
 
 @pytest.mark.django_db
-def test_get_by_id_teacher_not_found_failure(teacher_service: BaseTeacherService):
-    teacher = TeacherModelFactory.build()
+def test_get_by_id_teacher_not_found_failure(teacher_service: BaseTeacherService, teacher_build):
+    teacher = teacher_build()
 
     with pytest.raises(TeacherNotFoundException):
         teacher_service.get_by_id(teacher_id=teacher.id)
 
 
 @pytest.mark.django_db
-def test_check_exists_by_full_name_teacher_true(teacher_service: BaseTeacherService):
-    teacher = TeacherModelFactory.create()
+def test_check_exists_by_full_name_teacher_true(teacher_service: BaseTeacherService, teacher_create):
+    teacher = teacher_create()
 
     assert teacher_service.check_exists_by_full_name(
         first_name=teacher.first_name,
@@ -129,8 +128,8 @@ def test_check_exists_by_full_name_teacher_true(teacher_service: BaseTeacherServ
 
 
 @pytest.mark.django_db
-def test_check_exists_by_full_name_teacher_false(teacher_service: BaseTeacherService):
-    teacher = TeacherModelFactory.build()
+def test_check_exists_by_full_name_teacher_false(teacher_service: BaseTeacherService, teacher_build):
+    teacher = teacher_build()
 
     assert teacher_service.check_exists_by_full_name(
         first_name=teacher.first_name,
@@ -140,9 +139,9 @@ def test_check_exists_by_full_name_teacher_false(teacher_service: BaseTeacherSer
 
 
 @pytest.mark.django_db
-def test_update_name_teacher_success(teacher_service: BaseTeacherService):
-    teacher = TeacherModelFactory.create()
-    new_teacher = TeacherModelFactory.build()
+def test_update_name_teacher_success(teacher_service: BaseTeacherService, teacher_create, teacher_build):
+    teacher = teacher_create()
+    new_teacher = teacher_build()
 
     assert teacher_service.update_name(
         teacher_id=teacher.id,
@@ -153,8 +152,8 @@ def test_update_name_teacher_success(teacher_service: BaseTeacherService):
 
 
 @pytest.mark.django_db
-def test_update_name_teacher_failure(teacher_service: BaseTeacherService):
-    teacher = TeacherModelFactory.build()
+def test_update_name_teacher_failure(teacher_service: BaseTeacherService, teacher_build):
+    teacher = teacher_build()
 
     with pytest.raises(TeacherUpdateException):
         teacher_service.update_name(
@@ -166,9 +165,9 @@ def test_update_name_teacher_failure(teacher_service: BaseTeacherService):
 
 
 @pytest.mark.django_db
-def test_update_rank_teacher_success(teacher_service: BaseTeacherService):
-    teacher = TeacherModelFactory.create()
-    new_teacher = TeacherModelFactory.build()
+def test_update_rank_teacher_success(teacher_service: BaseTeacherService, teacher_create, teacher_build):
+    teacher = teacher_create()
+    new_teacher = teacher_build()
 
     assert teacher_service.update_rank(
         teacher_id=teacher.id,
@@ -177,8 +176,8 @@ def test_update_rank_teacher_success(teacher_service: BaseTeacherService):
 
 
 @pytest.mark.django_db
-def test_update_rank_teacher_failure(teacher_service: BaseTeacherService):
-    teacher = TeacherModelFactory.build()
+def test_update_rank_teacher_failure(teacher_service: BaseTeacherService, teacher_build):
+    teacher = teacher_build()
 
     with pytest.raises(TeacherUpdateException):
         teacher_service.update_rank(
@@ -188,8 +187,8 @@ def test_update_rank_teacher_failure(teacher_service: BaseTeacherService):
 
 
 @pytest.mark.django_db
-def test_update_is_active_teacher_success(teacher_service: BaseTeacherService):
-    teacher = TeacherModelFactory.create()
+def test_update_is_active_teacher_success(teacher_service: BaseTeacherService, teacher_create):
+    teacher = teacher_create()
 
     assert teacher_service.update_is_active(
         teacher_id=teacher.id,
@@ -197,8 +196,8 @@ def test_update_is_active_teacher_success(teacher_service: BaseTeacherService):
 
 
 @pytest.mark.django_db
-def test_update_is_active_teacher_failure(teacher_service: BaseTeacherService):
-    teacher = TeacherModelFactory.build()
+def test_update_is_active_teacher_failure(teacher_service: BaseTeacherService, teacher_build):
+    teacher = teacher_build()
 
     with pytest.raises(TeacherUpdateException):
         teacher_service.update_is_active(

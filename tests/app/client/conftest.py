@@ -4,6 +4,7 @@ from datetime import (
     datetime,
     timezone,
 )
+from tests.factories.client.client import ClientModelFactory
 
 from core.apps.clients.services.client import BaseClientService
 from core.apps.clients.services.issuedjwttoken import BaseIssuedJwtTokenService
@@ -30,6 +31,22 @@ def token_service(container) -> BaseTokenService:
 @pytest.fixture
 def issued_jwt_token_service(container) -> BaseIssuedJwtTokenService:
     return container.resolve(BaseIssuedJwtTokenService)
+
+
+@pytest.fixture(scope='function')
+def client_create():
+    def _client_create(**kwargs):
+        return ClientModelFactory.create(**kwargs)
+
+    return _client_create
+
+
+@pytest.fixture(scope='function')
+def client_build():
+    def _client_build(**kwargs):
+        return ClientModelFactory.build(**kwargs)
+
+    return _client_build
 
 
 @pytest.fixture
