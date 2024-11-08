@@ -1,9 +1,10 @@
-DC = docker-compose
+DC = docker compose
 
 # Docker-compose file paths
 STORAGES_FILE = docker_compose/storages.yaml
 APP_FILE = docker_compose/app.yaml
 MONITORING_FILE = docker_compose/monitoring.yaml
+TEST_FILE = docker_compose/test.yaml
 
 # Docker-compose container names
 APP_CONTAINER = main-app
@@ -11,7 +12,8 @@ PROXY_CONTAINER = proxy
 DB_CONTAINER = chmnu-db
 
 # Docker commands
-EXEC = docker exec -it
+EXEC = docker exec
+EXEC_IT = docker exec -it
 LOGS = docker logs
 
 # Env file path(with docker argument)
@@ -43,10 +45,10 @@ proxy-logs:
 		${LOGS} ${PROXY_CONTAINER} -f
 
 proxy-reload-test:
-		${EXEC} ${PROXY_CONTAINER} nginx -t
+		${EXEC_IT} ${PROXY_CONTAINER} nginx -t
 
 proxy-reload:
-		${EXEC} ${PROXY_CONTAINER} nginx -s reload
+		${EXEC_IT} ${PROXY_CONTAINER} nginx -s reload
 
 storages:
 		${DC} ${ENV} -f ${STORAGES_FILE} up -d
@@ -61,7 +63,7 @@ db-logs:
 		${LOGS} ${DB_CONTAINER} -f
 
 postgres:
-		@DB_USER=${DB_USER} DB_NAME=${DB_NAME} ${EXEC} ${DB_CONTAINER} psql -U ${DB_USER} -d ${DB_NAME}
+		@DB_USER=${DB_USER} DB_NAME=${DB_NAME} ${EXEC_IT} ${DB_CONTAINER} psql -U ${DB_USER} -d ${DB_NAME}
 
 monitoring:
 	${DC} ${ENV} -f ${MONITORING_FILE} up -d
@@ -73,25 +75,31 @@ monitoring-down:
 	${DC} -f ${MONITORING_FILE} down
 
 migrate:
-		${EXEC} ${APP_CONTAINER} ${MANAGE_PY} migrate
+		${EXEC_IT} ${APP_CONTAINER} ${MANAGE_PY} migrate
 
 migrations:
-		${EXEC} ${APP_CONTAINER} ${MANAGE_PY} makemigrations
+		${EXEC_IT} ${APP_CONTAINER} ${MANAGE_PY} makemigrations
 
 superuser:
-		${EXEC} ${APP_CONTAINER} ${MANAGE_PY} createsuperuser --no-input
+		${EXEC_IT} ${APP_CONTAINER} ${MANAGE_PY} createsuperuser --no-input
 
 collectstatic:
-		${EXEC} ${APP_CONTAINER} ${MANAGE_PY} collectstatic
+		${EXEC_IT} ${APP_CONTAINER} ${MANAGE_PY} collectstatic
 
 dumpdata:
-		APP_NAME=${APP_NAME} FILE=${FILE} ${EXEC} ${APP_CONTAINER} ${MANAGE_PY} dumpdata ${APP_NAME} --indent=4 -o ${FILE}
+		APP_NAME=${APP_NAME} FILE=${FILE} ${EXEC_IT} ${APP_CONTAINER} ${MANAGE_PY} dumpdata ${APP_NAME} --indent=4 -o ${FILE}
 
 loaddata:
-		APP_NAME=${APP_NAME} ${EXEC} ${APP_CONTAINER} ${MANAGE_PY} loaddata --app=${APP_NAME} --format=json
+		APP_NAME=${APP_NAME} ${EXEC_IT} ${APP_CONTAINER} ${MANAGE_PY} loaddata --app=${APP_NAME} --format=json
 
 run-test:
-		${EXEC} ${APP_CONTAINER} pytest -v
+		${EXEC_IT} ${APP_CONTAINER} pytest -v
 
 runscheduler:
-		${EXEC} ${APP_CONTAINER} ${MANAGE_PY} runscheduler
+		${EXEC_IT} ${APP_CONTAINER} ${MANAGE_PY} runscheduler
+
+test-app:
+	${DC} ${ENV} -f ${TEST_FILE} up --build -d
+
+test-run-test:
+	${EXEC} ${APP_CONTAINER} pytest -v

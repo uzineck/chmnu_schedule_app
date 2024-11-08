@@ -4,8 +4,7 @@
 .env.prod
 static/*
 !static/.gitkeep
-!logs/.gitkeep
-!logs/apps/.gitkeep
+logs/apps/client/*
+logs/apps/schedule/*
 !logs/apps/client/.gitkeep
 !logs/apps/schedule/.gitkeep
-logs/*
