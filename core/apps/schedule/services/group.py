@@ -143,7 +143,8 @@ class ORMGroupService(BaseGroupService):
         groups = (
             GroupModel.objects.
             filter(group__lesson_id=lesson_id).
-            select_related("headman", "faculty")
+            select_related("headman", "faculty").
+            distinct('number')
         )
 
         return [group.to_entity() for group in groups]
