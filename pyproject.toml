@@ -20,6 +20,7 @@ gunicorn = "^23.0.0"
 transliterate = "^1.10.2"
 pytz = "^2024.2"
 django-apscheduler = "^0.7.0"
+django-cors-headers = "^4.6.0"
 
 
 [tool.poetry.group.dev.dependencies]

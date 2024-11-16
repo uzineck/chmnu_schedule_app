@@ -9,7 +9,6 @@ class ClientSchemaPublic(Schema):
     last_name: str
     first_name: str
     middle_name: str
-    role: ClientRole
 
     @classmethod
     def from_entity(cls, client: ClientEntity) -> 'ClientSchemaPublic':
@@ -17,7 +16,6 @@ class ClientSchemaPublic(Schema):
             last_name=client.last_name,
             first_name=client.first_name,
             middle_name=client.middle_name,
-            role=client.role,
         )
 
 
