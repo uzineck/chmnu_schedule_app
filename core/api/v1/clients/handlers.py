@@ -43,7 +43,7 @@ router = Router(tags=["Client"])
 
 @router.post(
     "sign-up",
-    response=ApiResponse[ClientSchemaPrivate],
+    response={201: ApiResponse[ClientSchemaPrivate]},
     operation_id='sign_up',
     auth=jwt_bearer_admin,
 )
@@ -62,7 +62,7 @@ def sign_up_handler(request: HttpRequest, schema: SignUpInSchema) -> ApiResponse
         )
     except ServiceException as e:
         raise HttpError(
-            status_code=401,
+            status_code=400,
             message=e.message,
         )
 
@@ -143,15 +143,9 @@ def update_password(request: HttpRequest, schema: UpdatePwInSchema) -> ApiRespon
     container = get_container()
     client_service: BaseClientService = container.resolve(BaseClientService)
     use_case: UpdateClientPasswordUseCase = container.resolve(UpdateClientPasswordUseCase)
-    try:
-        user_email: str = client_service.get_client_email_from_token(token=request.auth)
-    except JWTKeyParsingException as e:
-        raise HttpError(
-            status_code=401,
-            message=e.message,
-        )
 
     try:
+        user_email: str = client_service.get_client_email_from_token(token=request.auth)
         use_case.execute(
             email=user_email,
             old_password=schema.old_password,
@@ -160,7 +154,7 @@ def update_password(request: HttpRequest, schema: UpdatePwInSchema) -> ApiRespon
         )
     except ServiceException as e:
         raise HttpError(
-            status_code=404,
+            status_code=400,
             message=e.message,
         )
 
@@ -181,15 +175,9 @@ def update_email(request: HttpRequest, schema: UpdateEmailInSchema) -> ApiRespon
     container = get_container()
     client_service = container.resolve(BaseClientService)
     use_case: UpdateClientEmailUseCase = container.resolve(UpdateClientEmailUseCase)
-    try:
-        user_email: str = client_service.get_client_email_from_token(token=request.auth)
-    except JWTKeyParsingException as e:
-        raise HttpError(
-            status_code=401,
-            message=e.message,
-        )
 
     try:
+        user_email: str = client_service.get_client_email_from_token(token=request.auth)
         client, jwt_tokens = use_case.execute(
             old_email=user_email,
             new_email=schema.new_email,
@@ -215,15 +203,9 @@ def update_credentials(request: HttpRequest, schema: CredentialsInSchema) -> Api
     container = get_container()
     client_service: BaseClientService = container.resolve(BaseClientService)
     use_case: UpdateClientCredentialsUseCase = container.resolve(UpdateClientCredentialsUseCase)
-    try:
-        user_email: str = client_service.get_client_email_from_token(token=request.auth)
-    except JWTKeyParsingException as e:
-        raise HttpError(
-            status_code=401,
-            message=e.message,
-        )
 
     try:
+        user_email: str = client_service.get_client_email_from_token(token=request.auth)
         client = use_case.execute(
             email=user_email,
             first_name=schema.first_name,

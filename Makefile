@@ -30,7 +30,7 @@ MANAGE_PY = python manage.py
 .PHONY: postgres, db-logs, # postgres specific commands
 .PHONY: migrations, migrate, superuser, loaddata, dumpdata, collectstatic, runscheduler # django manage.py commands
 
-all: app monitoring runscheduler app-logs
+all: app monitoring
 
 app:
 		${DC} ${ENV} -f ${APP_FILE} -f ${STORAGES_FILE} up --build -d
@@ -39,7 +39,7 @@ app-logs:
 		${LOGS} ${APP_CONTAINER} -f
 
 app-down:
-		${DC} -f ${APP_FILE} -f ${STORAGES_FILE} -f ${MONITORING_FILE} down
+		${DC} ${ENV} -f ${APP_FILE} -f ${STORAGES_FILE} -f ${MONITORING_FILE} down
 
 proxy-logs:
 		${LOGS} ${PROXY_CONTAINER} -f

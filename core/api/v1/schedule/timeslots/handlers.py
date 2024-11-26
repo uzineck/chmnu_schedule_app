@@ -24,7 +24,7 @@ router = Router(tags=["Timeslots"])
 
 @router.post(
     "",
-    response=ApiResponse[TimeslotSchema],
+    response={201: ApiResponse[TimeslotSchema]},
     operation_id="get_or_create_timeslot",
     auth=[jwt_bearer_admin, jwt_bearer_manager],
 )
@@ -35,7 +35,7 @@ def get_or_create_timeslot(request: HttpRequest, schema: Form[CreateTimeslotSche
         timeslot = use_case.execute(day=schema.day, ord_number=schema.ord_number, is_even=schema.is_even)
     except ServiceException as e:
         raise HttpError(
-            status_code=401,
+            status_code=400,
             message=e.message,
         )
     return ApiResponse(

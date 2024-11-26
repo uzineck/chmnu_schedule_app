@@ -61,7 +61,7 @@ def get_all_subjects(request: HttpRequest) -> ApiResponse[list[SubjectSchema]]:
 
     except ServiceException as e:
         raise HttpError(
-            status_code=403,
+            status_code=400,
             message=e.message,
         )
     return ApiResponse(
@@ -109,7 +109,7 @@ def get_subject_list(
         items, pagination_out = items
     except ServiceException as e:
         raise HttpError(
-            status_code=401,
+            status_code=400,
             message=e.message,
         )
 
@@ -123,7 +123,7 @@ def get_subject_list(
 
 @router.post(
     "",
-    response=ApiResponse[SubjectSchema],
+    response={201: ApiResponse[SubjectSchema]}  ,
     operation_id="create_subject",
     auth=[jwt_bearer_admin, jwt_bearer_manager],
 )
@@ -149,7 +149,7 @@ def create(request: HttpRequest, schema: SubjectInSchema) -> ApiResponse[Subject
         )
     except ServiceException as e:
         raise HttpError(
-            status_code=401,
+            status_code=400,
             message=e.message,
         )
 
@@ -196,7 +196,7 @@ def update_subject(request: HttpRequest, subject_uuid: str, schema: SubjectInSch
         )
     except ServiceException as e:
         raise HttpError(
-            status_code=401,
+            status_code=400,
             message=e.message,
         )
 

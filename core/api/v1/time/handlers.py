@@ -24,7 +24,7 @@ def get_current_time_info(request: HttpRequest) -> ApiResponse[TimeInfoOutSchema
         time_info = use_case.execute()
     except ServiceException as e:
         raise HttpError(
-            status_code=401,
+            status_code=400,
             message=e.message,
         )
     return ApiResponse(

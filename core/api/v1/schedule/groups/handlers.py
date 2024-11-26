@@ -68,7 +68,7 @@ def get_all_groups(request: HttpRequest) -> ApiResponse[list[GroupUuidNumberFacu
 
     except ServiceException as e:
         raise HttpError(
-            status_code=403,
+            status_code=400,
             message=e.message,
         )
     return ApiResponse(
@@ -107,7 +107,7 @@ def get_group_lessons(
         group, lessons = group_lessons
     except ServiceException as e:
         raise HttpError(
-            status_code=401,
+            status_code=400,
             message=e.message,
         )
 
@@ -146,7 +146,7 @@ def get_group_info(
 
     except ServiceException as e:
         raise HttpError(
-            status_code=401,
+            status_code=400,
             message=e.message,
         )
 
@@ -196,7 +196,7 @@ def get_headman_info(
 
 @router.post(
     '',
-    response=ApiResponse[GroupSchemaWithHeadman],
+    response={201: ApiResponse[GroupSchemaWithHeadman]},
     operation_id='create_group',
     auth=[jwt_bearer_admin, jwt_bearer_manager],
 )
@@ -221,7 +221,7 @@ def create_group(request: HttpRequest, schema: CreateGroupSchema) -> ApiResponse
         )
     except ServiceException as e:
         raise HttpError(
-            status_code=404,
+            status_code=400,
             message=e.message,
         )
 
@@ -302,7 +302,7 @@ def add_lesson_to_group_admin(
         )
     except ServiceException as e:
         raise HttpError(
-            status_code=404,
+            status_code=400,
             message=e.message,
         )
 
@@ -345,7 +345,7 @@ def remove_lesson_from_group_admin(
         )
     except ServiceException as e:
         raise HttpError(
-            status_code=404,
+            status_code=400,
             message=e.message,
         )
     return ApiResponse(
@@ -368,14 +368,9 @@ def add_lesson_to_group_headman(
     client_service = container.resolve(BaseClientService)
     cache_service: BaseCacheService = container.resolve(BaseCacheService)
     use_case: HeadmanAddLessonToGroupUseCase = container.resolve(HeadmanAddLessonToGroupUseCase)
+
     try:
         user_email: str = client_service.get_client_email_from_token(token=request.auth)
-    except JWTKeyParsingException as e:
-        raise HttpError(
-            status_code=401,
-            message=e.message,
-        )
-    try:
         group, lesson = use_case.execute(headman_email=user_email, subgroup=subgroup, lesson_uuid=lesson_uuid)
         cache_service.invalidate_cache_pattern_list(
             keys=[
@@ -394,7 +389,7 @@ def add_lesson_to_group_headman(
         )
     except ServiceException as e:
         raise HttpError(
-            status_code=404,
+            status_code=400,
             message=e.message,
         )
 
@@ -418,14 +413,9 @@ def remove_lesson_to_group_headman(
     client_service = container.resolve(BaseClientService)
     cache_service: BaseCacheService = container.resolve(BaseCacheService)
     use_case: HeadmanRemoveLessonFromGroupUseCase = container.resolve(HeadmanRemoveLessonFromGroupUseCase)
+
     try:
         user_email: str = client_service.get_client_email_from_token(token=request.auth)
-    except JWTKeyParsingException as e:
-        raise HttpError(
-            status_code=401,
-            message=e.message,
-        )
-    try:
         group, lesson = use_case.execute(headman_email=user_email, subgroup=subgroup, lesson_uuid=lesson_uuid)
         cache_service.invalidate_cache_pattern_list(
             keys=[
@@ -444,7 +434,7 @@ def remove_lesson_to_group_headman(
         )
     except ServiceException as e:
         raise HttpError(
-            status_code=404,
+            status_code=400,
             message=e.message,
         )
 

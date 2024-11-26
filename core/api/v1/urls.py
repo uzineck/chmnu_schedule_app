@@ -1,3 +1,4 @@
+from django.http import HttpRequest
 from ninja import Router
 
 from core.api.v1.clients.urls import router as client_router
@@ -9,3 +10,8 @@ router = Router(tags=['v1'])
 router.add_router('time/', time_router)
 router.add_router('clients/', client_router)
 router.add_router('schedule/', schedule_router)
+
+
+@router.get("ping/")
+def ping(request: HttpRequest):
+    return {"status": "ok"}

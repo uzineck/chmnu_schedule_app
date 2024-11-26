@@ -20,7 +20,7 @@ router = Router(tags=["Lessons"])
 
 @router.post(
     "",
-    response=ApiResponse[LessonForGroupOutSchema],
+    response={201: ApiResponse[LessonForGroupOutSchema]},
     operation_id="create_lesson",
     auth=jwt_bearer,
 )
@@ -41,7 +41,7 @@ def create_lesson(
         )
     except ServiceException as e:
         raise HttpError(
-            status_code=401,
+            status_code=400,
             message=e.message,
         )
 
@@ -73,7 +73,7 @@ def update_lesson(
         )
     except ServiceException as e:
         raise HttpError(
-            status_code=401,
+            status_code=400,
             message=e.message,
         )
 

@@ -67,7 +67,7 @@ def get_all_teachers(request: HttpRequest) -> ApiResponse[list[TeacherSchema]]:
 
     except ServiceException as e:
         raise HttpError(
-            status_code=403,
+            status_code=400,
             message=e.message,
         )
     return ApiResponse(
@@ -119,7 +119,7 @@ def get_teacher_list(
         teacher_list, pagination_out = items
     except ServiceException as e:
         raise HttpError(
-            status_code=401,
+            status_code=400,
             message=e.message,
         )
 
@@ -157,7 +157,7 @@ def get_lessons_for_teacher(request: HttpRequest, teacher_uuid: str) -> ApiRespo
 
     except ServiceException as e:
         raise HttpError(
-            status_code=401,
+            status_code=400,
             message=e.message,
         )
 
@@ -171,7 +171,7 @@ def get_lessons_for_teacher(request: HttpRequest, teacher_uuid: str) -> ApiRespo
 
 @router.post(
     "",
-    response=ApiResponse[TeacherSchema],
+    response={201: ApiResponse[TeacherSchema]},
     operation_id="create_teacher",
     auth=[jwt_bearer_admin, jwt_bearer_manager],
 )
@@ -202,7 +202,7 @@ def create_teacher(request: HttpRequest, schema: TeacherInSchema) -> ApiResponse
         )
     except ServiceException as e:
         raise HttpError(
-            status_code=401,
+            status_code=400,
             message=e.message,
         )
 
@@ -258,7 +258,7 @@ def update_teacher_name(
         )
     except ServiceException as e:
         raise HttpError(
-            status_code=401,
+            status_code=400,
             message=e.message,
         )
     return ApiResponse(
@@ -309,7 +309,7 @@ def update_teacher_rank(
         )
     except ServiceException as e:
         raise HttpError(
-            status_code=401,
+            status_code=400,
             message=e.message,
         )
     return ApiResponse(

@@ -61,7 +61,7 @@ def get_all_faculties(request: HttpRequest) -> ApiResponse[list[FacultySchema]]:
 
     except ServiceException as e:
         raise HttpError(
-            status_code=403,
+            status_code=400,
             message=e.message,
         )
     return ApiResponse(
@@ -108,7 +108,7 @@ def get_faculty_list(
         items, pagination_out = items
     except ServiceException as e:
         raise HttpError(
-            status_code=403,
+            status_code=400,
             message=e.message,
         )
 
@@ -122,7 +122,7 @@ def get_faculty_list(
 
 @router.post(
     "",
-    response=ApiResponse[FacultySchema],
+    response={201: ApiResponse[FacultySchema]},
     operation_id="create_faculty",
     auth=[jwt_bearer_admin, jwt_bearer_manager],
 )
@@ -151,7 +151,7 @@ def create_faculty(
         )
     except ServiceException as e:
         raise HttpError(
-            status_code=403,
+            status_code=400,
             message=e.message,
         )
     return ApiResponse(
@@ -191,7 +191,7 @@ def update_faculty_name(
         )
     except ServiceException as e:
         raise HttpError(
-            status_code=403,
+            status_code=400,
             message=e.message,
         )
     return ApiResponse(
@@ -240,7 +240,7 @@ def update_faculty_code_name(
         )
     except ServiceException as e:
         raise HttpError(
-            status_code=403,
+            status_code=400,
             message=e.message,
         )
     return ApiResponse(

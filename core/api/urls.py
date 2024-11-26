@@ -12,11 +12,6 @@ api = NinjaAPI(
 )
 
 
-@api.get("ping/")
-def ping(request: HttpRequest):
-    return {"status": "ok"}
-
-
 api.add_router('v1/', v1_router)
 
 urlpatterns = [

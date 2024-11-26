@@ -63,7 +63,7 @@ def get_all_rooms(request: HttpRequest) -> ApiResponse[list[RoomSchema]]:
 
     except ServiceException as e:
         raise HttpError(
-            status_code=403,
+            status_code=400,
             message=e.message,
         )
     return ApiResponse(
@@ -111,7 +111,7 @@ def get_room_list(
         items, pagination_out = items
     except ServiceException as e:
         raise HttpError(
-            status_code=401,
+            status_code=400,
             message=e.message,
         )
 
@@ -125,7 +125,7 @@ def get_room_list(
 
 @router.post(
     "",
-    response=ApiResponse[RoomSchema],
+    response={201: ApiResponse[RoomSchema]},
     operation_id="create_room",
     auth=[jwt_bearer_admin, jwt_bearer_manager],
 )
@@ -151,7 +151,7 @@ def create_room(request: HttpRequest, schema: RoomNumberInSchema) -> ApiResponse
         )
     except ServiceException as e:
         raise HttpError(
-            status_code=401,
+            status_code=400,
             message=e.message,
         )
 
@@ -202,7 +202,7 @@ def update_room_number(
         )
     except ServiceException as e:
         raise HttpError(
-            status_code=401,
+            status_code=400,
             message=e.message,
         )
 
@@ -254,7 +254,7 @@ def update_room_description(
 
     except ServiceException as e:
         raise HttpError(
-            status_code=401,
+            status_code=400,
             message=e.message,
         )
 
