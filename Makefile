@@ -44,9 +44,6 @@ app-down:
 proxy-logs:
 		${LOGS} ${PROXY_CONTAINER} -f
 
-proxy-reload-test:
-		${EXEC_IT} ${PROXY_CONTAINER} nginx -t
-
 proxy-reload:
 		${EXEC_IT} ${PROXY_CONTAINER} nginx -s reload
 
