@@ -1,4 +1,5 @@
 from django.http import HttpRequest
+from jwt import PyJWTError
 from ninja import Router
 from ninja.errors import HttpError
 
@@ -84,7 +85,7 @@ def login(request: HttpRequest, schema: LogInSchema) -> ApiResponse[TokenClientO
     except ServiceException as e:
         raise HttpError(
             status_code=400,
-            message=e.message,
+            message='Invalid email or password',
         )
     return ApiResponse(
         data=TokenClientOutSchema.from_entity_with_tokens(client=client, tokens=jwt_tokens),
@@ -127,6 +128,11 @@ def update_access_token(request: HttpRequest, schema: TokenInSchema) -> ApiRespo
         raise HttpError(
             status_code=400,
             message=e.message,
+        )
+    except PyJWTError:
+        raise HttpError(
+            status_code=401,
+            message='Invalid token',
         )
     return ApiResponse(
         data=TokenOutSchema.from_entity(tokens_entity=access_token),

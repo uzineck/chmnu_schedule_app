@@ -48,8 +48,8 @@ def create_lesson(
     return ApiResponse(data=LessonForGroupOutSchema.from_entity(lesson))
 
 
-@router.post(
-    "{lesson_uuid}",
+@router.patch(
+    "{lesson_uuid}/update",
     response=ApiResponse[LessonForGroupOutSchema],
     operation_id="update_lesson",
     auth=jwt_bearer,
