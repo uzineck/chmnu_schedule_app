@@ -6,3 +6,7 @@ class TeacherFilter(Schema):
     last_name: str | None = None
     middle_name: str | None = None
     rank: str | None = None
+
+
+class TeacherLessonFilter(Schema):
+    is_even: bool

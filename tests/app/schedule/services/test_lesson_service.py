@@ -1,4 +1,6 @@
 import pytest
+
+from core.apps.schedule.filters.group import LessonFilter
 from tests.factories.schedule.lesson import LessonModelFactory
 
 from core.apps.schedule.entities.lesson import Lesson as LessonEntity
@@ -48,7 +50,7 @@ def create_lesson_batch_one_teacher(
     subjects = subject_create_batch(size=size)
     teacher = teacher_create()
     rooms = room_create_batch(size=size)
-    timeslots = timeslot_create_batch(size=size)
+    timeslots = timeslot_create_batch(size=size, is_even=True)
     lessons = []
     for i in range(size):
         lessons.append(
@@ -78,7 +80,7 @@ def create_lesson_batch_two_teachers(
     second_teacher = teacher_create()
     subjects = subject_create_batch(size=size)
     rooms = room_create_batch(size=size)
-    timeslots = timeslot_create_batch(size=size)
+    timeslots = timeslot_create_batch(size=size, is_even=True)
     lessons = []
     for i in range(size):
         if i < size_for_first_teacher:
@@ -220,7 +222,7 @@ def test_get_lessons_for_teacher_lesson_one_teacher(
 ):
     lessons = create_lesson_batch_one_teacher
     teacher_id = lessons[0].teacher.id
-    found_lessons = lesson_service.get_lessons_for_teacher(teacher_id=teacher_id)
+    found_lessons = lesson_service.get_lessons_for_teacher(teacher_id=teacher_id, filter_query=LessonFilter(is_even=True))
 
     assert len(found_lessons) == len(lessons)
     assert found_lessons[0].teacher.id == teacher_id
@@ -239,7 +241,7 @@ def test_get_lessons_for_teacher_lesson_two_teachers(
     teacher_lessons = []
 
     for teacher_id in teacher_ids:
-        found_lessons = lesson_service.get_lessons_for_teacher(teacher_id=teacher_id)
+        found_lessons = lesson_service.get_lessons_for_teacher(teacher_id=teacher_id, filter_query=LessonFilter(is_even=True))
 
         assert found_lessons[0].teacher.id == teacher_id
 

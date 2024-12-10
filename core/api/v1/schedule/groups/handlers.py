@@ -9,7 +9,7 @@ from core.api.schemas import (
     ApiResponse,
     StatusResponse,
 )
-from core.api.v1.schedule.groups.filters import GroupFilter
+from core.api.v1.schedule.groups.filters import GroupLessonFilter
 from core.api.v1.schedule.groups.schemas import (
     CreateGroupSchema,
     GroupLessonsOutSchema,
@@ -31,7 +31,7 @@ from core.apps.common.exceptions import (
     ServiceException,
 )
 from core.apps.common.models import Subgroup
-from core.apps.schedule.filters.group import GroupLessonFilter as GroupFilterEntity
+from core.apps.schedule.filters.group import LessonFilter
 from core.apps.schedule.use_cases.group.admin_add_lesson import AdminAddLessonToGroupUseCase
 from core.apps.schedule.use_cases.group.admin_remove_lesson import AdminRemoveLessonFromGroupUseCase
 from core.apps.schedule.use_cases.group.create import CreateGroupUseCase
@@ -84,7 +84,7 @@ def get_all_groups(request: HttpRequest) -> ApiResponse[list[GroupUuidNumberFacu
 def get_group_lessons(
         request: HttpRequest,
         group_uuid: str,
-        filters: Query[GroupFilter],
+        filters: Query[GroupLessonFilter],
 ) -> ApiResponse[GroupLessonsOutSchema]:
     container = get_container()
     cache_service: BaseCacheService = container.resolve(BaseCacheService)
@@ -100,7 +100,7 @@ def get_group_lessons(
         if not group_lessons:
             group_lessons = use_case.execute(
                 group_uuid=group_uuid,
-                filters=GroupFilterEntity(subgroup=filters.subgroup, is_even=filters.is_even),
+                filters=LessonFilter(subgroup=filters.subgroup, is_even=filters.is_even),
             )
             cache_service.set_cache(key=cache_key, value=group_lessons, timeout=Timeout.DAY)
 

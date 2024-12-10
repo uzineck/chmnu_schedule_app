@@ -9,7 +9,7 @@ from typing import Iterable
 
 from core.apps.schedule.entities.lesson import Lesson as LessonEntity
 from core.apps.schedule.exceptions.lesson import LessonNotFoundException
-from core.apps.schedule.filters.group import GroupLessonFilter
+from core.apps.schedule.filters.group import LessonFilter
 from core.apps.schedule.models import Lesson as LessonModel
 
 
@@ -34,17 +34,17 @@ class BaseLessonService(ABC):
         ...
 
     @abstractmethod
-    def get_lessons_for_group(self, group_id: int, filter_query: GroupLessonFilter) -> Iterable[LessonEntity]:
+    def get_lessons_for_group(self, group_id: int, filter_query: LessonFilter) -> Iterable[LessonEntity]:
         ...
 
     @abstractmethod
-    def get_lessons_for_teacher(self, teacher_id: int) -> Iterable[LessonEntity]:
+    def get_lessons_for_teacher(self, teacher_id: int, filter_query: LessonFilter) -> Iterable[LessonEntity]:
         ...
 
 
 class ORMLessonService(BaseLessonService):
 
-    def _build_lesson_query(self, filters: GroupLessonFilter) -> Q:
+    def _build_lesson_query(self, filters: LessonFilter) -> Q:
         query = Q()
 
         if filters.subgroup is not None:
@@ -101,7 +101,7 @@ class ORMLessonService(BaseLessonService):
             type=lesson.type,
         ).exists()
 
-    def get_lessons_for_group(self, group_id: int, filter_query: GroupLessonFilter) -> Iterable[LessonEntity]:
+    def get_lessons_for_group(self, group_id: int, filter_query: LessonFilter) -> Iterable[LessonEntity]:
         query = self._build_lesson_query(filter_query)
         queryset = (
             LessonModel.objects.
@@ -111,10 +111,11 @@ class ORMLessonService(BaseLessonService):
 
         return [lesson.to_entity() for lesson in queryset]
 
-    def get_lessons_for_teacher(self, teacher_id: int) -> Iterable[LessonEntity]:
+    def get_lessons_for_teacher(self, teacher_id: int, filter_query: LessonFilter) -> Iterable[LessonEntity]:
+        query = self._build_lesson_query(filter_query)
         queryset = (
             LessonModel.objects.
-            filter(teacher_id=teacher_id).
+            filter(Q(teacher_id=teacher_id) & query).
             select_related("subject", "teacher", "room", "timeslot")
         )
 

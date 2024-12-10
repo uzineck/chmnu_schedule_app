@@ -3,7 +3,7 @@ from ninja import Schema
 from core.apps.common.models import Subgroup
 
 
-class GroupFilter(Schema):
+class GroupLessonFilter(Schema):
     subgroup: Subgroup
     is_even: bool
 

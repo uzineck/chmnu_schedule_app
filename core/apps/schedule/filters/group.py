@@ -4,6 +4,6 @@ from core.apps.common.models import Subgroup
 
 
 @dataclass(frozen=True)
-class GroupLessonFilter:
-    subgroup: Subgroup
+class LessonFilter:
     is_even: bool
+    subgroup: Subgroup | None = None

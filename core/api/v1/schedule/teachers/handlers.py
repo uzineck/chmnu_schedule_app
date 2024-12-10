@@ -17,7 +17,7 @@ from core.api.v1.schedule.lessons.schema_for_teachers import (
     LessonForTeacherOutSchema,
     TeacherLessonsOutSchema,
 )
-from core.api.v1.schedule.teachers.filters import TeacherFilter
+from core.api.v1.schedule.teachers.filters import TeacherFilter, TeacherLessonFilter
 from core.api.v1.schedule.teachers.schemas import (
     TeacherInSchema,
     TeacherNameInSchema,
@@ -31,6 +31,7 @@ from core.apps.common.authentication.bearer import (
 from core.apps.common.cache.service import BaseCacheService
 from core.apps.common.cache.timeouts import Timeout
 from core.apps.common.exceptions import ServiceException
+from core.apps.schedule.filters.group import LessonFilter
 from core.apps.schedule.filters.teacher import TeacherFilter as TeacherFilterEntity
 from core.apps.schedule.use_cases.teacher.create import CreateTeacherUseCase
 from core.apps.schedule.use_cases.teacher.get_all import GetAllTeachersUseCase
@@ -136,7 +137,11 @@ def get_teacher_list(
     response=ApiResponse[TeacherLessonsOutSchema],
     operation_id="get_lessons_for_teacher",
 )
-def get_lessons_for_teacher(request: HttpRequest, teacher_uuid: str) -> ApiResponse[TeacherLessonsOutSchema]:
+def get_lessons_for_teacher(
+        request: HttpRequest,
+        teacher_uuid: str,
+        filters: Query[TeacherLessonFilter]
+) -> ApiResponse[TeacherLessonsOutSchema]:
     container = get_container()
     cache_service: BaseCacheService = container.resolve(BaseCacheService)
     use_case: GetLessonsForTeacherUseCase = container.resolve(GetLessonsForTeacherUseCase)
@@ -145,10 +150,14 @@ def get_lessons_for_teacher(request: HttpRequest, teacher_uuid: str) -> ApiRespo
             model_prefix="teacher",
             identifier=teacher_uuid,
             func_prefix="lessons",
+            filters=filters,
         )
         teacher_lessons = cache_service.get_cache_value(key=cache_key)
         if not teacher_lessons:
-            teacher, lessons, groups = use_case.execute(teacher_uuid=teacher_uuid)
+            teacher, lessons, groups = use_case.execute(
+                teacher_uuid=teacher_uuid,
+                filters=LessonFilter(is_even=filters.is_even)
+            )
             items = [LessonForTeacherOutSchema.from_entity(lesson, groups.get(lesson.id, [])) for lesson in lessons]
             teacher_lessons = teacher, items
             cache_service.set_cache(key=cache_key, value=teacher_lessons, timeout=Timeout.DAY)
@@ -248,6 +257,7 @@ def update_teacher_name(
                     model_prefix="teacher",
                     identifier=teacher.uuid,
                     func_prefix="*",
+                    filters="*",
                 ),
                 cache_service.generate_cache_key(
                     model_prefix="group",
@@ -299,6 +309,7 @@ def update_teacher_rank(
                     model_prefix="teacher",
                     identifier=teacher.uuid,
                     func_prefix="*",
+                    filters="*",
                 ),
                 cache_service.generate_cache_key(
                     model_prefix="group",
