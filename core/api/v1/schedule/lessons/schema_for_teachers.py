@@ -27,10 +27,9 @@ class LessonForTeacherOutSchema(Schema):
             uuid=lesson.uuid,
             type=lesson.type,
             groups=groups,
-            room=lesson.room,
-            timeslot=lesson.timeslot,
-            teacher=lesson.teacher,
-            subject=lesson.subject,
+            room=RoomSchema.from_entity(lesson.room),
+            timeslot=TimeslotSchema.from_entity(lesson.timeslot),
+            subject=SubjectSchema.from_entity(lesson.subject),
         )
 
 
@@ -52,5 +51,5 @@ class TeacherLessonsOutSchema(Schema):
                     lesson,
                     group_entities.get(lesson.id, []),
                 ) for lesson in lesson_entities
-            ],
+            ] if lesson_entities else None,
         )

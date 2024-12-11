@@ -154,15 +154,13 @@ def get_lessons_for_teacher(
         )
         teacher_lessons = cache_service.get_cache_value(key=cache_key)
         if not teacher_lessons:
-            teacher, lessons, groups = use_case.execute(
+            teacher_lessons = use_case.execute(
                 teacher_uuid=teacher_uuid,
                 filters=LessonFilter(is_even=filters.is_even)
             )
-            items = [LessonForTeacherOutSchema.from_entity(lesson, groups.get(lesson.id, [])) for lesson in lessons]
-            teacher_lessons = teacher, items
             cache_service.set_cache(key=cache_key, value=teacher_lessons, timeout=Timeout.DAY)
 
-        teacher, lessons = teacher_lessons
+        teacher, lessons, groups = teacher_lessons
 
     except ServiceException as e:
         raise HttpError(
@@ -171,9 +169,10 @@ def get_lessons_for_teacher(
         )
 
     return ApiResponse(
-        data=TeacherLessonsOutSchema(
-            teacher=teacher,
-            lessons=lessons,
+        data=TeacherLessonsOutSchema.from_entity_with_lesson_entities(
+            teacher_entity=teacher,
+            lesson_entities=lessons,
+            group_entities=groups,
         ),
     )
 

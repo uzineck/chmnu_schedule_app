@@ -22,13 +22,13 @@ class GetLessonsForTeacherUseCase:
 
     uuid_validator_service: BaseUuidValidatorService
 
-    def execute(self, teacher_uuid: str, filters: LessonFilter) -> tuple[TeacherEntity, Iterable[LessonEntity], dict[int, [GroupEntity]]]:
+    def execute(self, teacher_uuid: str, filters: LessonFilter) -> tuple[TeacherEntity, Iterable[LessonEntity], defaultdict[int, [GroupEntity]]]:
         self.uuid_validator_service.validate(uuid_str=teacher_uuid)
 
         teacher = self.teacher_service.get_by_uuid(teacher_uuid=teacher_uuid)
         lessons = self.lesson_service.get_lessons_for_teacher(teacher_id=teacher.id, filter_query=filters)
 
-        groups = defaultdict(list)
+        groups: defaultdict[int, [GroupEntity]] = defaultdict(list)
 
         for lesson in lessons:
             lesson_groups = self.group_service.get_group_list_from_lesson(lesson_id=lesson.id)
