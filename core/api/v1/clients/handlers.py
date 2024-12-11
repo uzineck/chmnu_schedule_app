@@ -21,6 +21,7 @@ from core.api.v1.clients.schemas import (
 )
 from core.apps.clients.services.client import BaseClientService
 from core.apps.clients.usecases.client.create import CreateClientUseCase
+from core.apps.clients.usecases.client.get_info import GetClientInfoUseCase
 from core.apps.clients.usecases.client.login import LoginClientUseCase
 from core.apps.clients.usecases.client.logout import LogoutClientUseCase
 from core.apps.clients.usecases.client.update_access_token import UpdateAccessTokenUseCase
@@ -32,6 +33,7 @@ from core.apps.common.authentication.bearer import (
     jwt_bearer,
     jwt_bearer_admin,
 )
+from core.apps.common.cache.service import BaseCacheService
 from core.apps.common.exceptions import (
     JWTKeyParsingException,
     ServiceException,
@@ -42,13 +44,37 @@ from core.project.containers.containers import get_container
 router = Router(tags=["Client"])
 
 
+@router.get(
+    "info",
+    response={200: ApiResponse[ClientSchemaPrivate]},
+    operation_id='get_client_info',
+    auth=jwt_bearer,
+)
+def get_client_info(request: HttpRequest) -> ApiResponse[ClientSchemaPrivate]:
+    container = get_container()
+    client_service: BaseClientService = container.resolve(BaseClientService)
+    use_case: GetClientInfoUseCase = container.resolve(GetClientInfoUseCase)
+    try:
+        user_email: str = client_service.get_client_email_from_token(token=request.auth)
+        client = use_case.execute(user_email)
+    except ServiceException as e:
+        raise HttpError(
+            status_code=400,
+            message=e.message,
+        )
+
+    return ApiResponse(
+        data=ClientSchemaPrivate.from_entity(client=client),
+    )
+
+
 @router.post(
     "sign-up",
     response={201: ApiResponse[ClientSchemaPrivate]},
     operation_id='sign_up',
     auth=jwt_bearer_admin,
 )
-def sign_up_handler(request: HttpRequest, schema: SignUpInSchema) -> ApiResponse[ClientSchemaPrivate]:
+def sign_up(request: HttpRequest, schema: SignUpInSchema) -> ApiResponse[ClientSchemaPrivate]:
     container = get_container()
     use_case: CreateClientUseCase = container.resolve(CreateClientUseCase)
     try:
@@ -180,6 +206,7 @@ def update_password(request: HttpRequest, schema: UpdatePwInSchema) -> ApiRespon
 def update_email(request: HttpRequest, schema: UpdateEmailInSchema) -> ApiResponse[TokenClientOutSchema]:
     container = get_container()
     client_service = container.resolve(BaseClientService)
+    cache_service: BaseCacheService = container.resolve(BaseCacheService)
     use_case: UpdateClientEmailUseCase = container.resolve(UpdateClientEmailUseCase)
 
     try:
@@ -188,6 +215,15 @@ def update_email(request: HttpRequest, schema: UpdateEmailInSchema) -> ApiRespon
             old_email=user_email,
             new_email=schema.new_email,
             password=schema.password,
+        )
+        cache_service.invalidate_cache_pattern_list(
+            keys=[
+                cache_service.generate_cache_key(
+                    model_prefix="group",
+                    identifier=user_email,
+                    func_prefix="*",
+                ),
+            ],
         )
     except ServiceException as e:
         raise HttpError(
@@ -208,6 +244,7 @@ def update_email(request: HttpRequest, schema: UpdateEmailInSchema) -> ApiRespon
 def update_credentials(request: HttpRequest, schema: CredentialsInSchema) -> ApiResponse[ClientSchemaPrivate]:
     container = get_container()
     client_service: BaseClientService = container.resolve(BaseClientService)
+    cache_service: BaseCacheService = container.resolve(BaseCacheService)
     use_case: UpdateClientCredentialsUseCase = container.resolve(UpdateClientCredentialsUseCase)
 
     try:
@@ -217,6 +254,15 @@ def update_credentials(request: HttpRequest, schema: CredentialsInSchema) -> Api
             first_name=schema.first_name,
             last_name=schema.last_name,
             middle_name=schema.middle_name,
+        )
+        cache_service.invalidate_cache_pattern_list(
+            keys=[
+                cache_service.generate_cache_key(
+                    model_prefix="group",
+                    identifier=user_email,
+                    func_prefix="*",
+                ),
+            ],
         )
     except ServiceException as e:
         raise HttpError(

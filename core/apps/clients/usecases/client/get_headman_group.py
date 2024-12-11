@@ -8,14 +8,12 @@ from core.apps.schedule.services.group import BaseGroupService
 
 
 @dataclass
-class GetHeadmanInfoUseCase:
+class GetHeadmanGroupUseCase:
     client_service: BaseClientService
     group_service: BaseGroupService
 
     def execute(self, email: str) -> GroupEntity:
         client = self.client_service.get_by_email(client_email=email)
-
         self.client_service.check_client_role(client.role, ClientRole.HEADMAN)
-
         group = self.group_service.get_group_from_headman(headman_id=client.id)
         return group

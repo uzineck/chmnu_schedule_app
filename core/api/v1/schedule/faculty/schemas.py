@@ -33,7 +33,7 @@ class FacultyNameSchema(Schema):
     @classmethod
     def from_entity(cls, entity: FacultyEntity) -> 'FacultyNameSchema':
         return cls(
-            code_name=entity.name,
+            name=entity.name,
         )
 
 

@@ -9,7 +9,9 @@ from core.apps.clients.services.issuedjwttoken import (
     ORMIssuedJwtTokenService,
 )
 from core.apps.clients.usecases.client.create import CreateClientUseCase
+from core.apps.clients.usecases.client.get_headman_group import GetHeadmanGroupUseCase
 from core.apps.clients.usecases.client.get_headman_info import GetHeadmanInfoUseCase
+from core.apps.clients.usecases.client.get_info import GetClientInfoUseCase
 from core.apps.clients.usecases.client.login import LoginClientUseCase
 from core.apps.clients.usecases.client.logout import LogoutClientUseCase
 from core.apps.clients.usecases.client.update_access_token import UpdateAccessTokenUseCase
@@ -41,4 +43,6 @@ def register_client_services(container: punq.Container):
     container.register(UpdateClientCredentialsUseCase)
     container.register(UpdateClientRoleUseCase)
     container.register(GetHeadmanInfoUseCase)
+    container.register(GetHeadmanGroupUseCase)
+    container.register(GetClientInfoUseCase)
     container.register(UpdateAccessTokenUseCase)

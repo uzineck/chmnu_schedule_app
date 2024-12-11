@@ -21,7 +21,7 @@ class InvalidPasswordPatternException(ServiceException):
     def message(self):
         return (
             'The provided password does not meet the required security criteria: it must be at least 8 characters '
-            'long, contain both uppercase and lowercase letters, at least one digit, and cat contain only this '
+            'long, contain both uppercase and lowercase letters, at least one digit, and can contain only this '
             'symbols !@#$%^:;.,&*?`~\'"+=-_'
         )
 
