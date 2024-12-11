@@ -26,7 +26,7 @@ from core.api.v1.schedule.teachers.schemas import (
 )
 from core.apps.common.authentication.bearer import (
     jwt_bearer_admin,
-    jwt_bearer_manager,
+    jwt_bearer_manager, jwt_bearer,
 )
 from core.apps.common.cache.service import BaseCacheService
 from core.apps.common.cache.timeouts import Timeout
@@ -80,7 +80,7 @@ def get_all_teachers(request: HttpRequest) -> ApiResponse[list[TeacherSchema]]:
     "",
     response=ApiResponse[ListPaginatedResponse[TeacherSchema]],
     operation_id="get_teacher_list",
-    auth=[jwt_bearer_admin, jwt_bearer_manager],
+    auth=jwt_bearer,
 )
 def get_teacher_list(
         request: HttpRequest,
