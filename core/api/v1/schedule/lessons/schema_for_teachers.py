@@ -23,13 +23,14 @@ class LessonForTeacherOutSchema(Schema):
 
     @classmethod
     def from_entity(cls, lesson: LessonEntity, groups: list[GroupEntity]) -> 'LessonForTeacherOutSchema':
+        print(list(f'SUBGROUPS LESSONFORTEACHER: {group.subgroups}' for group in groups))
         return cls(
             uuid=lesson.uuid,
             type=lesson.type,
-            groups=groups,
+            subject=SubjectSchema.from_entity(lesson.subject),
             room=RoomSchema.from_entity(lesson.room),
             timeslot=TimeslotSchema.from_entity(lesson.timeslot),
-            subject=SubjectSchema.from_entity(lesson.subject),
+            groups=[GroupSchemaForTeacherLesson.from_entity(group) for group in groups],
         )
 
 

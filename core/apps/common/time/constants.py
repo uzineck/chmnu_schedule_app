@@ -6,7 +6,7 @@ from datetime import (
 from core.apps.common.models import OrdinaryNumber
 
 
-START_OF_ACADEMIC_SEMESTER = datetime(year=2024, month=9, day=1)
+START_OF_ACADEMIC_SEMESTER = datetime(year=2024, month=9, day=2)
 START_OF_ACADEMIC_SEMESTER_LINE = True  # At the start of academic semester the line is above(True) or below(False)
 
 LESSON_TIMETABLE = {

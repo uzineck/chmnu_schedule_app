@@ -82,6 +82,10 @@ class BaseClientService(ABC):
         ...
 
     @abstractmethod
+    def check_client_exists(self, client_email: str) -> bool:
+        ...
+
+    @abstractmethod
     def validate_password(self, client_password: str, plain_password: str) -> None:
         ...
 
@@ -208,6 +212,9 @@ class ORMClientService(BaseClientService):
             raise ClientNotFoundException(id=client_id)
 
         return client.to_entity()
+
+    def check_client_exists(self, client_email: str) -> bool:
+        return ClientModel.objects.filter(email=client_email).exists()
 
     def validate_password(self, client_password: str, plain_password: str) -> None:
         if not self.password_service.verify_password(plain_password=plain_password, hashed_password=client_password):

@@ -14,7 +14,7 @@ from core.api.v1.schedule.groups.schemas import (
     CreateGroupSchema,
     GroupLessonsOutSchema,
     GroupSchemaWithHeadman,
-    GroupUuidNumberFacultyOutSchema,
+    GroupAllOutSchema,
     HeadmanEmailInSchema, GroupSchema,
 )
 from core.apps.clients.services.client import BaseClientService
@@ -50,22 +50,21 @@ router = Router(tags=['Group'])
 
 @router.get(
     'all',
-    response=ApiResponse[list[GroupUuidNumberFacultyOutSchema]],
+    response=ApiResponse[list[GroupAllOutSchema]],
     operation_id='get_all_groups',
 
 )
-def get_all_groups(request: HttpRequest) -> ApiResponse[list[GroupUuidNumberFacultyOutSchema]]:
+def get_all_groups(request: HttpRequest) -> ApiResponse[list[GroupAllOutSchema]]:
     container = get_container()
     cache_service: BaseCacheService = container.resolve(BaseCacheService)
     use_case: GetAllGroupsUseCase = container.resolve(GetAllGroupsUseCase)
     try:
-        groups = use_case.execute()
-
         cache_key = cache_service.generate_cache_key(model_prefix="group", func_prefix="all")
-        items = cache_service.get_cache_value(key=cache_key)
-        if not items:
-            items = [GroupUuidNumberFacultyOutSchema.from_entity(group) for group in groups]
-            cache_service.set_cache(key=cache_key, value=items, timeout=Timeout.MONTH)
+        groups = cache_service.get_cache_value(key=cache_key)
+        if not groups:
+            groups = use_case.execute()
+            groups = [GroupAllOutSchema.from_entity(group) for group in groups]
+            cache_service.set_cache(key=cache_key, value=groups, timeout=Timeout.MONTH)
 
     except ServiceException as e:
         raise HttpError(
@@ -73,7 +72,7 @@ def get_all_groups(request: HttpRequest) -> ApiResponse[list[GroupUuidNumberFacu
             message=e.message,
         )
     return ApiResponse(
-        data=items,
+        data=groups,
     )
 
 
@@ -103,7 +102,7 @@ def get_group_lessons(
                 group_uuid=group_uuid,
                 filters=LessonFilter(subgroup=filters.subgroup, is_even=filters.is_even),
             )
-            cache_service.set_cache(key=cache_key, value=group_lessons, timeout=Timeout.DAY)
+            cache_service.set_cache(key=cache_key, value=group_lessons, timeout=Timeout.HALF_MONTH)
 
         group, lessons = group_lessons
     except ServiceException as e:
@@ -319,8 +318,8 @@ def update_group_headman(
 def add_lesson_to_group_admin(
         request: HttpRequest,
         group_uuid: str,
-        subgroup: Subgroup,
         lesson_uuid: str,
+        subgroup: Subgroup | None = None,
 ) -> ApiResponse[StatusResponse]:
     container = get_container()
     cache_service: BaseCacheService = container.resolve(BaseCacheService)
@@ -339,6 +338,7 @@ def add_lesson_to_group_admin(
                     model_prefix="teacher",
                     identifier=lesson.teacher.uuid,
                     func_prefix="lessons",
+                    filters="*",
                 ),
             ],
         )
@@ -362,8 +362,8 @@ def add_lesson_to_group_admin(
 def remove_lesson_from_group_admin(
         request: HttpRequest,
         group_uuid: str,
-        subgroup: Subgroup,
         lesson_uuid: str,
+        subgroup: Subgroup | None = None,
 ) -> ApiResponse[StatusResponse]:
     container = get_container()
     cache_service: BaseCacheService = container.resolve(BaseCacheService)
@@ -382,6 +382,7 @@ def remove_lesson_from_group_admin(
                     model_prefix="teacher",
                     identifier=lesson.teacher.uuid,
                     func_prefix="lessons",
+                    filters="*",
                 ),
             ],
         )
@@ -403,8 +404,8 @@ def remove_lesson_from_group_admin(
 )
 def add_lesson_to_group_headman(
         request: HttpRequest,
-        subgroup: Subgroup,
         lesson_uuid: str,
+        subgroup: Subgroup | None = None,
 ) -> ApiResponse[StatusResponse]:
     container = get_container()
     client_service = container.resolve(BaseClientService)
@@ -426,6 +427,7 @@ def add_lesson_to_group_headman(
                     model_prefix="teacher",
                     identifier=lesson.teacher.uuid,
                     func_prefix="lessons",
+                    filters="*",
                 ),
             ],
         )
@@ -448,8 +450,8 @@ def add_lesson_to_group_headman(
 )
 def remove_lesson_to_group_headman(
         request: HttpRequest,
-        subgroup: Subgroup,
         lesson_uuid: str,
+        subgroup: Subgroup | None = None,
 ) -> ApiResponse[StatusResponse]:
     container = get_container()
     client_service = container.resolve(BaseClientService)
@@ -471,6 +473,7 @@ def remove_lesson_to_group_headman(
                     model_prefix="teacher",
                     identifier=lesson.teacher.uuid,
                     func_prefix="lessons",
+                    filters="*",
                 ),
             ],
         )

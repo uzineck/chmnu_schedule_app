@@ -235,6 +235,7 @@ def update_faculty_code_name(
                     model_prefix="teacher",
                     identifier="*",
                     func_prefix="lessons",
+                    filters="*",
                 ),
             ],
         )

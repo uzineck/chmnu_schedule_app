@@ -186,11 +186,13 @@ def update_subject(request: HttpRequest, subject_uuid: str, schema: SubjectInSch
                     model_prefix="group",
                     identifier="*",
                     func_prefix="lessons",
+                    filters="*",
                 ),
                 cache_service.generate_cache_key(
                     model_prefix="teacher",
                     identifier="*",
                     func_prefix="lessons",
+                    filters="*",
                 ),
             ],
         )

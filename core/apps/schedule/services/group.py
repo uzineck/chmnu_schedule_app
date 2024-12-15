@@ -14,7 +14,7 @@ from core.apps.schedule.exceptions.group import (
     GroupHeadmanUpdateException,
     GroupNotFoundException,
     GroupWithoutSubgroupsInvalidSubgroupException,
-    HeadmanNotAssignedToAnyGroup,
+    HeadmanNotAssignedToAnyGroup, GroupWithSubgroupsInvalidSubgroupException,
 )
 from core.apps.schedule.models.group import Group as GroupModel
 
@@ -129,13 +129,20 @@ class ORMGroupService(BaseGroupService):
     def check_exists_by_number(self, group_number: str) -> bool:
         return GroupModel.objects.filter(number=group_number).exists()
 
-    def check_if_group_has_subgroup(self, group: GroupEntity, subgroup: Subgroup) -> bool:
-        if not group.has_subgroups and subgroup != Subgroup.A:
-            logger.warning(
-                f"Group Does Not Has Subgroup Error "
+    def check_if_group_has_subgroup(self, group: GroupEntity, subgroup: Subgroup | None) -> bool:
+        if not group.has_subgroups and subgroup is not None:
+            logger.info(
+                f"Group Has Subgroup Error "
                 f"(group_number={group.number}, group_has_subgroups={group.has_subgroups}, {subgroup=})",
             )
             raise GroupWithoutSubgroupsInvalidSubgroupException(subgroup=subgroup)
+
+        if group.has_subgroups and subgroup is None:
+            logger.info(
+                f"Group Does Not Have Subgroup Error "
+                f"(group_number={group.number}, group_has_subgroups={group.has_subgroups}, {subgroup=})",
+            )
+            raise GroupWithSubgroupsInvalidSubgroupException
 
         return True
 

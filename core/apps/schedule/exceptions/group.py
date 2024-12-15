@@ -40,7 +40,15 @@ class GroupWithoutSubgroupsInvalidSubgroupException(ServiceException):
 
     @property
     def message(self):
-        return 'Group without subgroups cannot have subgroup B, only A'
+        return 'Group without subgroups cannot have subgroup'
+
+
+@dataclass(eq=False)
+class GroupWithSubgroupsInvalidSubgroupException(ServiceException):
+
+    @property
+    def message(self):
+        return 'Group with subgroups cannot but have a subgroup'
 
 
 @dataclass(eq=False)

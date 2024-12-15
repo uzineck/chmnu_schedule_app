@@ -23,11 +23,15 @@ class BaseGroupLessonService(ABC):
         ...
 
     @abstractmethod
+    def check_lesson_belongs_to_any_group(self, lesson_id: int) -> bool:
+        ...
+
+    @abstractmethod
     def delete(self, group_lesson: GroupLessonEntity) -> None:
         ...
 
     @abstractmethod
-    def get_subgroup_from_group_lesson(self, group_id: int, lesson_id: int) -> list[Subgroup]:
+    def get_subgroup_from_group_lesson(self, group_id: int, lesson_id: int) -> list[Subgroup] | None:
         ...
 
 
@@ -41,6 +45,11 @@ class ORMGroupLessonService(BaseGroupLessonService):
             group_id=group_lesson.group.id,
             lesson_id=group_lesson.lesson.id,
             subgroup=group_lesson.subgroup,
+        ).exists()
+
+    def check_lesson_belongs_to_any_group(self, lesson_id: int) -> bool:
+        return GroupLessonModel.objects.filter(
+            lesson_id=lesson_id,
         ).exists()
 
     def delete(self, group_lesson: GroupLessonEntity) -> None:
@@ -61,9 +70,10 @@ class ORMGroupLessonService(BaseGroupLessonService):
                 subgroup=group_lesson.subgroup,
             )
 
-    def get_subgroup_from_group_lesson(self, group_id: int, lesson_id: int) -> list[Subgroup]:
+    def get_subgroup_from_group_lesson(self, group_id: int, lesson_id: int) -> list[Subgroup] | None:
         subgroups = GroupLessonModel.objects.filter(
             group_id=group_id,
             lesson_id=lesson_id,
         ).values_list('subgroup', flat=True)
-        return list(subgroups)
+        subgroups = [subgroup for subgroup in subgroups if subgroup is not None]
+        return list(subgroups) if subgroups else None

@@ -8,7 +8,7 @@ from abc import (
 from typing import Iterable
 
 from core.apps.schedule.entities.lesson import Lesson as LessonEntity
-from core.apps.schedule.exceptions.lesson import LessonNotFoundException
+from core.apps.schedule.exceptions.lesson import LessonNotFoundException, LessonDeleteError
 from core.apps.schedule.filters.group import LessonFilter
 from core.apps.schedule.models import Lesson as LessonModel
 
@@ -39,6 +39,10 @@ class BaseLessonService(ABC):
 
     @abstractmethod
     def get_lessons_for_teacher(self, teacher_id: int, filter_query: LessonFilter) -> Iterable[LessonEntity]:
+        ...
+
+    @abstractmethod
+    def delete_by_uuid(self, lesson_uuid: str) -> None:
         ...
 
 
@@ -120,3 +124,15 @@ class ORMLessonService(BaseLessonService):
         )
 
         return [lesson.to_entity() for lesson in queryset]
+
+    def delete_by_uuid(self, lesson_uuid: str) -> None:
+        is_deleted, _ = LessonModel.objects.filter(
+            lesson_uuid=lesson_uuid,
+        ).delete()
+
+        if not is_deleted:
+            logger.error(
+                f"Lesson Delete Error"
+                f" ({lesson_uuid=})",
+            )
+            raise LessonDeleteError(uuid=lesson_uuid)

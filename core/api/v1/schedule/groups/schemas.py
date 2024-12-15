@@ -64,17 +64,19 @@ class CreateGroupSchema(Schema):
     has_subgroups: bool
 
 
-class GroupUuidNumberFacultyOutSchema(Schema):
+class GroupAllOutSchema(Schema):
     uuid: str
     number: str
     faculty: FacultyCodeNameSchema
+    has_subgroups: bool
 
     @classmethod
-    def from_entity(cls, entity: GroupEntity) -> 'GroupUuidNumberFacultyOutSchema':
+    def from_entity(cls, entity: GroupEntity) -> 'GroupAllOutSchema':
         return cls(
             uuid=entity.uuid,
             number=entity.number,
             faculty=FacultyCodeNameSchema.from_entity(entity.faculty),
+            has_subgroups=entity.has_subgroups,
         )
 
 
@@ -98,15 +100,14 @@ class GroupLessonsOutSchema(Schema):
 class GroupSchemaForTeacherLesson(Schema):
     uuid: str
     number: str
-    faculty: FacultyCodeNameSchema
     subgroups: list[Subgroup] | None = None
 
     @classmethod
     def from_entity(cls, entity: GroupEntity) -> 'GroupSchemaForTeacherLesson':
+        print(f'SUBGROUPS: {type(entity.subgroups)}')
         return cls(
             uuid=entity.uuid,
             number=entity.number,
-            faculty=FacultyCodeNameSchema.from_entity(entity.faculty),
             subgroups=entity.subgroups,
         )
 

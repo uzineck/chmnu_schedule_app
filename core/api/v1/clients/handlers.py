@@ -108,7 +108,7 @@ def login(request: HttpRequest, schema: LogInSchema) -> ApiResponse[TokenClientO
     use_case: LoginClientUseCase = container.resolve(LoginClientUseCase)
     try:
         client, jwt_tokens = use_case.execute(email=schema.email, password=schema.password)
-    except ServiceException as e:
+    except ServiceException:
         raise HttpError(
             status_code=400,
             message='Invalid email or password',

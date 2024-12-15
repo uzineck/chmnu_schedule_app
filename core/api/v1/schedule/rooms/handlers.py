@@ -192,11 +192,13 @@ def update_room_number(
                     model_prefix="group",
                     identifier="*",
                     func_prefix="lessons",
+                    filters="*",
                 ),
                 cache_service.generate_cache_key(
                     model_prefix="teacher",
                     identifier="*",
                     func_prefix="lessons",
+                    filters="*",
                 ),
             ],
         )
@@ -243,11 +245,13 @@ def update_room_description(
                     model_prefix="group",
                     identifier="*",
                     func_prefix="lessons",
+                    filters="*",
                 ),
                 cache_service.generate_cache_key(
                     model_prefix="teacher",
                     identifier="*",
                     func_prefix="lessons",
+                    filters="*",
                 ),
             ],
         )

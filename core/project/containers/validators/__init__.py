@@ -3,6 +3,7 @@ import punq
 from .email import register_email_validators
 from .faculty import register_faculty_validators
 from .group import register_group_validators
+from .group_lesson import register_group_lesson_validators
 from .password import register_password_validators
 from .room import register_room_validators
 from .subject import register_subject_validators
@@ -19,3 +20,4 @@ def register_validators(container: punq.Container):
     register_subject_validators(container=container)
     register_teacher_validators(container=container)
     register_faculty_validators(container=container)
+    register_group_lesson_validators(container=container)

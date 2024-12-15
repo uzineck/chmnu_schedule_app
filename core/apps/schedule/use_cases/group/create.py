@@ -17,18 +17,18 @@ class CreateGroupUseCase:
     group_validator_service: BaseGroupValidatorService
 
     def execute(self, group_number: str, faculty_uuid: str, headman_email: str, has_subgroups: bool) -> GroupEntity:
-        headman = self.client_service.get_by_email(client_email=headman_email)
-        self.client_service.check_client_role(client_role=headman.role, required_role=ClientRole.HEADMAN)
+        client = self.client_service.get_by_email(client_email=headman_email)
+        self.client_service.check_client_role(client_role=client.role, required_role=ClientRole.HEADMAN)
 
         faculty = self.faculty_service.get_by_uuid(faculty_uuid=faculty_uuid)
 
-        self.group_validator_service.validate(group_number=group_number, headman=headman)
+        self.group_validator_service.validate(group_number=group_number, headman=client)
 
         group = self.group_service.create(
             group_number=group_number,
             faculty_id=faculty.id,
             has_subgroups=has_subgroups,
-            headman_id=headman.id,
+            headman_id=client.id,
         )
 
         return group

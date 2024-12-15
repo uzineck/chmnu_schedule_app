@@ -262,6 +262,7 @@ def update_teacher_name(
                     model_prefix="group",
                     identifier="*",
                     func_prefix="lessons",
+                    filters="*",
                 ),
             ],
         )
@@ -314,6 +315,7 @@ def update_teacher_rank(
                     model_prefix="group",
                     identifier="*",
                     func_prefix="lessons",
+                    filters="*",
                 ),
             ],
         )

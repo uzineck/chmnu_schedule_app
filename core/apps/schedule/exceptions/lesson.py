@@ -11,3 +11,12 @@ class LessonNotFoundException(ServiceException):
     @property
     def message(self):
         return 'Lesson with provided identifier not found'
+
+
+@dataclass(eq=False)
+class LessonDeleteError(ServiceException):
+    uuid: str | None = None
+
+    @property
+    def message(self):
+        return 'An error occurred while deleting lesson'

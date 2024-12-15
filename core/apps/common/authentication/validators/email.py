@@ -5,6 +5,8 @@ from abc import (
 )
 from dataclasses import dataclass
 
+from core.apps.clients.exceptions.client import ClientAlreadyExistsException
+from core.apps.clients.services.client import BaseClientService
 from core.apps.common.authentication.validators.exceptions import (
     InvalidEmailPatternException,
     OldAndNewEmailsAreSimilarException,
@@ -19,6 +21,14 @@ class BaseEmailValidatorService(ABC):
             old_email: str | None = None,
     ):
         ...
+
+@dataclass
+class EmailAlreadyInUseValidatorService(BaseEmailValidatorService):
+    client_service: BaseClientService
+
+    def validate(self, email: str, *args, **kwargs):
+        if self.client_service.check_client_exists(client_email=email):
+            raise ClientAlreadyExistsException(email=email)
 
 
 class EmailPatternValidatorService(BaseEmailValidatorService):
