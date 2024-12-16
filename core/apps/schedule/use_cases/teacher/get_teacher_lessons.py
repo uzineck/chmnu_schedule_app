@@ -22,7 +22,11 @@ class GetLessonsForTeacherUseCase:
 
     uuid_validator_service: BaseUuidValidatorService
 
-    def execute(self, teacher_uuid: str, filters: LessonFilter) -> tuple[TeacherEntity, Iterable[LessonEntity], defaultdict[int, [GroupEntity]]]:
+    def execute(
+            self,
+            teacher_uuid: str,
+            filters: LessonFilter,
+    ) -> tuple[TeacherEntity, Iterable[LessonEntity], defaultdict[int, [GroupEntity]]]:
         self.uuid_validator_service.validate(uuid_str=teacher_uuid)
 
         teacher = self.teacher_service.get_by_uuid(teacher_uuid=teacher_uuid)

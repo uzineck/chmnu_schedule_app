@@ -3,8 +3,9 @@ import punq
 from core.apps.common.authentication.validators.email import (
     BaseEmailValidatorService,
     ComposedEmailValidatorService,
+    EmailAlreadyInUseValidatorService,
     EmailPatternValidatorService,
-    SimilarOldAndNewEmailValidatorService, EmailAlreadyInUseValidatorService,
+    SimilarOldAndNewEmailValidatorService,
 )
 
 

@@ -35,7 +35,7 @@ class ORMTimeslotService(BaseTimeslotService):
         try:
             timeslot = TimeslotModel.objects.get(id=timeslot_id)
         except TimeslotModel.DoesNotExist:
-            logger.error(f"Timeslot Does Not Exist Error ({timeslot_id=})")
+            logger.info(f"Timeslot Does Not Exist Error ({timeslot_id=})")
             raise TimeslotNotFoundException(timeslot_id=timeslot_id)
 
         return timeslot.to_entity()

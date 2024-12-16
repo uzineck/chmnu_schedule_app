@@ -3,7 +3,6 @@ from dataclasses import (
     field,
 )
 from datetime import datetime
-from xml.dom.minidom import Entity
 
 from core.apps.common.constants import EntityStatus
 from core.apps.common.factory import get_new_uuid

@@ -9,6 +9,7 @@ from core.apps.common.models import Subgroup
 from core.apps.schedule.entities.group import Group as GroupEntity
 from core.apps.schedule.entities.lesson import Lesson as LessonEntity
 
+
 class GroupSchema(Schema):
     uuid: str
     number: str

@@ -1,8 +1,13 @@
 from dataclasses import dataclass
 from typing import Any
 
-from core.apps.common.time.constants import START_OF_ACADEMIC_SEMESTER, START_OF_ACADEMIC_SEMESTER_LINE, \
-    LESSON_TIMETABLE, START_OF_ACADEMIC_DAY, END_OF_ACADEMIC_DAY
+from core.apps.common.time.constants import (
+    END_OF_ACADEMIC_DAY,
+    LESSON_TIMETABLE,
+    START_OF_ACADEMIC_DAY,
+    START_OF_ACADEMIC_SEMESTER,
+    START_OF_ACADEMIC_SEMESTER_LINE,
+)
 from core.apps.common.time.entity import TimeInfo as TimeInfoEntity
 from core.apps.common.time.service import BaseTimeService
 

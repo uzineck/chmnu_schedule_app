@@ -8,7 +8,10 @@ from abc import (
 from typing import Iterable
 
 from core.apps.schedule.entities.lesson import Lesson as LessonEntity
-from core.apps.schedule.exceptions.lesson import LessonNotFoundException, LessonDeleteError
+from core.apps.schedule.exceptions.lesson import (
+    LessonDeleteError,
+    LessonNotFoundException,
+)
 from core.apps.schedule.filters.group import LessonFilter
 from core.apps.schedule.models import Lesson as LessonModel
 

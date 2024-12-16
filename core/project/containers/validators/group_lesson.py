@@ -1,8 +1,12 @@
 import punq
 
-from core.apps.schedule.validators.group_lesson import BaseGroupLessonValidatorService, \
-    CheckGroupHasSubgroupValidatorService, ClientDoesNotMatchRolesValidatorService, \
-    CheckLessonInGroupAlreadyExistsValidatorService, ComposedGroupLessonValidatorService
+from core.apps.schedule.validators.group_lesson import (
+    BaseGroupLessonValidatorService,
+    CheckGroupHasSubgroupValidatorService,
+    CheckLessonInGroupAlreadyExistsValidatorService,
+    ClientDoesNotMatchRolesValidatorService,
+    ComposedGroupLessonValidatorService,
+)
 
 
 def register_group_lesson_validators(container: punq.Container):

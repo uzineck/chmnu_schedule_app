@@ -8,7 +8,6 @@ from core.apps.common.models import (
 from core.apps.schedule.entities.group import Group as GroupEntity
 from core.apps.schedule.entities.group_lessons import GroupLesson as GroupLessonEntity
 from core.apps.schedule.entities.lesson import Lesson as LessonEntity
-from core.apps.schedule.exceptions.group_lesson import GroupLessonAlreadyExists
 from core.apps.schedule.services.group import BaseGroupService
 from core.apps.schedule.services.group_lessons import BaseGroupLessonService
 from core.apps.schedule.services.lesson import BaseLessonService
@@ -26,7 +25,12 @@ class HeadmanAddLessonToGroupUseCase:
     uuid_validator_service: BaseUuidValidatorService
     group_lesson_validator_service: BaseGroupLessonValidatorService
 
-    def execute(self, headman_email: str, subgroup: Subgroup | None, lesson_uuid: str) -> tuple[GroupEntity, LessonEntity]:
+    def execute(
+            self,
+            headman_email: str,
+            subgroup: Subgroup | None,
+            lesson_uuid: str,
+    ) -> tuple[GroupEntity, LessonEntity]:
         self.uuid_validator_service.validate(uuid_str=lesson_uuid)
 
         client = self.client_service.get_by_email(client_email=headman_email)

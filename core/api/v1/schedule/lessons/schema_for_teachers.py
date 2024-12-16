@@ -23,7 +23,6 @@ class LessonForTeacherOutSchema(Schema):
 
     @classmethod
     def from_entity(cls, lesson: LessonEntity, groups: list[GroupEntity]) -> 'LessonForTeacherOutSchema':
-        print(list(f'SUBGROUPS LESSONFORTEACHER: {group.subgroups}' for group in groups))
         return cls(
             uuid=lesson.uuid,
             type=lesson.type,

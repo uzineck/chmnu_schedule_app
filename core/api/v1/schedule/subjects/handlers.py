@@ -123,7 +123,7 @@ def get_subject_list(
 
 @router.post(
     "",
-    response={201: ApiResponse[SubjectSchema]}  ,
+    response={201: ApiResponse[SubjectSchema]},
     operation_id="create_subject",
     auth=[jwt_bearer_admin, jwt_bearer_manager],
 )

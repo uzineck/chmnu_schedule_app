@@ -3,9 +3,13 @@ from abc import (
     ABC,
     abstractmethod,
 )
-from datetime import datetime, time
+from datetime import (
+    datetime,
+    time,
+)
 
 from core.apps.common.models import OrdinaryNumber
+
 
 class BaseTimeService(ABC):
     @abstractmethod
@@ -45,7 +49,8 @@ class DatetimeTimeService(BaseTimeService):
             self,
             datetime_now: datetime,
             start_of_academic_semester: datetime,
-            start_of_academic_semester_line: bool,  # At the start of academic semester the line is above(True) or below(False)
+            start_of_academic_semester_line: bool,  # At the start of academic semester the line
+                                                    # is above(True) or below(False)
     ) -> bool:
         weeks_since_start = (datetime_now.date() - start_of_academic_semester.date()).days // 7
         # Every even week will be True, every odd week will be False

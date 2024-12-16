@@ -25,7 +25,12 @@ class HeadmanRemoveLessonFromGroupUseCase:
     uuid_validator_service: BaseUuidValidatorService
     group_lesson_validator_service: BaseGroupLessonValidatorService
 
-    def execute(self, headman_email: str, subgroup: Subgroup | None, lesson_uuid: str) -> tuple[GroupEntity, LessonEntity]:
+    def execute(
+            self,
+            headman_email: str,
+            subgroup: Subgroup | None,
+            lesson_uuid: str,
+    ) -> tuple[GroupEntity, LessonEntity]:
         self.uuid_validator_service.validate(uuid_str=lesson_uuid)
 
         client = self.client_service.get_by_email(client_email=headman_email)

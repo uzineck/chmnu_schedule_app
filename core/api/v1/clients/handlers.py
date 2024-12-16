@@ -1,7 +1,8 @@
 from django.http import HttpRequest
-from jwt import PyJWTError
 from ninja import Router
 from ninja.errors import HttpError
+
+from jwt import PyJWTError
 
 from core.api.schemas import (
     ApiResponse,
@@ -34,10 +35,7 @@ from core.apps.common.authentication.bearer import (
     jwt_bearer_admin,
 )
 from core.apps.common.cache.service import BaseCacheService
-from core.apps.common.exceptions import (
-    JWTKeyParsingException,
-    ServiceException,
-)
+from core.apps.common.exceptions import ServiceException
 from core.project.containers.containers import get_container
 
 

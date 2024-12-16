@@ -1,10 +1,9 @@
 import pytest
-
-from core.apps.schedule.filters.group import LessonFilter
 from tests.factories.schedule.lesson import LessonModelFactory
 
 from core.apps.schedule.entities.lesson import Lesson as LessonEntity
 from core.apps.schedule.exceptions.lesson import LessonNotFoundException
+from core.apps.schedule.filters.group import LessonFilter
 from core.apps.schedule.services.lesson import BaseLessonService
 
 
@@ -222,7 +221,10 @@ def test_get_lessons_for_teacher_lesson_one_teacher(
 ):
     lessons = create_lesson_batch_one_teacher
     teacher_id = lessons[0].teacher.id
-    found_lessons = lesson_service.get_lessons_for_teacher(teacher_id=teacher_id, filter_query=LessonFilter(is_even=True))
+    found_lessons = lesson_service.get_lessons_for_teacher(
+        teacher_id=teacher_id,
+        filter_query=LessonFilter(is_even=True),
+    )
 
     assert len(found_lessons) == len(lessons)
     assert found_lessons[0].teacher.id == teacher_id
@@ -241,7 +243,10 @@ def test_get_lessons_for_teacher_lesson_two_teachers(
     teacher_lessons = []
 
     for teacher_id in teacher_ids:
-        found_lessons = lesson_service.get_lessons_for_teacher(teacher_id=teacher_id, filter_query=LessonFilter(is_even=True))
+        found_lessons = lesson_service.get_lessons_for_teacher(
+            teacher_id=teacher_id,
+            filter_query=LessonFilter(is_even=True),
+        )
 
         assert found_lessons[0].teacher.id == teacher_id
 

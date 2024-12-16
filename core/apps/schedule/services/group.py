@@ -14,7 +14,8 @@ from core.apps.schedule.exceptions.group import (
     GroupHeadmanUpdateException,
     GroupNotFoundException,
     GroupWithoutSubgroupsInvalidSubgroupException,
-    HeadmanNotAssignedToAnyGroup, GroupWithSubgroupsInvalidSubgroupException,
+    GroupWithSubgroupsInvalidSubgroupException,
+    HeadmanNotAssignedToAnyGroup,
 )
 from core.apps.schedule.models.group import Group as GroupModel
 

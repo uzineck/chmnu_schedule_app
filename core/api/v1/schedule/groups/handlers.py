@@ -12,10 +12,11 @@ from core.api.schemas import (
 from core.api.v1.schedule.groups.filters import GroupLessonFilter
 from core.api.v1.schedule.groups.schemas import (
     CreateGroupSchema,
-    GroupLessonsOutSchema,
-    GroupSchemaWithHeadman,
     GroupAllOutSchema,
-    HeadmanEmailInSchema, GroupSchema,
+    GroupLessonsOutSchema,
+    GroupSchema,
+    GroupSchemaWithHeadman,
+    HeadmanEmailInSchema,
 )
 from core.apps.clients.services.client import BaseClientService
 from core.apps.clients.usecases.client.get_headman_group import GetHeadmanGroupUseCase
@@ -23,14 +24,11 @@ from core.apps.clients.usecases.client.get_headman_info import GetHeadmanInfoUse
 from core.apps.common.authentication.bearer import (
     jwt_bearer_admin,
     jwt_bearer_headman,
-    jwt_bearer_manager, jwt_bearer,
+    jwt_bearer_manager,
 )
 from core.apps.common.cache.service import BaseCacheService
 from core.apps.common.cache.timeouts import Timeout
-from core.apps.common.exceptions import (
-    JWTKeyParsingException,
-    ServiceException,
-)
+from core.apps.common.exceptions import ServiceException
 from core.apps.common.models import Subgroup
 from core.apps.schedule.filters.group import LessonFilter
 from core.apps.schedule.use_cases.group.admin_add_lesson import AdminAddLessonToGroupUseCase

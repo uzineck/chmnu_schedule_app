@@ -13,11 +13,11 @@ from core.api.schemas import (
     ApiResponse,
     ListPaginatedResponse,
 )
-from core.api.v1.schedule.lessons.schema_for_teachers import (
-    LessonForTeacherOutSchema,
-    TeacherLessonsOutSchema,
+from core.api.v1.schedule.lessons.schema_for_teachers import TeacherLessonsOutSchema
+from core.api.v1.schedule.teachers.filters import (
+    TeacherFilter,
+    TeacherLessonFilter,
 )
-from core.api.v1.schedule.teachers.filters import TeacherFilter, TeacherLessonFilter
 from core.api.v1.schedule.teachers.schemas import (
     TeacherInSchema,
     TeacherNameInSchema,
@@ -25,8 +25,9 @@ from core.api.v1.schedule.teachers.schemas import (
     TeacherSchema,
 )
 from core.apps.common.authentication.bearer import (
+    jwt_bearer,
     jwt_bearer_admin,
-    jwt_bearer_manager, jwt_bearer,
+    jwt_bearer_manager,
 )
 from core.apps.common.cache.service import BaseCacheService
 from core.apps.common.cache.timeouts import Timeout
@@ -140,7 +141,7 @@ def get_teacher_list(
 def get_lessons_for_teacher(
         request: HttpRequest,
         teacher_uuid: str,
-        filters: Query[TeacherLessonFilter]
+        filters: Query[TeacherLessonFilter],
 ) -> ApiResponse[TeacherLessonsOutSchema]:
     container = get_container()
     cache_service: BaseCacheService = container.resolve(BaseCacheService)
@@ -156,7 +157,7 @@ def get_lessons_for_teacher(
         if not teacher_lessons:
             teacher_lessons = use_case.execute(
                 teacher_uuid=teacher_uuid,
-                filters=LessonFilter(is_even=filters.is_even)
+                filters=LessonFilter(is_even=filters.is_even),
             )
             cache_service.set_cache(key=cache_key, value=teacher_lessons, timeout=Timeout.DAY)
 

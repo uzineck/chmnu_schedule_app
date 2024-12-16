@@ -5,7 +5,10 @@ from abc import (
 from dataclasses import dataclass
 
 from core.apps.clients.services.client import BaseClientService
-from core.apps.common.models import ClientRole, Subgroup
+from core.apps.common.models import (
+    ClientRole,
+    Subgroup,
+)
 from core.apps.schedule.entities.group import Group
 from core.apps.schedule.entities.group_lessons import GroupLesson
 from core.apps.schedule.exceptions.group_lesson import GroupLessonAlreadyExists
@@ -55,7 +58,7 @@ class CheckLessonInGroupAlreadyExistsValidatorService(BaseGroupLessonValidatorSe
                 raise GroupLessonAlreadyExists(
                     group_uuid=group_lesson.group.uuid,
                     lesson_uuid=group_lesson.lesson.uuid,
-                    subgroup=group_lesson.subgroup
+                    subgroup=group_lesson.subgroup,
                 )
 
 
@@ -77,5 +80,5 @@ class ComposedGroupLessonValidatorService(BaseGroupLessonValidatorService):
                 required_role=required_role,
                 group=group,
                 subgroup=subgroup,
-                group_lesson=group_lesson
+                group_lesson=group_lesson,
             )

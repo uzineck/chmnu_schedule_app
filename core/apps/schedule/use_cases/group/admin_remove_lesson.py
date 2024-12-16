@@ -38,5 +38,5 @@ class AdminRemoveLessonFromGroupUseCase:
 
         if not self.group_lesson_service.check_lesson_belongs_to_any_group(lesson_id=lesson.id):
             self.lesson_service.delete_by_uuid(lesson_uuid=lesson_uuid)
-        
+
         return group, lesson

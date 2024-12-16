@@ -22,6 +22,7 @@ class BaseEmailValidatorService(ABC):
     ):
         ...
 
+
 @dataclass
 class EmailAlreadyInUseValidatorService(BaseEmailValidatorService):
     client_service: BaseClientService
