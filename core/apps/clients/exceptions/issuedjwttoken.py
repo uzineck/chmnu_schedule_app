@@ -9,7 +9,7 @@ class TokenJTIAlreadyExistsException(ServiceException):
 
     @property
     def message(self):
-        return 'Token with provided JTI already exists.'
+        return 'Token with provided JTI already exists'
 
 
 @dataclass(eq=False)

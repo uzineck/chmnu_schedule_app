@@ -33,12 +33,14 @@ from core.apps.common.models import Subgroup
 from core.apps.schedule.filters.group import LessonFilter
 from core.apps.schedule.use_cases.group.admin_add_lesson import AdminAddLessonToGroupUseCase
 from core.apps.schedule.use_cases.group.admin_remove_lesson import AdminRemoveLessonFromGroupUseCase
+from core.apps.schedule.use_cases.group.admin_update_lesson import AdminUpdateLessonInGroupUseCase
 from core.apps.schedule.use_cases.group.create import CreateGroupUseCase
 from core.apps.schedule.use_cases.group.get_all import GetAllGroupsUseCase
 from core.apps.schedule.use_cases.group.get_group_lessons import GetGroupLessonsUseCase
 from core.apps.schedule.use_cases.group.get_info import GetGroupInfoUseCase
 from core.apps.schedule.use_cases.group.headman_add_lesson import HeadmanAddLessonToGroupUseCase
 from core.apps.schedule.use_cases.group.headman_remove_lesson import HeadmanRemoveLessonFromGroupUseCase
+from core.apps.schedule.use_cases.group.headman_update_lesson import HeadmanUpdateLessonInGroupUseCase
 from core.apps.schedule.use_cases.group.update_headman import UpdateGroupHeadmanUseCase
 from core.project.containers.containers import get_container
 
@@ -352,6 +354,62 @@ def add_lesson_to_group_admin(
 
 
 @router.patch(
+    '{group_uuid}/{old_lesson_uuid}/update/{lesson_uuid}',
+    response=ApiResponse[StatusResponse],
+    operation_id='update_lesson_in_group_admin',
+    auth=[jwt_bearer_admin, jwt_bearer_manager],
+)
+def update_lesson_in_group_admin(
+        request: HttpRequest,
+        group_uuid: str,
+        lesson_uuid: str,
+        old_lesson_uuid: str,
+        subgroup: Subgroup | None = None,
+) -> ApiResponse[StatusResponse]:
+    container = get_container()
+    cache_service: BaseCacheService = container.resolve(BaseCacheService)
+    use_case: AdminUpdateLessonInGroupUseCase = container.resolve(AdminUpdateLessonInGroupUseCase)
+    try:
+        group, new_lesson, old_lesson = use_case.execute(
+            group_uuid=group_uuid,
+            subgroup=subgroup,
+            lesson_uuid=lesson_uuid,
+            old_lesson_uuid=old_lesson_uuid,
+        )
+        cache_service.invalidate_cache_pattern_list(
+            keys=[
+                cache_service.generate_cache_key(
+                    model_prefix="group",
+                    identifier=group.uuid,
+                    func_prefix="lessons",
+                    filters="*",
+                ),
+                cache_service.generate_cache_key(
+                    model_prefix="teacher",
+                    identifier=new_lesson.teacher.uuid,
+                    func_prefix="lessons",
+                    filters="*",
+                ),
+                cache_service.generate_cache_key(
+                    model_prefix="teacher",
+                    identifier=old_lesson.teacher.uuid,
+                    func_prefix="lessons",
+                    filters="*",
+                ),
+            ],
+        )
+    except ServiceException as e:
+        raise HttpError(
+            status_code=400,
+            message=e.message,
+        )
+
+    return ApiResponse(
+        data=StatusResponse(status='Lesson was updated successfully'),
+    )
+
+
+@router.patch(
     '{group_uuid}/remove/{lesson_uuid}',
     response=ApiResponse[StatusResponse],
     operation_id='remove_lesson_from_group_admin',
@@ -437,6 +495,64 @@ def add_lesson_to_group_headman(
 
     return ApiResponse(
         data=StatusResponse(status='Lesson was added successfully'),
+    )
+
+
+@router.patch(
+    '{old_lesson_uuid}/update/{lesson_uuid}',
+    response=ApiResponse[StatusResponse],
+    operation_id='update_lesson_in_group_headman',
+    auth=jwt_bearer_headman,
+)
+def update_lesson_in_group_headman(
+        request: HttpRequest,
+        lesson_uuid: str,
+        old_lesson_uuid: str,
+        subgroup: Subgroup | None = None,
+) -> ApiResponse[StatusResponse]:
+    container = get_container()
+    client_service = container.resolve(BaseClientService)
+    cache_service: BaseCacheService = container.resolve(BaseCacheService)
+    use_case: HeadmanUpdateLessonInGroupUseCase = container.resolve(HeadmanUpdateLessonInGroupUseCase)
+
+    try:
+        user_email: str = client_service.get_client_email_from_token(token=request.auth)
+        group, new_lesson, old_lesson = use_case.execute(
+            headman_email=user_email,
+            subgroup=subgroup,
+            lesson_uuid=lesson_uuid,
+            old_lesson_uuid=old_lesson_uuid,
+        )
+        cache_service.invalidate_cache_pattern_list(
+            keys=[
+                cache_service.generate_cache_key(
+                    model_prefix="group",
+                    identifier=group.uuid,
+                    func_prefix="lessons",
+                    filters="*",
+                ),
+                cache_service.generate_cache_key(
+                    model_prefix="teacher",
+                    identifier=new_lesson.teacher.uuid,
+                    func_prefix="lessons",
+                    filters="*",
+                ),
+                cache_service.generate_cache_key(
+                    model_prefix="teacher",
+                    identifier=old_lesson.teacher.uuid,
+                    func_prefix="lessons",
+                    filters="*",
+                ),
+            ],
+        )
+    except ServiceException as e:
+        raise HttpError(
+            status_code=400,
+            message=e.message,
+        )
+
+    return ApiResponse(
+        data=StatusResponse(status='Lesson was updated successfully'),
     )
 
 

@@ -105,7 +105,6 @@ class GroupSchemaForTeacherLesson(Schema):
 
     @classmethod
     def from_entity(cls, entity: GroupEntity) -> 'GroupSchemaForTeacherLesson':
-        print(f'SUBGROUPS: {type(entity.subgroups)}')
         return cls(
             uuid=entity.uuid,
             number=entity.number,

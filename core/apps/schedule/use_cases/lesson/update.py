@@ -26,17 +26,17 @@ class UpdateLessonUseCase:
         subject_uuid: str,
         teacher_uuid: str,
         room_uuid: str,
-    ) -> LessonEntity:
+    ) -> tuple[LessonEntity, LessonEntity]:
 
         self.uuid_validator_service.validate(uuid_list=[lesson_uuid, subject_uuid, teacher_uuid, room_uuid])
 
-        current_lesson = self.lesson_service.get_by_uuid(lesson_uuid=lesson_uuid)
+        old_lesson = self.lesson_service.get_by_uuid(lesson_uuid=lesson_uuid)
 
-        lesson_type = current_lesson.type
-        subject = current_lesson.subject
-        teacher = current_lesson.teacher
-        room = current_lesson.room
-        timeslot = current_lesson.timeslot
+        lesson_type = old_lesson.type
+        subject = old_lesson.subject
+        teacher = old_lesson.teacher
+        room = old_lesson.room
+        timeslot = old_lesson.timeslot
 
         if subject.uuid != subject_uuid:
             subject = self.subject_service.get_by_uuid(subject_uuid=subject_uuid)
@@ -67,7 +67,7 @@ class UpdateLessonUseCase:
 
         if self.lesson_service.check_exists(lesson=lesson_entity):
             lesson = self.lesson_service.get_by_lesson_entity(lesson=lesson_entity)
-            return lesson
+            return lesson, old_lesson
 
         saved_lesson = self.lesson_service.save(lesson=lesson_entity)
-        return saved_lesson
+        return saved_lesson, old_lesson

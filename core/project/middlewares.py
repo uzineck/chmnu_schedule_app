@@ -21,7 +21,6 @@ class ElasticApmMiddleware:
 
     def __call__(self, request: HttpRequest) -> HttpResponse:
         if request.path.startswith(self.forbidden_paths):
-            print(request.path)
             return self.get_response(request)
 
         transaction_name = self._create_transaction_name(request)

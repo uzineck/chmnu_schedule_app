@@ -10,7 +10,7 @@ from core.apps.schedule.validators.uuid_validator import BaseUuidValidatorServic
 
 
 @dataclass
-class CreateLessonUseCase:
+class GetOrCreateLessonUseCase:
     lesson_service: BaseLessonService
     subject_service: BaseSubjectService
     teacher_service: BaseTeacherService
