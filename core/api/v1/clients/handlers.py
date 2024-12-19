@@ -21,6 +21,7 @@ from core.api.v1.clients.schemas import (
     UpdatePwInSchema,
 )
 from core.apps.clients.services.client import BaseClientService
+from core.apps.clients.usecases.admin.update_role import UpdateClientRoleUseCase
 from core.apps.clients.usecases.client.create import CreateClientUseCase
 from core.apps.clients.usecases.client.get_info import GetClientInfoUseCase
 from core.apps.clients.usecases.client.login import LoginClientUseCase
@@ -29,12 +30,12 @@ from core.apps.clients.usecases.client.update_access_token import UpdateAccessTo
 from core.apps.clients.usecases.client.update_credentials import UpdateClientCredentialsUseCase
 from core.apps.clients.usecases.client.update_email import UpdateClientEmailUseCase
 from core.apps.clients.usecases.client.update_password import UpdateClientPasswordUseCase
-from core.apps.clients.usecases.client.update_role import UpdateClientRoleUseCase
 from core.apps.common.authentication.bearer import (
     jwt_bearer,
     jwt_bearer_admin,
 )
 from core.apps.common.cache.service import BaseCacheService
+from core.apps.common.cache.timeouts import Timeout
 from core.apps.common.exceptions import ServiceException
 from core.project.containers.containers import get_container
 
@@ -50,11 +51,21 @@ router = Router(tags=["Client"])
 )
 def get_client_info(request: HttpRequest) -> ApiResponse[ClientSchemaPrivate]:
     container = get_container()
+    cache_service: BaseCacheService = container.resolve(BaseCacheService)
     client_service: BaseClientService = container.resolve(BaseClientService)
     use_case: GetClientInfoUseCase = container.resolve(GetClientInfoUseCase)
     try:
         user_email: str = client_service.get_client_email_from_token(token=request.auth)
-        client = use_case.execute(user_email)
+        cache_key = cache_service.generate_cache_key(
+            model_prefix="client",
+            identifier=user_email,
+            func_prefix="info",
+        )
+        client = cache_service.get_cache_value(key=cache_key)
+        if not client:
+            client = use_case.execute(user_email)
+            cache_service.set_cache(key=cache_key, value=client, timeout=Timeout.MONTH)
+
     except ServiceException as e:
         raise HttpError(
             status_code=400,
@@ -221,6 +232,11 @@ def update_email(request: HttpRequest, schema: UpdateEmailInSchema) -> ApiRespon
                     identifier=user_email,
                     func_prefix="*",
                 ),
+                cache_service.generate_cache_key(
+                    model_prefix="client",
+                    identifier=user_email,
+                    func_prefix="*",
+                ),
             ],
         )
     except ServiceException as e:
@@ -260,6 +276,11 @@ def update_credentials(request: HttpRequest, schema: CredentialsInSchema) -> Api
                     identifier=user_email,
                     func_prefix="*",
                 ),
+                cache_service.generate_cache_key(
+                    model_prefix="client",
+                    identifier=user_email,
+                    func_prefix="*",
+                ),
             ],
         )
     except ServiceException as e:
@@ -284,11 +305,26 @@ def update_client_role(
         schema: RoleInSchema,
 ) -> ApiResponse[ClientSchemaPrivate]:
     container = get_container()
+    cache_service: BaseCacheService = container.resolve(BaseCacheService)
     use_case: UpdateClientRoleUseCase = container.resolve(UpdateClientRoleUseCase)
     try:
         client = use_case.execute(
             email=client_email,
             new_role=schema.role,
+        )
+        cache_service.invalidate_cache_pattern_list(
+            keys=[
+                cache_service.generate_cache_key(
+                    model_prefix="group",
+                    identifier=client_email,
+                    func_prefix="*",
+                ),
+                cache_service.generate_cache_key(
+                    model_prefix="client",
+                    identifier=client_email,
+                    func_prefix="*",
+                ),
+            ],
         )
     except ServiceException as e:
         raise HttpError(

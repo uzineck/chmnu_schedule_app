@@ -2,7 +2,7 @@ import pytest
 from tests.factories.client.client import ClientModelFactory
 
 from core.apps.clients.exceptions.client import ClientNotFoundException
-from core.apps.clients.usecases.client.update_role import UpdateClientRoleUseCase
+from core.apps.clients.usecases.admin.update_role import UpdateClientRoleUseCase
 from core.apps.common.models import ClientRole
 
 

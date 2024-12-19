@@ -50,14 +50,13 @@ def get_all_subjects(request: HttpRequest) -> ApiResponse[list[SubjectSchema]]:
     cache_service: BaseCacheService = container.resolve(BaseCacheService)
     use_case: GetAllSubjectsUseCase = container.resolve(GetAllSubjectsUseCase)
     try:
-        subjects = use_case.execute()
-
         cache_key = cache_service.generate_cache_key(
             model_prefix="subject",
             func_prefix="all",
         )
         items = cache_service.get_cache_value(key=cache_key)
         if not items:
+            subjects = use_case.execute()
             items = [SubjectSchema.from_entity(obj) for obj in subjects]
             cache_service.set_cache(key=cache_key, value=items, timeout=Timeout.MONTH)
 

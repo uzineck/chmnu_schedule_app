@@ -58,14 +58,13 @@ def get_all_teachers(request: HttpRequest) -> ApiResponse[list[TeacherSchema]]:
     cache_service: BaseCacheService = container.resolve(BaseCacheService)
     use_case: GetAllTeachersUseCase = container.resolve(GetAllTeachersUseCase)
     try:
-        teachers = use_case.execute()
-
         cache_key = cache_service.generate_cache_key(
             model_prefix="teacher",
             func_prefix="all",
         )
         items = cache_service.get_cache_value(key=cache_key)
         if not items:
+            teachers = use_case.execute()
             items = [TeacherSchema.from_entity(obj) for obj in teachers]
             cache_service.set_cache(key=cache_key, value=items, timeout=Timeout.MONTH)
 
@@ -161,7 +160,7 @@ def get_lessons_for_teacher(
                 teacher_uuid=teacher_uuid,
                 filters=LessonFilter(is_even=filters.is_even),
             )
-            cache_service.set_cache(key=cache_key, value=teacher_lessons, timeout=Timeout.DAY)
+            cache_service.set_cache(key=cache_key, value=teacher_lessons, timeout=Timeout.MONTH)
 
         teacher, lessons, groups = teacher_lessons
 

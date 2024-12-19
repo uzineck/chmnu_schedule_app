@@ -19,8 +19,7 @@ from core.api.v1.schedule.groups.schemas import (
     HeadmanEmailInSchema,
 )
 from core.apps.clients.services.client import BaseClientService
-from core.apps.clients.usecases.client.get_headman_group import GetHeadmanGroupUseCase
-from core.apps.clients.usecases.client.get_headman_info import GetHeadmanInfoUseCase
+from core.apps.clients.usecases.headman.get_headman_group import GetHeadmanGroupUseCase
 from core.apps.common.authentication.bearer import (
     jwt_bearer_admin,
     jwt_bearer_headman,
@@ -59,7 +58,10 @@ def get_all_groups(request: HttpRequest) -> ApiResponse[list[GroupAllOutSchema]]
     cache_service: BaseCacheService = container.resolve(BaseCacheService)
     use_case: GetAllGroupsUseCase = container.resolve(GetAllGroupsUseCase)
     try:
-        cache_key = cache_service.generate_cache_key(model_prefix="group", func_prefix="all")
+        cache_key = cache_service.generate_cache_key(
+            model_prefix="group",
+            func_prefix="all",
+        )
         groups = cache_service.get_cache_value(key=cache_key)
         if not groups:
             groups = use_case.execute()
@@ -102,7 +104,7 @@ def get_group_lessons(
                 group_uuid=group_uuid,
                 filters=LessonFilter(subgroup=filters.subgroup, is_even=filters.is_even),
             )
-            cache_service.set_cache(key=cache_key, value=group_lessons, timeout=Timeout.HALF_MONTH)
+            cache_service.set_cache(key=cache_key, value=group_lessons, timeout=Timeout.MONTH)
 
         group, lessons = group_lessons
     except ServiceException as e:
@@ -142,7 +144,7 @@ def get_group_info(
         group = cache_service.get_cache_value(key=cache_key)
         if not group:
             group = use_case.execute(group_uuid=group_uuid)
-            cache_service.set_cache(key=cache_key, value=group, timeout=Timeout.WEEK)
+            cache_service.set_cache(key=cache_key, value=group, timeout=Timeout.MONTH)
 
     except ServiceException as e:
         raise HttpError(
@@ -152,43 +154,6 @@ def get_group_info(
 
     return ApiResponse(
         data=GroupSchemaWithHeadman.from_entity(group),
-    )
-
-
-@router.get(
-    "{headman_email}/headman_info",
-    response=ApiResponse[GroupSchemaWithHeadman],
-    operation_id='get_headman_info',
-    auth=[jwt_bearer_admin, jwt_bearer_manager],
-)
-def get_headman_info(
-        request: HttpRequest,
-        headman_email: str,
-) -> ApiResponse[GroupSchemaWithHeadman]:
-    container = get_container()
-    cache_service: BaseCacheService = container.resolve(BaseCacheService)
-    use_case: GetHeadmanInfoUseCase = container.resolve(GetHeadmanInfoUseCase)
-    try:
-        cache_key = cache_service.generate_cache_key(
-            model_prefix="group",
-            identifier=headman_email,
-            func_prefix="info",
-        )
-        group = cache_service.get_cache_value(key=cache_key)
-        if not group:
-            group = use_case.execute(
-                email=headman_email,
-            )
-            cache_service.set_cache(key=cache_key, value=group, timeout=Timeout.WEEK)
-
-    except ServiceException as e:
-        raise HttpError(
-            status_code=400,
-            message=e.message,
-        )
-
-    return ApiResponse(
-        data=GroupSchemaWithHeadman.from_entity(entity=group),
     )
 
 
@@ -214,10 +179,8 @@ def get_headman_group(
         )
         group = cache_service.get_cache_value(key=cache_key)
         if not group:
-            group = use_case.execute(
-                email=user_email,
-            )
-            cache_service.set_cache(key=cache_key, value=group, timeout=Timeout.WEEK)
+            group = use_case.execute(email=user_email)
+            cache_service.set_cache(key=cache_key, value=group, timeout=Timeout.MONTH)
 
     except ServiceException as e:
         raise HttpError(

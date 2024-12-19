@@ -53,11 +53,13 @@ def get_all_faculties(request: HttpRequest) -> ApiResponse[list[FacultySchema]]:
     cache_service: BaseCacheService = container.resolve(BaseCacheService)
     use_case: GetAllFacultiesUseCase = container.resolve(GetAllFacultiesUseCase)
     try:
-        faculties = use_case.execute()
-
-        cache_key = cache_service.generate_cache_key(model_prefix="faculty", func_prefix="all")
+        cache_key = cache_service.generate_cache_key(
+            model_prefix="faculty",
+            func_prefix="all",
+        )
         items = cache_service.get_cache_value(key=cache_key)
         if not items:
+            faculties = use_case.execute()
             items = [FacultySchema.from_entity(obj) for obj in faculties]
             cache_service.set_cache(key=cache_key, value=items, timeout=Timeout.MONTH)
 
@@ -189,6 +191,16 @@ def update_faculty_name(
                     filters="*",
                     pagination_in="*",
                 ),
+                cache_service.generate_cache_key(
+                    model_prefix="group",
+                    func_prefix="*",
+                ),
+                cache_service.generate_cache_key(
+                    model_prefix="teacher",
+                    identifier="*",
+                    func_prefix="lessons",
+                    filters="*",
+                ),
             ],
         )
     except ServiceException as e:
@@ -281,8 +293,6 @@ def delete_faculty(
                 cache_service.generate_cache_key(
                     model_prefix="group",
                     identifier="*",
-                    func_prefix="lessons",
-                    filters="*",
                 ),
                 cache_service.generate_cache_key(
                     model_prefix="teacher",

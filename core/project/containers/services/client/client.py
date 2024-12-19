@@ -8,9 +8,8 @@ from core.apps.clients.services.issuedjwttoken import (
     BaseIssuedJwtTokenService,
     ORMIssuedJwtTokenService,
 )
+from core.apps.clients.usecases.admin.update_role import UpdateClientRoleUseCase
 from core.apps.clients.usecases.client.create import CreateClientUseCase
-from core.apps.clients.usecases.client.get_headman_group import GetHeadmanGroupUseCase
-from core.apps.clients.usecases.client.get_headman_info import GetHeadmanInfoUseCase
 from core.apps.clients.usecases.client.get_info import GetClientInfoUseCase
 from core.apps.clients.usecases.client.login import LoginClientUseCase
 from core.apps.clients.usecases.client.logout import LogoutClientUseCase
@@ -18,7 +17,7 @@ from core.apps.clients.usecases.client.update_access_token import UpdateAccessTo
 from core.apps.clients.usecases.client.update_credentials import UpdateClientCredentialsUseCase
 from core.apps.clients.usecases.client.update_email import UpdateClientEmailUseCase
 from core.apps.clients.usecases.client.update_password import UpdateClientPasswordUseCase
-from core.apps.clients.usecases.client.update_role import UpdateClientRoleUseCase
+from core.apps.clients.usecases.headman.get_headman_group import GetHeadmanGroupUseCase
 from core.apps.common.authentication.password import (
     BasePasswordService,
     BcryptPasswordService,
@@ -42,7 +41,6 @@ def register_client_services(container: punq.Container):
     container.register(UpdateClientPasswordUseCase)
     container.register(UpdateClientCredentialsUseCase)
     container.register(UpdateClientRoleUseCase)
-    container.register(GetHeadmanInfoUseCase)
     container.register(GetHeadmanGroupUseCase)
     container.register(GetClientInfoUseCase)
     container.register(UpdateAccessTokenUseCase)
