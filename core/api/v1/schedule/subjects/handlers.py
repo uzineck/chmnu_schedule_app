@@ -13,6 +13,7 @@ from core.api.filters import (
 from core.api.schemas import (
     ApiResponse,
     ListPaginatedResponse,
+    StatusResponse,
 )
 from core.api.v1.schedule.subjects.schemas import (
     SubjectInSchema,
@@ -28,6 +29,7 @@ from core.apps.common.cache.timeouts import Timeout
 from core.apps.common.exceptions import ServiceException
 from core.apps.common.filters import SearchFilter as SearchFilterEntity
 from core.apps.schedule.use_cases.subject.create import CreateSubjectUseCase
+from core.apps.schedule.use_cases.subject.delete import DeleteSubjectUseCase
 from core.apps.schedule.use_cases.subject.get_all import GetAllSubjectsUseCase
 from core.apps.schedule.use_cases.subject.get_list import GetSubjectListUseCase
 from core.apps.schedule.use_cases.subject.update import UpdateSubjectUseCase
@@ -204,4 +206,57 @@ def update_subject(request: HttpRequest, subject_uuid: str, schema: SubjectInSch
 
     return ApiResponse(
         data=SubjectSchema.from_entity(entity=subject),
+    )
+
+
+@router.delete(
+    "{subject_uuid}",
+    response=ApiResponse[StatusResponse],
+    operation_id="delete_subject",
+    auth=[jwt_bearer_admin, jwt_bearer_manager],
+)
+def delete_subject(
+    request: HttpRequest,
+    subject_uuid: str,
+) -> ApiResponse[StatusResponse]:
+    container = get_container()
+    cache_service: BaseCacheService = container.resolve(BaseCacheService)
+    use_case: DeleteSubjectUseCase = container.resolve(DeleteSubjectUseCase)
+    try:
+        use_case.execute(subject_uuid=subject_uuid)
+        cache_service.invalidate_cache_pattern_list(
+            keys=[
+                cache_service.generate_cache_key(
+                    model_prefix="subject",
+                    func_prefix="all",
+                ),
+                cache_service.generate_cache_key(
+                    model_prefix="subject",
+                    func_prefix="list",
+                    filters="*",
+                    pagination_in="*",
+                ),
+                cache_service.generate_cache_key(
+                    model_prefix="group",
+                    identifier="*",
+                    func_prefix="lessons",
+                    filters="*",
+                ),
+                cache_service.generate_cache_key(
+                    model_prefix="teacher",
+                    identifier="*",
+                    func_prefix="lessons",
+                    filters="*",
+                ),
+            ],
+        )
+
+    except ServiceException as e:
+        raise HttpError(
+            status_code=400,
+            message=e.message,
+        )
+
+    return ApiResponse(
+        data=StatusResponse(status="Subject deleted successfully"),
     )

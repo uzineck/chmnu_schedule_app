@@ -12,6 +12,7 @@ from core.api.filters import (
 from core.api.schemas import (
     ApiResponse,
     ListPaginatedResponse,
+    StatusResponse,
 )
 from core.api.v1.schedule.lessons.schema_for_teachers import TeacherLessonsOutSchema
 from core.api.v1.schedule.teachers.filters import (
@@ -35,6 +36,7 @@ from core.apps.common.exceptions import ServiceException
 from core.apps.schedule.filters.group import LessonFilter
 from core.apps.schedule.filters.teacher import TeacherFilter as TeacherFilterEntity
 from core.apps.schedule.use_cases.teacher.create import CreateTeacherUseCase
+from core.apps.schedule.use_cases.teacher.deactivate import DeactivateTeacherUseCase
 from core.apps.schedule.use_cases.teacher.get_all import GetAllTeachersUseCase
 from core.apps.schedule.use_cases.teacher.get_list import GetTeacherListUseCase
 from core.apps.schedule.use_cases.teacher.get_teacher_lessons import GetLessonsForTeacherUseCase
@@ -305,6 +307,8 @@ def update_teacher_rank(
                 cache_service.generate_cache_key(
                     model_prefix="teacher",
                     func_prefix="list",
+                    filters="*",
+                    pagination_in="*",
                 ),
                 cache_service.generate_cache_key(
                     model_prefix="teacher",
@@ -327,4 +331,58 @@ def update_teacher_rank(
         )
     return ApiResponse(
         data=TeacherSchema.from_entity(entity=teacher),
+    )
+
+
+@router.delete(
+    "{teacher_uuid}",
+    response=ApiResponse[StatusResponse],
+    operation_id="deactivate_teacher",
+    auth=[jwt_bearer_admin, jwt_bearer_manager],
+)
+def deactivate_teacher(
+    request: HttpRequest,
+    teacher_uuid: str,
+) -> ApiResponse[StatusResponse]:
+    container = get_container()
+    cache_service: BaseCacheService = container.resolve(BaseCacheService)
+    use_case: DeactivateTeacherUseCase = container.resolve(DeactivateTeacherUseCase)
+    try:
+        use_case.execute(teacher_uuid=teacher_uuid)
+
+        cache_service.invalidate_cache_pattern_list(
+            keys=[
+                cache_service.generate_cache_key(
+                    model_prefix="teacher",
+                    func_prefix="all",
+                ),
+                cache_service.generate_cache_key(
+                    model_prefix="teacher",
+                    func_prefix="list",
+                    filters="*",
+                    pagination_in="*",
+                ),
+                cache_service.generate_cache_key(
+                    model_prefix="group",
+                    identifier="*",
+                    func_prefix="lessons",
+                    filters="*",
+                ),
+                cache_service.generate_cache_key(
+                    model_prefix="teacher",
+                    identifier=teacher_uuid,
+                    func_prefix="lessons",
+                    filters="*",
+                ),
+            ],
+        )
+
+    except ServiceException as e:
+        raise HttpError(
+            status_code=400,
+            message=e.message,
+        )
+
+    return ApiResponse(
+        data=StatusResponse(status="Teacher deactivated successfully"),
     )

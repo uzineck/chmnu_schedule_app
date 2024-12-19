@@ -13,6 +13,7 @@ from core.api.filters import (
 from core.api.schemas import (
     ApiResponse,
     ListPaginatedResponse,
+    StatusResponse,
 )
 from core.api.v1.schedule.rooms.schemas import (
     RoomDescriptionInSchema,
@@ -29,6 +30,7 @@ from core.apps.common.cache.timeouts import Timeout
 from core.apps.common.exceptions import ServiceException
 from core.apps.common.filters import SearchFilter as SearchFilterEntity
 from core.apps.schedule.use_cases.room.create import CreateRoomUseCase
+from core.apps.schedule.use_cases.room.delete import DeleteRoomUseCase
 from core.apps.schedule.use_cases.room.get_all import GetAllRoomsUseCase
 from core.apps.schedule.use_cases.room.get_list import GetRoomListUseCase
 from core.apps.schedule.use_cases.room.update_description import UpdateRoomDescriptionUseCase
@@ -264,4 +266,57 @@ def update_room_description(
 
     return ApiResponse(
         data=RoomSchema.from_entity(entity=room),
+    )
+
+
+@router.delete(
+    "{room_uuid}",
+    response=ApiResponse[StatusResponse],
+    operation_id="delete_room",
+    auth=[jwt_bearer_admin, jwt_bearer_manager],
+)
+def delete_room(
+    request: HttpRequest,
+    room_uuid: str,
+) -> ApiResponse[StatusResponse]:
+    container = get_container()
+    cache_service: BaseCacheService = container.resolve(BaseCacheService)
+    use_case: DeleteRoomUseCase = container.resolve(DeleteRoomUseCase)
+    try:
+        use_case.execute(room_uuid=room_uuid)
+        cache_service.invalidate_cache_pattern_list(
+            keys=[
+                cache_service.generate_cache_key(
+                    model_prefix="room",
+                    func_prefix="all",
+                ),
+                cache_service.generate_cache_key(
+                    model_prefix="room",
+                    func_prefix="list",
+                    filters="*",
+                    pagination_in="*",
+                ),
+                cache_service.generate_cache_key(
+                    model_prefix="group",
+                    identifier="*",
+                    func_prefix="lessons",
+                    filters="*",
+                ),
+                cache_service.generate_cache_key(
+                    model_prefix="teacher",
+                    identifier="*",
+                    func_prefix="lessons",
+                    filters="*",
+                ),
+            ],
+        )
+
+    except ServiceException as e:
+        raise HttpError(
+            status_code=400,
+            message=e.message,
+        )
+
+    return ApiResponse(
+        data=StatusResponse(status="Room deleted successfully"),
     )
