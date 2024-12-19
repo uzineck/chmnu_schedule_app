@@ -44,6 +44,38 @@ router = Router(tags=["Client"])
 
 
 @router.get(
+    "{client_email}/info",
+    response={200: ApiResponse[ClientSchemaPrivate]},
+    operation_id='get_client_info_admin',
+    auth=jwt_bearer_admin,
+)
+def get_client_info_admin(request: HttpRequest, client_email: str) -> ApiResponse[ClientSchemaPrivate]:
+    container = get_container()
+    cache_service: BaseCacheService = container.resolve(BaseCacheService)
+    use_case: GetClientInfoUseCase = container.resolve(GetClientInfoUseCase)
+    try:
+        cache_key = cache_service.generate_cache_key(
+            model_prefix="client",
+            identifier=client_email,
+            func_prefix="info",
+        )
+        client = cache_service.get_cache_value(key=cache_key)
+        if not client:
+            client = use_case.execute(client_email)
+            cache_service.set_cache(key=cache_key, value=client, timeout=Timeout.MONTH)
+
+    except ServiceException as e:
+        raise HttpError(
+            status_code=400,
+            message=e.message,
+        )
+
+    return ApiResponse(
+        data=ClientSchemaPrivate.from_entity(client=client),
+    )
+
+
+@router.get(
     "info",
     response={200: ApiResponse[ClientSchemaPrivate]},
     operation_id='get_client_info',

@@ -15,8 +15,8 @@ def register_subject_validators(container: punq.Container):
     def build_subject_validators() -> BaseSubjectValidatorService:
         return ComposedSubjectValidatorService(
             validators=[
-                container.resolve(SubjectAlreadyExistsValidatorService),
                 container.resolve(SimilarOldAndNewSubjectTitlesValidatorService),
+                container.resolve(SubjectAlreadyExistsValidatorService),
             ],
         )
 
