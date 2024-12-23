@@ -12,6 +12,7 @@ class BaseCacheService(ABC):
     def generate_cache_key(
             self,
             model_prefix: str,
+            *,
             identifier: str | None = None,
             func_prefix: str | None = None,
             filters: str | None = None,
