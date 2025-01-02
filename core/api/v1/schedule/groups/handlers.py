@@ -62,11 +62,10 @@ def get_all_groups(request: HttpRequest) -> ApiResponse[list[GroupAllOutSchema]]
             model_prefix="group",
             func_prefix="all",
         )
-        groups = cache_service.get_cache_value(key=cache_key)
-        if not groups:
-            groups = use_case.execute()
-            groups = [GroupAllOutSchema.from_entity(group) for group in groups]
-            cache_service.set_cache(key=cache_key, value=groups, timeout=Timeout.MONTH)
+        items = cache_service.get_cache_value(key=cache_key)
+        if not items:
+            items = [GroupAllOutSchema.from_entity(obj) for obj in use_case.execute()]
+            cache_service.set_cache(key=cache_key, value=items, timeout=Timeout.MONTH)
 
     except ServiceException as e:
         raise HttpError(
@@ -74,7 +73,7 @@ def get_all_groups(request: HttpRequest) -> ApiResponse[list[GroupAllOutSchema]]
             message=e.message,
         )
     return ApiResponse(
-        data=groups,
+        data=items,
     )
 
 
@@ -98,15 +97,15 @@ def get_group_lessons(
             func_prefix="lessons",
             filters=filters,
         )
-        group_lessons = cache_service.get_cache_value(key=cache_key)
-        if not group_lessons:
-            group_lessons = use_case.execute(
+        items = cache_service.get_cache_value(key=cache_key)
+        if not items:
+            items = use_case.execute(
                 group_uuid=group_uuid,
                 filters=LessonFilter(subgroup=filters.subgroup, is_even=filters.is_even),
             )
-            cache_service.set_cache(key=cache_key, value=group_lessons, timeout=Timeout.MONTH)
+            cache_service.set_cache(key=cache_key, value=items, timeout=Timeout.MONTH)
 
-        group, lessons = group_lessons
+        group, lessons = items
     except ServiceException as e:
         raise HttpError(
             status_code=400,
@@ -141,10 +140,10 @@ def get_group_info(
             identifier=group_uuid,
             func_prefix="info",
         )
-        group = cache_service.get_cache_value(key=cache_key)
-        if not group:
-            group = use_case.execute(group_uuid=group_uuid)
-            cache_service.set_cache(key=cache_key, value=group, timeout=Timeout.MONTH)
+        item = cache_service.get_cache_value(key=cache_key)
+        if not item:
+            item = use_case.execute(group_uuid=group_uuid)
+            cache_service.set_cache(key=cache_key, value=item, timeout=Timeout.MONTH)
 
     except ServiceException as e:
         raise HttpError(
@@ -153,7 +152,7 @@ def get_group_info(
         )
 
     return ApiResponse(
-        data=GroupSchemaWithHeadman.from_entity(group),
+        data=GroupSchemaWithHeadman.from_entity(item),
     )
 
 
@@ -177,10 +176,10 @@ def get_headman_group(
             identifier=user_email,
             func_prefix="group",
         )
-        group = cache_service.get_cache_value(key=cache_key)
-        if not group:
-            group = use_case.execute(email=user_email)
-            cache_service.set_cache(key=cache_key, value=group, timeout=Timeout.MONTH)
+        item = cache_service.get_cache_value(key=cache_key)
+        if not item:
+            item = use_case.execute(email=user_email)
+            cache_service.set_cache(key=cache_key, value=item, timeout=Timeout.MONTH)
 
     except ServiceException as e:
         raise HttpError(
@@ -189,7 +188,7 @@ def get_headman_group(
         )
 
     return ApiResponse(
-        data=GroupSchema.from_entity(entity=group),
+        data=GroupSchema.from_entity(entity=item),
     )
 
 

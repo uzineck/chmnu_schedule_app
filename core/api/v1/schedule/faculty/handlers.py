@@ -59,8 +59,7 @@ def get_all_faculties(request: HttpRequest) -> ApiResponse[list[FacultySchema]]:
         )
         items = cache_service.get_cache_value(key=cache_key)
         if not items:
-            faculties = use_case.execute()
-            items = [FacultySchema.from_entity(obj) for obj in faculties]
+            items = [FacultySchema.from_entity(obj) for obj in use_case.execute()]
             cache_service.set_cache(key=cache_key, value=items, timeout=Timeout.MONTH)
 
     except ServiceException as e:
@@ -96,20 +95,19 @@ def get_faculty_list(
         )
         items = cache_service.get_cache_value(key=cache_key)
         if not items:
-            faculty_list, faculty_count = use_case.execute(
+            item_list, item_count = use_case.execute(
                 filters=SearchFilterEntity(search=filters.search),
                 pagination=pagination_in,
             )
-            faculty_items = [FacultySchema.from_entity(obj) for obj in faculty_list]
             pagination_out = PaginationOut(
                 offset=pagination_in.offset,
                 limit=pagination_in.limit,
-                total=faculty_count,
+                total=item_count,
             )
-            items = faculty_items, pagination_out
+            items = item_list, pagination_out
             cache_service.set_cache(key=cache_key, value=items, timeout=Timeout.DAY)
 
-        items, pagination_out = items
+        item_list, pagination_out = items
     except ServiceException as e:
         raise HttpError(
             status_code=400,
@@ -118,7 +116,7 @@ def get_faculty_list(
 
     return ApiResponse(
         data=ListPaginatedResponse(
-            items=items,
+            items=[FacultySchema.from_entity(obj) for obj in item_list],
             pagination=pagination_out,
         ),
     )

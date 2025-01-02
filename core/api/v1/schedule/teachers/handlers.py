@@ -64,8 +64,7 @@ def get_all_teachers(request: HttpRequest) -> ApiResponse[list[TeacherSchema]]:
         )
         items = cache_service.get_cache_value(key=cache_key)
         if not items:
-            teachers = use_case.execute()
-            items = [TeacherSchema.from_entity(obj) for obj in teachers]
+            items = [TeacherSchema.from_entity(obj) for obj in use_case.execute()]
             cache_service.set_cache(key=cache_key, value=items, timeout=Timeout.MONTH)
 
     except ServiceException as e:
@@ -101,7 +100,7 @@ def get_teacher_list(
         )
         items = cache_service.get_cache_value(key=cache_key)
         if not items:
-            teacher_list, teacher_count = use_case.execute(
+            item_list, item_count = use_case.execute(
                 filters=TeacherFilterEntity(
                     first_name=filters.first_name,
                     last_name=filters.last_name,
@@ -110,16 +109,15 @@ def get_teacher_list(
                 ),
                 pagination=pagination_in,
             )
-            teacher_list = [TeacherSchema.from_entity(obj) for obj in teacher_list]
             pagination_out = PaginationOut(
                 offset=pagination_in.offset,
                 limit=pagination_in.limit,
-                total=teacher_count,
+                total=item_count,
             )
-            items = teacher_list, pagination_out
+            items = item_list, pagination_out
             cache_service.set_cache(key=cache_key, value=items, timeout=Timeout.DAY)
 
-        teacher_list, pagination_out = items
+        item_list, pagination_out = items
     except ServiceException as e:
         raise HttpError(
             status_code=400,
@@ -128,7 +126,7 @@ def get_teacher_list(
 
     return ApiResponse(
         data=ListPaginatedResponse(
-            items=teacher_list,
+            items=[TeacherSchema.from_entity(obj) for obj in item_list],
             pagination=pagination_out,
         ),
     )
@@ -154,15 +152,15 @@ def get_lessons_for_teacher(
             func_prefix="lessons",
             filters=filters,
         )
-        teacher_lessons = cache_service.get_cache_value(key=cache_key)
-        if not teacher_lessons:
-            teacher_lessons = use_case.execute(
+        items = cache_service.get_cache_value(key=cache_key)
+        if not items:
+            items = use_case.execute(
                 teacher_uuid=teacher_uuid,
                 filters=LessonFilter(is_even=filters.is_even),
             )
-            cache_service.set_cache(key=cache_key, value=teacher_lessons, timeout=Timeout.MONTH)
+            cache_service.set_cache(key=cache_key, value=items, timeout=Timeout.MONTH)
 
-        teacher, lessons, groups = teacher_lessons
+        teacher, lessons, groups = items
 
     except ServiceException as e:
         raise HttpError(

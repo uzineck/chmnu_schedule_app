@@ -56,8 +56,7 @@ def get_all_subjects(request: HttpRequest) -> ApiResponse[list[SubjectSchema]]:
         )
         items = cache_service.get_cache_value(key=cache_key)
         if not items:
-            subjects = use_case.execute()
-            items = [SubjectSchema.from_entity(obj) for obj in subjects]
+            items = [SubjectSchema.from_entity(obj) for obj in use_case.execute()]
             cache_service.set_cache(key=cache_key, value=items, timeout=Timeout.MONTH)
 
     except ServiceException as e:
@@ -93,21 +92,19 @@ def get_subject_list(
         )
         items = cache_service.get_cache_value(key=cache_key)
         if not items:
-            subject_list, subject_count = use_case.execute(
+            item_list, item_count = use_case.execute(
                 filters=SearchFilterEntity(search=filters.search),
                 pagination=pagination_in,
             )
-
-            subject_items = [SubjectSchema.from_entity(obj) for obj in subject_list]
             pagination_out = PaginationOut(
                 offset=pagination_in.offset,
                 limit=pagination_in.limit,
-                total=subject_count,
+                total=item_count,
             )
-            items = subject_items, pagination_out
+            items = item_list, pagination_out
             cache_service.set_cache(key=cache_key, value=items, timeout=Timeout.DAY)
 
-        items, pagination_out = items
+        item_list, pagination_out = items
     except ServiceException as e:
         raise HttpError(
             status_code=400,
@@ -116,7 +113,7 @@ def get_subject_list(
 
     return ApiResponse(
         data=ListPaginatedResponse(
-            items=items,
+            items=[SubjectSchema.from_entity(obj) for obj in item_list],
             pagination=pagination_out,
         ),
     )
