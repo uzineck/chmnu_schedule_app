@@ -20,10 +20,10 @@ from core.api.v1.schedule.rooms.schemas import (
     RoomNumberInSchema,
     RoomSchema,
 )
-from core.apps.common.authentication.bearer import (
-    jwt_bearer,
-    jwt_bearer_admin,
-    jwt_bearer_manager,
+from core.apps.common.authentication.ninja_auth import (
+    jwt_auth,
+    jwt_auth_admin,
+    jwt_auth_manager,
 )
 from core.apps.common.cache.service import BaseCacheService
 from core.apps.common.cache.timeouts import Timeout
@@ -45,7 +45,7 @@ router = Router(tags=["Rooms"])
     'all',
     response=ApiResponse[list[RoomSchema]],
     operation_id='get_all_rooms',
-    auth=jwt_bearer,
+    auth=jwt_auth,
 
 )
 def get_all_rooms(request: HttpRequest) -> ApiResponse[list[RoomSchema]]:
@@ -76,7 +76,7 @@ def get_all_rooms(request: HttpRequest) -> ApiResponse[list[RoomSchema]]:
     "",
     response=ApiResponse[ListPaginatedResponse[RoomSchema]],
     operation_id="get_room_list",
-    auth=jwt_bearer,
+    auth=jwt_auth,
 )
 def get_room_list(
     request: HttpRequest,
@@ -126,7 +126,7 @@ def get_room_list(
     "",
     response={201: ApiResponse[RoomSchema]},
     operation_id="create_room",
-    auth=[jwt_bearer_admin, jwt_bearer_manager],
+    auth=[jwt_auth_admin, jwt_auth_manager],
 )
 def create_room(request: HttpRequest, schema: RoomNumberInSchema) -> ApiResponse[RoomSchema]:
     container = get_container()
@@ -163,7 +163,7 @@ def create_room(request: HttpRequest, schema: RoomNumberInSchema) -> ApiResponse
     "{room_uuid}/update_number",
     response=ApiResponse[RoomSchema],
     operation_id="update_room_number",
-    auth=[jwt_bearer_admin, jwt_bearer_manager],
+    auth=[jwt_auth_admin, jwt_auth_manager],
 )
 def update_room_number(
     request: HttpRequest,
@@ -216,7 +216,7 @@ def update_room_number(
     "{room_uuid}/update_description",
     response=ApiResponse[RoomSchema],
     operation_id="update_room_description",
-    auth=[jwt_bearer_admin, jwt_bearer_manager],
+    auth=[jwt_auth_admin, jwt_auth_manager],
 )
 def update_room_description(
     request: HttpRequest,
@@ -270,7 +270,7 @@ def update_room_description(
     "{room_uuid}",
     response=ApiResponse[StatusResponse],
     operation_id="delete_room",
-    auth=[jwt_bearer_admin, jwt_bearer_manager],
+    auth=[jwt_auth_admin, jwt_auth_manager],
 )
 def delete_room(
     request: HttpRequest,

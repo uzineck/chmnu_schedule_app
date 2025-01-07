@@ -1,4 +1,7 @@
-from django.http import HttpRequest
+from django.http import (
+    HttpRequest,
+    HttpResponse,
+)
 from ninja import Router
 from ninja.errors import HttpError
 
@@ -14,9 +17,6 @@ from core.api.v1.clients.schemas import (
     LogInSchema,
     RoleInSchema,
     SignUpInSchema,
-    TokenClientOutSchema,
-    TokenInSchema,
-    TokenOutSchema,
     UpdateEmailInSchema,
     UpdatePwInSchema,
 )
@@ -30,9 +30,9 @@ from core.apps.clients.usecases.client.update_access_token import UpdateAccessTo
 from core.apps.clients.usecases.client.update_credentials import UpdateClientCredentialsUseCase
 from core.apps.clients.usecases.client.update_email import UpdateClientEmailUseCase
 from core.apps.clients.usecases.client.update_password import UpdateClientPasswordUseCase
-from core.apps.common.authentication.bearer import (
-    jwt_bearer,
-    jwt_bearer_admin,
+from core.apps.common.authentication.ninja_auth import (
+    jwt_auth,
+    jwt_auth_admin,
 )
 from core.apps.common.cache.service import BaseCacheService
 from core.apps.common.cache.timeouts import Timeout
@@ -47,7 +47,7 @@ router = Router(tags=["Client"])
     "{client_email}/info",
     response={200: ApiResponse[ClientSchemaPrivate]},
     operation_id='get_client_info_admin',
-    auth=jwt_bearer_admin,
+    auth=jwt_auth_admin,
 )
 def get_client_info_admin(request: HttpRequest, client_email: str) -> ApiResponse[ClientSchemaPrivate]:
     container = get_container()
@@ -79,7 +79,7 @@ def get_client_info_admin(request: HttpRequest, client_email: str) -> ApiRespons
     "info",
     response={200: ApiResponse[ClientSchemaPrivate]},
     operation_id='get_client_info',
-    auth=jwt_bearer,
+    auth=jwt_auth,
 )
 def get_client_info(request: HttpRequest) -> ApiResponse[ClientSchemaPrivate]:
     container = get_container()
@@ -113,7 +113,7 @@ def get_client_info(request: HttpRequest) -> ApiResponse[ClientSchemaPrivate]:
     "sign-up",
     response={201: ApiResponse[StatusResponse]},
     operation_id='sign_up',
-    auth=jwt_bearer_admin,
+    auth=jwt_auth_admin,
 )
 def sign_up(request: HttpRequest, schema: SignUpInSchema) -> ApiResponse[StatusResponse]:
     container = get_container()
@@ -141,21 +141,24 @@ def sign_up(request: HttpRequest, schema: SignUpInSchema) -> ApiResponse[StatusR
 
 @router.post(
     "log-in",
-    response=ApiResponse[TokenClientOutSchema],
+    response=ApiResponse[StatusResponse],
     operation_id='login',
 )
-def login(request: HttpRequest, schema: LogInSchema) -> ApiResponse[TokenClientOutSchema]:
+def login(request: HttpRequest, response: HttpResponse, schema: LogInSchema) -> ApiResponse[StatusResponse]:
     container = get_container()
     use_case: LoginClientUseCase = container.resolve(LoginClientUseCase)
     try:
         client, jwt_tokens = use_case.execute(email=schema.email, password=schema.password)
+        response.set_cookie(key="access_token", value=jwt_tokens.access_token, httponly=True, samesite="Strict")
+        response.set_cookie(key="refresh_token", value=jwt_tokens.refresh_token, httponly=True, samesite="Strict")
     except ServiceException:
         raise HttpError(
             status_code=400,
             message='Invalid email or password',
         )
+
     return ApiResponse(
-        data=TokenClientOutSchema.from_entity_with_tokens(client=client, tokens=jwt_tokens),
+        data=StatusResponse(status="Logged in successfully"),
     )
 
 
@@ -163,18 +166,21 @@ def login(request: HttpRequest, schema: LogInSchema) -> ApiResponse[TokenClientO
     "log-out",
     response=ApiResponse[StatusResponse],
     operation_id='logout',
-    auth=jwt_bearer,
+    auth=jwt_auth,
 )
-def logout(request: HttpRequest) -> ApiResponse[StatusResponse]:
+def logout(request: HttpRequest, response: HttpResponse) -> ApiResponse[StatusResponse]:
     container = get_container()
     use_case: LogoutClientUseCase = container.resolve(LogoutClientUseCase)
     try:
         use_case.execute(token=request.auth)
+        response.delete_cookie(key="access_token")
+        response.delete_cookie(key="refresh_token")
     except ServiceException as e:
         raise HttpError(
             status_code=400,
             message=e.message,
         )
+
     return ApiResponse(
         data=StatusResponse(status="Successfully logged out"),
     )
@@ -182,15 +188,16 @@ def logout(request: HttpRequest) -> ApiResponse[StatusResponse]:
 
 @router.post(
     "update_access_token",
-    response=ApiResponse[TokenOutSchema],
+    response=ApiResponse[StatusResponse],
     operation_id='update_access_token',
 )
-def update_access_token(request: HttpRequest, schema: TokenInSchema) -> ApiResponse[TokenOutSchema]:
+def update_access_token(request: HttpRequest, response: HttpResponse) -> ApiResponse[StatusResponse]:
     container = get_container()
     use_case: UpdateAccessTokenUseCase = container.resolve(UpdateAccessTokenUseCase)
 
     try:
-        access_token = use_case.execute(token=schema.token)
+        access_token = use_case.execute(request.COOKIES.get("refresh_token"))
+        response.set_cookie(key="access_token", value=access_token.access_token, httponly=True, samesite="Strict")
     except ServiceException as e:
         raise HttpError(
             status_code=400,
@@ -202,7 +209,7 @@ def update_access_token(request: HttpRequest, schema: TokenInSchema) -> ApiRespo
             message='Invalid token',
         )
     return ApiResponse(
-        data=TokenOutSchema.from_entity(tokens_entity=access_token),
+        data=StatusResponse(status="Successfully updated access token"),
     )
 
 
@@ -210,7 +217,7 @@ def update_access_token(request: HttpRequest, schema: TokenInSchema) -> ApiRespo
     "update_password",
     response=ApiResponse[StatusResponse],
     operation_id='update_password',
-    auth=jwt_bearer,
+    auth=jwt_auth,
 )
 def update_password(request: HttpRequest, schema: UpdatePwInSchema) -> ApiResponse[StatusResponse]:
     container = get_container()
@@ -240,11 +247,15 @@ def update_password(request: HttpRequest, schema: UpdatePwInSchema) -> ApiRespon
 
 @router.patch(
     "update_email",
-    response=ApiResponse[TokenClientOutSchema],
+    response=ApiResponse[ClientSchemaPrivate],
     operation_id='update_email',
-    auth=jwt_bearer,
+    auth=jwt_auth,
 )
-def update_email(request: HttpRequest, schema: UpdateEmailInSchema) -> ApiResponse[TokenClientOutSchema]:
+def update_email(
+        request: HttpRequest,
+        response: HttpResponse,
+        schema: UpdateEmailInSchema,
+) -> ApiResponse[ClientSchemaPrivate]:
     container = get_container()
     client_service = container.resolve(BaseClientService)
     cache_service: BaseCacheService = container.resolve(BaseCacheService)
@@ -271,13 +282,15 @@ def update_email(request: HttpRequest, schema: UpdateEmailInSchema) -> ApiRespon
                 ),
             ],
         )
+        response.set_cookie(key="access_token", value=jwt_tokens.access_token, httponly=True, samesite="Strict")
+        response.set_cookie(key="refresh_token", value=jwt_tokens.refresh_token, httponly=True, samesite="Strict")
     except ServiceException as e:
         raise HttpError(
             status_code=400,
             message=e.message,
         )
     return ApiResponse(
-        data=TokenClientOutSchema.from_entity_with_tokens(client=client, tokens=jwt_tokens),
+        data=ClientSchemaPrivate.from_entity(client=client),
     )
 
 
@@ -285,7 +298,7 @@ def update_email(request: HttpRequest, schema: UpdateEmailInSchema) -> ApiRespon
     "update_credentials",
     response=ApiResponse[ClientSchemaPrivate],
     operation_id='update_credentials',
-    auth=jwt_bearer,
+    auth=jwt_auth,
 )
 def update_credentials(request: HttpRequest, schema: CredentialsInSchema) -> ApiResponse[ClientSchemaPrivate]:
     container = get_container()
@@ -329,7 +342,7 @@ def update_credentials(request: HttpRequest, schema: CredentialsInSchema) -> Api
     "{client_email}/update_role",
     response=ApiResponse[ClientSchemaPrivate],
     operation_id='update_client_role',
-    auth=jwt_bearer_admin,
+    auth=jwt_auth_admin,
 )
 def update_client_role(
         request: HttpRequest,
@@ -365,4 +378,17 @@ def update_client_role(
         )
     return ApiResponse(
         data=ClientSchemaPrivate.from_entity(client=client),
+    )
+
+
+@router.post(
+    "delete_cookies",
+    response=ApiResponse[StatusResponse],
+    operation_id='delete_cookies',
+)
+def delete_cookies(request: HttpRequest, response: HttpResponse) -> ApiResponse[StatusResponse]:
+    response.delete_cookie(key="access_token")
+    response.delete_cookie(key="refresh_token")
+    return ApiResponse(
+        data=StatusResponse(status="Successfully deleted cookies"),
     )

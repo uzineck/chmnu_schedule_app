@@ -25,10 +25,10 @@ from core.api.v1.schedule.teachers.schemas import (
     TeacherRankInSchema,
     TeacherSchema,
 )
-from core.apps.common.authentication.bearer import (
-    jwt_bearer,
-    jwt_bearer_admin,
-    jwt_bearer_manager,
+from core.apps.common.authentication.ninja_auth import (
+    jwt_auth,
+    jwt_auth_admin,
+    jwt_auth_manager,
 )
 from core.apps.common.cache.service import BaseCacheService
 from core.apps.common.cache.timeouts import Timeout
@@ -81,7 +81,7 @@ def get_all_teachers(request: HttpRequest) -> ApiResponse[list[TeacherSchema]]:
     "",
     response=ApiResponse[ListPaginatedResponse[TeacherSchema]],
     operation_id="get_teacher_list",
-    auth=jwt_bearer,
+    auth=jwt_auth,
 )
 def get_teacher_list(
         request: HttpRequest,
@@ -181,7 +181,7 @@ def get_lessons_for_teacher(
     "",
     response={201: ApiResponse[TeacherSchema]},
     operation_id="create_teacher",
-    auth=[jwt_bearer_admin, jwt_bearer_manager],
+    auth=[jwt_auth_admin, jwt_auth_manager],
 )
 def create_teacher(request: HttpRequest, schema: TeacherInSchema) -> ApiResponse[TeacherSchema]:
     container = get_container()
@@ -223,7 +223,7 @@ def create_teacher(request: HttpRequest, schema: TeacherInSchema) -> ApiResponse
     "{teacher_uuid}/update_name",
     response=ApiResponse[TeacherSchema],
     operation_id="update_teacher_name",
-    auth=[jwt_bearer_admin, jwt_bearer_manager],
+    auth=[jwt_auth_admin, jwt_auth_manager],
 )
 def update_teacher_name(
         request: HttpRequest,
@@ -280,7 +280,7 @@ def update_teacher_name(
     "{teacher_uuid}/update_rank",
     response=ApiResponse[TeacherSchema],
     operation_id="update_teacher_rank",
-    auth=[jwt_bearer_admin, jwt_bearer_manager],
+    auth=[jwt_auth_admin, jwt_auth_manager],
 )
 def update_teacher_rank(
         request: HttpRequest,
@@ -335,7 +335,7 @@ def update_teacher_rank(
     "{teacher_uuid}",
     response=ApiResponse[StatusResponse],
     operation_id="deactivate_teacher",
-    auth=[jwt_bearer_admin, jwt_bearer_manager],
+    auth=[jwt_auth_admin, jwt_auth_manager],
 )
 def deactivate_teacher(
     request: HttpRequest,

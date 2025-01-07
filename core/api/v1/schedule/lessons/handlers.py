@@ -11,7 +11,7 @@ from core.api.v1.schedule.lessons.schemas import (
     CreateLessonInSchema,
     LessonInSchema,
 )
-from core.apps.common.authentication.bearer import jwt_bearer
+from core.apps.common.authentication.ninja_auth import jwt_auth
 from core.apps.common.exceptions import ServiceException
 from core.apps.schedule.use_cases.lesson.get_or_create import GetOrCreateLessonUseCase
 from core.apps.schedule.use_cases.lesson.update import UpdateLessonUseCase
@@ -25,7 +25,7 @@ router = Router(tags=["Lessons"])
     "",
     response={201: ApiResponse[LessonForGroupOutSchema]},
     operation_id="get_or_create_lesson",
-    auth=jwt_bearer,
+    auth=jwt_auth,
 )
 def get_or_create_lesson(
     request: HttpRequest,
@@ -55,7 +55,7 @@ def get_or_create_lesson(
     "{lesson_uuid}/update",
     response=ApiResponse[UpdatedLessonOutSchema],
     operation_id="update_lesson",
-    auth=jwt_bearer,
+    auth=jwt_auth,
 )
 def update_lesson(
     request: HttpRequest,

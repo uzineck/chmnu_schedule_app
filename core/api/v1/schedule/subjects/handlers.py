@@ -19,10 +19,10 @@ from core.api.v1.schedule.subjects.schemas import (
     SubjectInSchema,
     SubjectSchema,
 )
-from core.apps.common.authentication.bearer import (
-    jwt_bearer,
-    jwt_bearer_admin,
-    jwt_bearer_manager,
+from core.apps.common.authentication.ninja_auth import (
+    jwt_auth,
+    jwt_auth_admin,
+    jwt_auth_manager,
 )
 from core.apps.common.cache.service import BaseCacheService
 from core.apps.common.cache.timeouts import Timeout
@@ -43,7 +43,7 @@ router = Router(tags=["Subjects"])
     'all',
     response=ApiResponse[list[SubjectSchema]],
     operation_id='get_all_subjects',
-    auth=jwt_bearer,
+    auth=jwt_auth,
 )
 def get_all_subjects(request: HttpRequest) -> ApiResponse[list[SubjectSchema]]:
     container = get_container()
@@ -73,7 +73,7 @@ def get_all_subjects(request: HttpRequest) -> ApiResponse[list[SubjectSchema]]:
     "",
     response=ApiResponse[ListPaginatedResponse[SubjectSchema]],
     operation_id="get_subject_list",
-    auth=jwt_bearer,
+    auth=jwt_auth,
 )
 def get_subject_list(
     request: HttpRequest,
@@ -123,7 +123,7 @@ def get_subject_list(
     "",
     response={201: ApiResponse[SubjectSchema]},
     operation_id="create_subject",
-    auth=[jwt_bearer_admin, jwt_bearer_manager],
+    auth=[jwt_auth_admin, jwt_auth_manager],
 )
 def create(request: HttpRequest, schema: SubjectInSchema) -> ApiResponse[SubjectSchema]:
     container = get_container()
@@ -160,7 +160,7 @@ def create(request: HttpRequest, schema: SubjectInSchema) -> ApiResponse[Subject
     "{subject_uuid}/update",
     response=ApiResponse[SubjectSchema],
     operation_id="update_subject",
-    auth=[jwt_bearer_admin, jwt_bearer_manager],
+    auth=[jwt_auth_admin, jwt_auth_manager],
 )
 def update_subject(request: HttpRequest, subject_uuid: str, schema: SubjectInSchema) -> ApiResponse[SubjectSchema]:
     container = get_container()
@@ -209,7 +209,7 @@ def update_subject(request: HttpRequest, subject_uuid: str, schema: SubjectInSch
     "{subject_uuid}",
     response=ApiResponse[StatusResponse],
     operation_id="delete_subject",
-    auth=[jwt_bearer_admin, jwt_bearer_manager],
+    auth=[jwt_auth_admin, jwt_auth_manager],
 )
 def delete_subject(
     request: HttpRequest,

@@ -21,10 +21,10 @@ from core.api.v1.schedule.faculty.schemas import (
     FacultyNameSchema,
     FacultySchema,
 )
-from core.apps.common.authentication.bearer import (
-    jwt_bearer,
-    jwt_bearer_admin,
-    jwt_bearer_manager,
+from core.apps.common.authentication.ninja_auth import (
+    jwt_auth,
+    jwt_auth_admin,
+    jwt_auth_manager,
 )
 from core.apps.common.cache.service import BaseCacheService
 from core.apps.common.cache.timeouts import Timeout
@@ -46,7 +46,7 @@ router = Router(tags=['Faculty'])
     "all",
     response=ApiResponse[list[FacultySchema]],
     operation_id="get_all_faculties",
-    auth=jwt_bearer,
+    auth=jwt_auth,
 )
 def get_all_faculties(request: HttpRequest) -> ApiResponse[list[FacultySchema]]:
     container = get_container()
@@ -76,7 +76,7 @@ def get_all_faculties(request: HttpRequest) -> ApiResponse[list[FacultySchema]]:
     "",
     response=ApiResponse[ListPaginatedResponse[FacultySchema]],
     operation_id="get_faculty_list",
-    auth=jwt_bearer,
+    auth=jwt_auth,
 )
 def get_faculty_list(
     request: HttpRequest,
@@ -126,7 +126,7 @@ def get_faculty_list(
     "",
     response={201: ApiResponse[FacultySchema]},
     operation_id="create_faculty",
-    auth=[jwt_bearer_admin, jwt_bearer_manager],
+    auth=[jwt_auth_admin, jwt_auth_manager],
 )
 def create_faculty(
         request: HttpRequest,
@@ -165,7 +165,7 @@ def create_faculty(
     "{faculty_uuid}/update_name",
     response=ApiResponse[FacultySchema],
     operation_id="update_faculty_name",
-    auth=[jwt_bearer_admin, jwt_bearer_manager],
+    auth=[jwt_auth_admin, jwt_auth_manager],
 )
 def update_faculty_name(
         request: HttpRequest,
@@ -215,7 +215,7 @@ def update_faculty_name(
     "{faculty_uuid}/update_code_name",
     response=ApiResponse[FacultySchema],
     operation_id="update_faculty_code_name",
-    auth=[jwt_bearer_admin, jwt_bearer_manager],
+    auth=[jwt_auth_admin, jwt_auth_manager],
 )
 def update_faculty_code_name(
         request: HttpRequest,
@@ -265,7 +265,7 @@ def update_faculty_code_name(
     "{faculty_uuid}",
     response=ApiResponse[StatusResponse],
     operation_id="delete_faculty",
-    auth=[jwt_bearer_admin, jwt_bearer_manager],
+    auth=[jwt_auth_admin, jwt_auth_manager],
 )
 def delete_faculty(
     request: HttpRequest,
