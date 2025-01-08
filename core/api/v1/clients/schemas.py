@@ -54,7 +54,7 @@ class LogInSchema(Schema):
 
 class TokenClientOutSchema(ClientSchemaPrivate):
     access_token: str
-    refresh_token: str
+    refresh_token: str | None = None
 
     @classmethod
     def from_entity_with_tokens(cls, client: ClientEntity, tokens: TokenEntity) -> 'TokenClientOutSchema':
@@ -68,6 +68,23 @@ class TokenClientOutSchema(ClientSchemaPrivate):
             refresh_token=tokens.refresh_token,
         )
 
+    @classmethod
+    def from_entity_with_token_values(
+            cls,
+            client: ClientEntity,
+            access_token: str,
+            refresh_token: str | None = None,
+    ) -> 'TokenClientOutSchema':
+        return cls(
+            last_name=client.last_name,
+            first_name=client.first_name,
+            middle_name=client.middle_name,
+            role=client.role,
+            email=client.email,
+            access_token=access_token,
+            refresh_token=refresh_token,
+        )
+
 
 class TokenOutSchema(Schema):
     access_token: str
@@ -78,6 +95,13 @@ class TokenOutSchema(Schema):
         return cls(
             access_token=tokens_entity.access_token,
             refresh_token=tokens_entity.refresh_token,
+        )
+
+    @classmethod
+    def from_values(cls, access_token: str, refresh_token: str | None = None) -> 'TokenOutSchema':
+        return cls(
+            access_token=access_token,
+            refresh_token=refresh_token,
         )
 
 

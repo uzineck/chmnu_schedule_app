@@ -30,7 +30,7 @@ class AuthCheck:
             if issued_jwt_token_service.check_revoked(jti=token_service.get_jti_from_token(token=token)):
                 raise HttpError(
                     status_code=403,
-                    message="Invalid token",
+                    message="Revoked token",
                 )
 
             user_role = token_service.get_client_role_from_token(token=token)

@@ -17,6 +17,8 @@ from core.api.v1.clients.schemas import (
     LogInSchema,
     RoleInSchema,
     SignUpInSchema,
+    TokenClientOutSchema,
+    TokenOutSchema,
     UpdateEmailInSchema,
     UpdatePwInSchema,
 )
@@ -141,15 +143,14 @@ def sign_up(request: HttpRequest, schema: SignUpInSchema) -> ApiResponse[StatusR
 
 @router.post(
     "log-in",
-    response=ApiResponse[StatusResponse],
+    response=ApiResponse[TokenOutSchema],
     operation_id='login',
 )
-def login(request: HttpRequest, response: HttpResponse, schema: LogInSchema) -> ApiResponse[StatusResponse]:
+def login(request: HttpRequest, response: HttpResponse, schema: LogInSchema) -> ApiResponse[TokenOutSchema]:
     container = get_container()
     use_case: LoginClientUseCase = container.resolve(LoginClientUseCase)
     try:
         client, jwt_tokens = use_case.execute(email=schema.email, password=schema.password)
-        response.set_cookie(key="access_token", value=jwt_tokens.access_token, httponly=True, samesite="Strict")
         response.set_cookie(key="refresh_token", value=jwt_tokens.refresh_token, httponly=True, samesite="Strict")
     except ServiceException:
         raise HttpError(
@@ -158,7 +159,7 @@ def login(request: HttpRequest, response: HttpResponse, schema: LogInSchema) -> 
         )
 
     return ApiResponse(
-        data=StatusResponse(status="Logged in successfully"),
+        data=TokenOutSchema.from_values(access_token=jwt_tokens.access_token),
     )
 
 
@@ -173,7 +174,6 @@ def logout(request: HttpRequest, response: HttpResponse) -> ApiResponse[StatusRe
     use_case: LogoutClientUseCase = container.resolve(LogoutClientUseCase)
     try:
         use_case.execute(token=request.auth)
-        response.delete_cookie(key="access_token")
         response.delete_cookie(key="refresh_token")
     except ServiceException as e:
         raise HttpError(
@@ -188,16 +188,15 @@ def logout(request: HttpRequest, response: HttpResponse) -> ApiResponse[StatusRe
 
 @router.post(
     "update_access_token",
-    response=ApiResponse[StatusResponse],
+    response=ApiResponse[TokenOutSchema],
     operation_id='update_access_token',
 )
-def update_access_token(request: HttpRequest, response: HttpResponse) -> ApiResponse[StatusResponse]:
+def update_access_token(request: HttpRequest) -> ApiResponse[TokenOutSchema]:
     container = get_container()
     use_case: UpdateAccessTokenUseCase = container.resolve(UpdateAccessTokenUseCase)
 
     try:
-        access_token = use_case.execute(request.COOKIES.get("refresh_token"))
-        response.set_cookie(key="access_token", value=access_token.access_token, httponly=True, samesite="Strict")
+        jwt_tokens = use_case.execute(request.COOKIES.get("refresh_token"))
     except ServiceException as e:
         raise HttpError(
             status_code=400,
@@ -206,10 +205,10 @@ def update_access_token(request: HttpRequest, response: HttpResponse) -> ApiResp
     except PyJWTError:
         raise HttpError(
             status_code=401,
-            message='Invalid token',
+            message='Invalid token uat',
         )
     return ApiResponse(
-        data=StatusResponse(status="Successfully updated access token"),
+        data=TokenOutSchema.from_values(access_token=jwt_tokens.access_token),
     )
 
 
@@ -247,7 +246,7 @@ def update_password(request: HttpRequest, schema: UpdatePwInSchema) -> ApiRespon
 
 @router.patch(
     "update_email",
-    response=ApiResponse[ClientSchemaPrivate],
+    response=ApiResponse[TokenClientOutSchema],
     operation_id='update_email',
     auth=jwt_auth,
 )
@@ -255,7 +254,7 @@ def update_email(
         request: HttpRequest,
         response: HttpResponse,
         schema: UpdateEmailInSchema,
-) -> ApiResponse[ClientSchemaPrivate]:
+) -> ApiResponse[TokenClientOutSchema]:
     container = get_container()
     client_service = container.resolve(BaseClientService)
     cache_service: BaseCacheService = container.resolve(BaseCacheService)
@@ -282,7 +281,6 @@ def update_email(
                 ),
             ],
         )
-        response.set_cookie(key="access_token", value=jwt_tokens.access_token, httponly=True, samesite="Strict")
         response.set_cookie(key="refresh_token", value=jwt_tokens.refresh_token, httponly=True, samesite="Strict")
     except ServiceException as e:
         raise HttpError(
@@ -290,7 +288,7 @@ def update_email(
             message=e.message,
         )
     return ApiResponse(
-        data=ClientSchemaPrivate.from_entity(client=client),
+        data=TokenClientOutSchema.from_entity_with_token_values(client=client, access_token=jwt_tokens.access_token),
     )
 
 
@@ -382,13 +380,12 @@ def update_client_role(
 
 
 @router.post(
-    "delete_cookies",
+    "delete_cookie",
     response=ApiResponse[StatusResponse],
-    operation_id='delete_cookies',
+    operation_id='delete_cookie',
 )
 def delete_cookies(request: HttpRequest, response: HttpResponse) -> ApiResponse[StatusResponse]:
-    response.delete_cookie(key="access_token")
     response.delete_cookie(key="refresh_token")
     return ApiResponse(
-        data=StatusResponse(status="Successfully deleted cookies"),
+        data=StatusResponse(status="Successfully deleted cookie"),
     )
