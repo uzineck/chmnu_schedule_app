@@ -38,7 +38,13 @@ def use_case_params(faker_ua, generate_email, generate_password):
 
 @pytest.mark.django_db
 def test_create_client_success(use_case: CreateClientUseCase, use_case_params):
-    assert use_case.execute(**use_case_params) is None
+    client = use_case.execute(**use_case_params)
+
+    assert client.first_name == use_case_params["first_name"]
+    assert client.last_name == use_case_params["last_name"]
+    assert client.middle_name == use_case_params["middle_name"]
+    assert client.email == use_case_params["email"]
+    assert client.role == use_case_params["role"]
 
 
 @pytest.mark.django_db

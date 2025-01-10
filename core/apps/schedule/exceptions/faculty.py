@@ -10,7 +10,7 @@ class FacultyNotFoundException(ServiceException):
 
     @property
     def message(self):
-        return 'Faculty with provided identifier not found'
+        return 'Факультет з вказаним ідентифікатором не знайдено'
 
 
 @dataclass(eq=False)
@@ -20,7 +20,7 @@ class FacultyAlreadyExistsException(ServiceException):
 
     @property
     def message(self):
-        return 'Faculty with provided parameters already exists'
+        return 'Факультет із зазначеними параметрами вже існує'
 
 
 @dataclass(eq=False)
@@ -29,7 +29,7 @@ class FacultyUpdateException(ServiceException):
 
     @property
     def message(self):
-        return 'An error occurred while updating faculty'
+        return 'Виникла помилка при оновленні факультету'
 
 
 @dataclass(eq=False)
@@ -38,7 +38,7 @@ class FacultyDeleteException(ServiceException):
 
     @property
     def message(self):
-        return 'An error occurred while deleting faculty'
+        return 'Виникла помилка при видаленні факультету'
 
 
 @dataclass(eq=False)
@@ -48,7 +48,7 @@ class OldAndNewFacultyNamesAreSimilarException(ServiceException):
 
     @property
     def message(self):
-        return 'Old faculty name and the new one are similar'
+        return 'Стара і нова назва факультету збігаються'
 
 
 @dataclass(eq=False)
@@ -58,4 +58,4 @@ class OldAndNewFacultyCodeNamesAreSimilarException(ServiceException):
 
     @property
     def message(self):
-        return 'Old faculty code name and the new one are similar'
+        return 'Стара і нова кодова назва факультету збігаються'

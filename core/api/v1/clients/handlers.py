@@ -113,15 +113,15 @@ def get_client_info(request: HttpRequest) -> ApiResponse[ClientSchemaPrivate]:
 
 @router.post(
     "sign-up",
-    response={201: ApiResponse[StatusResponse]},
+    response={201: ApiResponse[ClientSchemaPrivate]},
     operation_id='sign_up',
     auth=jwt_auth_admin,
 )
-def sign_up(request: HttpRequest, schema: SignUpInSchema) -> ApiResponse[StatusResponse]:
+def sign_up(request: HttpRequest, schema: SignUpInSchema) -> ApiResponse[ClientSchemaPrivate]:
     container = get_container()
     use_case: CreateClientUseCase = container.resolve(CreateClientUseCase)
     try:
-        use_case.execute(
+        client = use_case.execute(
             first_name=schema.first_name,
             last_name=schema.last_name,
             middle_name=schema.middle_name,
@@ -137,7 +137,7 @@ def sign_up(request: HttpRequest, schema: SignUpInSchema) -> ApiResponse[StatusR
         )
 
     return ApiResponse(
-        data=StatusResponse(status="Client successfully created"),
+        data=ClientSchemaPrivate.from_entity(client=client),
     )
 
 

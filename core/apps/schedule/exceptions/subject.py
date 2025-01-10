@@ -10,7 +10,7 @@ class SubjectNotFoundException(ServiceException):
 
     @property
     def message(self):
-        return 'Subject with provided identifier not found'
+        return 'Дисципліни із зазначеним ідентифікатором не знайдено'
 
 
 @dataclass(eq=False)
@@ -19,7 +19,7 @@ class SubjectAlreadyExistException(ServiceException):
 
     @property
     def message(self):
-        return 'Subject with provided parameters already exists'
+        return 'Дисципліна із зазначеними параметрами вже існує'
 
 
 @dataclass(eq=False)
@@ -28,7 +28,7 @@ class SubjectUpdateException(ServiceException):
 
     @property
     def message(self):
-        return 'An error occurred while updating subject'
+        return 'Виникла помилка при оновленні дисципліни'
 
 
 @dataclass(eq=False)
@@ -37,7 +37,7 @@ class SubjectDeleteException(ServiceException):
 
     @property
     def message(self):
-        return 'An error occurred while deleting subject'
+        return 'Виникла помилка при видаленні дисципліни'
 
 
 @dataclass(eq=False)
@@ -47,4 +47,4 @@ class OldAndNewSubjectsAreSimilarException(ServiceException):
 
     @property
     def message(self):
-        return 'Old subject title and the new one are similar'
+        return 'Стара і нова назва дисципліни збігаються'

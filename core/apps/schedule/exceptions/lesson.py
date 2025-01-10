@@ -10,7 +10,7 @@ class LessonNotFoundException(ServiceException):
 
     @property
     def message(self):
-        return 'Lesson with provided identifier not found'
+        return 'Пара з вказаним ідентифікатором не знайдено'
 
 
 @dataclass(eq=False)
@@ -19,4 +19,4 @@ class LessonDeleteError(ServiceException):
 
     @property
     def message(self):
-        return 'An error occurred while deleting lesson'
+        return 'Виникла помилка при видаленні пари'

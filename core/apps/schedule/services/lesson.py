@@ -45,6 +45,10 @@ class BaseLessonService(ABC):
         ...
 
     @abstractmethod
+    def check_if_teacher_has_lessons(self, teacher_id: int) -> bool:
+        ...
+
+    @abstractmethod
     def delete_by_uuid(self, lesson_uuid: str) -> None:
         ...
 
@@ -127,6 +131,9 @@ class ORMLessonService(BaseLessonService):
         )
 
         return [lesson.to_entity() for lesson in queryset]
+
+    def check_if_teacher_has_lessons(self, teacher_id: int) -> bool:
+        return LessonModel.objects.filter(teacher_id=teacher_id).exists()
 
     def delete_by_uuid(self, lesson_uuid: str) -> None:
         is_deleted, _ = LessonModel.objects.filter(

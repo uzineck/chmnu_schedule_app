@@ -9,4 +9,4 @@ class InvalidUuidFormatStringException(ServiceException):
 
     @property
     def message(self):
-        return 'Invalid UUID string format'
+        return 'Неправильний формат рядка UUID'

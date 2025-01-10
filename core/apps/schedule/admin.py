@@ -46,7 +46,7 @@ class TeacherAdmin(admin.ModelAdmin):
     list_display = ('teacher_uuid', 'last_name', 'first_name', 'middle_name', 'rank', 'created_at', 'updated_at')
     list_display_links = ('teacher_uuid',)
     search_fields = ('teacher_uuid', 'last_name', 'first_name', 'middle_name')
-    list_filter = ('rank', 'created_at', 'updated_at')
+    list_filter = ('rank', 'is_active', 'created_at', 'updated_at')
 
 
 @admin.register(Subject)

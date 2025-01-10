@@ -12,7 +12,7 @@ class GroupNotFoundException(ServiceException):
 
     @property
     def message(self):
-        return 'Group with provided identifier not found'
+        return 'Групу з вказаним ідентифікатором не знайдено'
 
 
 @dataclass(eq=False)
@@ -22,7 +22,7 @@ class GroupAlreadyExistsException(ServiceException):
 
     @property
     def message(self):
-        return 'Group with provided parameters already exists'
+        return 'Група з вказаними параметрами вже існує'
 
 
 @dataclass(eq=False)
@@ -31,7 +31,7 @@ class HeadmanAssignedToAnotherGroupException(ServiceException):
 
     @property
     def message(self):
-        return 'Headman with provided email already assigned to another group'
+        return 'Староста з вказаною електронною адресою вже призначений до іншої групи'
 
 
 @dataclass(eq=False)
@@ -40,7 +40,7 @@ class GroupWithoutSubgroupsInvalidSubgroupException(ServiceException):
 
     @property
     def message(self):
-        return 'Group without subgroups cannot have subgroup'
+        return 'Група без підгруп не може мати підгрупу'
 
 
 @dataclass(eq=False)
@@ -48,7 +48,7 @@ class GroupWithSubgroupsInvalidSubgroupException(ServiceException):
 
     @property
     def message(self):
-        return 'Group with subgroups cannot but have a subgroup'
+        return 'Група з підгрупами не може не мати підгрупи'
 
 
 @dataclass(eq=False)
@@ -57,7 +57,7 @@ class HeadmanNotAssignedToAnyGroup(ServiceException):
 
     @property
     def message(self):
-        return 'Headman is not assigned to any group'
+        return 'Староста не закріплений за жодною групою'
 
 
 @dataclass(eq=False)
@@ -67,4 +67,4 @@ class GroupHeadmanUpdateException(ServiceException):
 
     @property
     def message(self):
-        return 'An error occurred while updating groups` headman'
+        return 'Виникла помилка під час оновлення старости групи'

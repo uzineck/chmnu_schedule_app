@@ -8,4 +8,4 @@ class InvalidAuthDataException(ServiceException):
 
     @property
     def message(self):
-        return 'Incorrect email or password'
+        return 'Невірний email або пароль'

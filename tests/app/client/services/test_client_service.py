@@ -230,7 +230,7 @@ def test_client_update_credentials_failure(client_service: BaseClientService, cl
 @pytest.mark.django_db
 def test_client_update_role_success(client_service: BaseClientService, client_create):
     client = client_create(role=ClientRole.HEADMAN)
-    client_service.update_role(client_id=client.id, new_role=ClientRole.ADMIN)
+    client_service.update_roles(client_id=client.id, new_role=ClientRole.ADMIN)
     updated_client = client_service.get_by_id(client.id)
 
     assert updated_client.role == ClientRole.ADMIN
@@ -242,7 +242,7 @@ def test_client_update_role_failure(client_service: BaseClientService, client_bu
     client = client_build()
 
     with pytest.raises(ClientUpdateException):
-        client_service.update_role(client_id=client.id, new_role=ClientRole.ADMIN)
+        client_service.update_roles(client_id=client.id, new_role=ClientRole.ADMIN)
 
 
 def test_generate_client_tokens(client_service: BaseClientService, client_build, get_current_timestamp):

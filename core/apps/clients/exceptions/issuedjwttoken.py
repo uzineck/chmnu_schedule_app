@@ -9,7 +9,7 @@ class TokenJTIAlreadyExistsException(ServiceException):
 
     @property
     def message(self):
-        return 'Token with provided JTI already exists'
+        return 'Токен з наданим JTI вже існує'
 
 
 @dataclass(eq=False)
@@ -18,4 +18,4 @@ class ClientTokensRevokedException(ServiceException):
 
     @property
     def message(self):
-        return 'All client tokens have been revoked. Client needs to login again'
+        return 'Всі клієнтські токени відкликано. Клієнту необхідно повторно увійти в систему'

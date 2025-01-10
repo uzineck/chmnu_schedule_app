@@ -12,7 +12,7 @@ class GroupLessonDeleteError(ServiceException):
 
     @property
     def message(self):
-        return 'An error occurred while deleting a group lesson'
+        return 'Виникла помилка під час видалення пари групи'
 
 
 @dataclass(eq=False)
@@ -23,4 +23,4 @@ class GroupLessonAlreadyExists(ServiceException):
 
     @property
     def message(self):
-        return 'Group already contains this lesson'
+        return 'Група вже містить цю пару'

@@ -9,4 +9,4 @@ class TimeslotNotFoundException(ServiceException):
 
     @property
     def message(self):
-        return 'Timeslot with provided id not found'
+        return 'Таймслот з вказаним ідентифікатором не знайдено'

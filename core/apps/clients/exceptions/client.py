@@ -10,7 +10,7 @@ class ClientNotFoundException(ServiceException):
 
     @property
     def message(self):
-        return 'Client with provided identifier not found'
+        return 'Клієнта з вказаним ідентифікатором не знайдено'
 
 
 @dataclass(eq=False)
@@ -19,7 +19,7 @@ class ClientAlreadyExistsException(ServiceException):
 
     @property
     def message(self):
-        return 'Client with provided email is already registered'
+        return 'Клієнт з вказаним email вже зареєстрований'
 
 
 @dataclass(eq=False)
@@ -29,7 +29,7 @@ class ClientRoleNotMatchingWithRequiredException(ServiceException):
 
     @property
     def message(self):
-        return 'Client with provided role does not match with the required role for this operation'
+        return 'Клієнт з наданою роллю не відповідає ролі, необхідній для цієї операції'
 
 
 @dataclass(eq=False)
@@ -40,4 +40,4 @@ class ClientUpdateException(ServiceException):
 
     @property
     def message(self):
-        return 'An error occurred while updating client'
+        return 'Виникла помилка під час оновлення клієнта'

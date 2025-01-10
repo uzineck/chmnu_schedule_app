@@ -5,6 +5,7 @@ from dataclasses import (
 from datetime import datetime
 
 from core.apps.common.factory import get_new_uuid
+from core.apps.common.models import TeachersDegree
 
 
 @dataclass
@@ -14,7 +15,7 @@ class Teacher:
     first_name: str | None = field(default=None, kw_only=True)
     last_name: str | None = field(default=None, kw_only=True)
     middle_name: str | None = field(default=None, kw_only=True)
-    rank: str | None = field(default=None, kw_only=True)
+    rank: TeachersDegree | None = field(default=None, kw_only=True)
     is_active: bool = field(default=True, kw_only=True)
     created_at: datetime = field(default_factory=datetime.utcnow)
     updated_at: datetime | None = field(default=None)

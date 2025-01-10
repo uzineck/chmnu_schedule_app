@@ -11,7 +11,7 @@ class RoomNotFoundException(ServiceException):
 
     @property
     def message(self):
-        return 'Room with provided identifier not found'
+        return 'Аудиторії з вказаним ідентифікатором не знайдено'
 
 
 @dataclass(eq=False)
@@ -20,7 +20,7 @@ class RoomAlreadyExistException(ServiceException):
 
     @property
     def message(self):
-        return 'Room with provided parameters already exists'
+        return 'Аудиторія з вказаним номером вже існує'
 
 
 @dataclass(eq=False)
@@ -29,7 +29,7 @@ class RoomUpdateException(ServiceException):
 
     @property
     def message(self):
-        return 'An error occurred while updating room'
+        return 'Виникла помилка при оновленні аудиторії'
 
 
 @dataclass(eq=False)
@@ -38,7 +38,7 @@ class RoomDeleteException(ServiceException):
 
     @property
     def message(self):
-        return 'An error occurred while deleting room'
+        return 'Виникла помилка при видаленні аудиторії'
 
 
 @dataclass(eq=False)
@@ -48,7 +48,7 @@ class OldAndNewRoomsAreSimilarException(ServiceException):
 
     @property
     def message(self):
-        return 'Old room number and the new one are similar'
+        return 'Старий і новий номер аудиторії збігаються'
 
 
 @dataclass(eq=False)
@@ -58,4 +58,4 @@ class OldAndNewRoomDescriptionsAreSimilarException(ServiceException):
 
     @property
     def message(self):
-        return 'Old room description and the new one are similar'
+        return 'Старий і новий опис аудиторії збігаються'

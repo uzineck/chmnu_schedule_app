@@ -10,7 +10,7 @@ class TeacherNotFoundException(ServiceException):
 
     @property
     def message(self):
-        return 'Teacher with provided identifier not found'
+        return 'Викладача з вказаним ідентифікатором не знайдено'
 
 
 @dataclass(eq=False)
@@ -21,7 +21,7 @@ class TeacherAlreadyExistsException(ServiceException):
 
     @property
     def message(self):
-        return 'Teacher with provided parameters already exists'
+        return 'Викладач із зазначеними параметрами вже існує'
 
 
 @dataclass(eq=False)
@@ -30,7 +30,16 @@ class TeacherUpdateException(ServiceException):
 
     @property
     def message(self):
-        return 'An error occurred while updating teacher'
+        return 'Виникла помилка під час оновлення викладача'
+
+
+@dataclass(eq=False)
+class TeacherIsUsedInLessonsException(ServiceException):
+    id: int
+
+    @property
+    def message(self):
+        return 'Викладач використовується у деякому занятті'
 
 
 @dataclass(eq=False)
@@ -44,7 +53,7 @@ class OldAndNewTeacherNamesAreSimilarException(ServiceException):
 
     @property
     def message(self):
-        return 'Old teacher name and the new one are similar'
+        return 'Старе і нове ім\'я викладача збігаються'
 
 
 @dataclass(eq=False)
@@ -54,4 +63,4 @@ class OldAndNewTeacherRanksAreSimilarException(ServiceException):
 
     @property
     def message(self):
-        return 'Old teacher rank and the new one are similar'
+        return 'Старе і нове звання викладача збігаються'
