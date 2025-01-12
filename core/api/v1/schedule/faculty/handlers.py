@@ -23,8 +23,7 @@ from core.api.v1.schedule.faculty.schemas import (
 )
 from core.apps.common.authentication.ninja_auth import (
     jwt_auth,
-    jwt_auth_admin,
-    jwt_auth_manager,
+    jwt_auth_faculty_manager,
 )
 from core.apps.common.cache.service import BaseCacheService
 from core.apps.common.cache.timeouts import Timeout
@@ -126,7 +125,7 @@ def get_faculty_list(
     "",
     response={201: ApiResponse[FacultySchema]},
     operation_id="create_faculty",
-    auth=[jwt_auth_admin, jwt_auth_manager],
+    auth=jwt_auth_faculty_manager,
 )
 def create_faculty(
         request: HttpRequest,
@@ -165,7 +164,7 @@ def create_faculty(
     "{faculty_uuid}/update_name",
     response=ApiResponse[FacultySchema],
     operation_id="update_faculty_name",
-    auth=[jwt_auth_admin, jwt_auth_manager],
+    auth=jwt_auth_faculty_manager,
 )
 def update_faculty_name(
         request: HttpRequest,
@@ -215,7 +214,7 @@ def update_faculty_name(
     "{faculty_uuid}/update_code_name",
     response=ApiResponse[FacultySchema],
     operation_id="update_faculty_code_name",
-    auth=[jwt_auth_admin, jwt_auth_manager],
+    auth=jwt_auth_faculty_manager,
 )
 def update_faculty_code_name(
         request: HttpRequest,
@@ -265,7 +264,7 @@ def update_faculty_code_name(
     "{faculty_uuid}",
     response=ApiResponse[StatusResponse],
     operation_id="delete_faculty",
-    auth=[jwt_auth_admin, jwt_auth_manager],
+    auth=jwt_auth_faculty_manager,
 )
 def delete_faculty(
     request: HttpRequest,

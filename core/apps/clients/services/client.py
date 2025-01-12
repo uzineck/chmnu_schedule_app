@@ -41,7 +41,6 @@ class BaseClientService(ABC):
         first_name: str,
         last_name: str,
         middle_name: str,
-        role: str,
         email: str,
         hashed_password: str,
     ) -> ClientEntity:
@@ -66,10 +65,10 @@ class BaseClientService(ABC):
         ...
 
     @abstractmethod
-    def update_role(
+    def update_roles(
             self,
             client_id: int,
-            new_role: ClientRole,
+            roles: list[str],
     ) -> None:
         ...
 
@@ -90,7 +89,7 @@ class BaseClientService(ABC):
         ...
 
     @abstractmethod
-    def check_client_role(self, client_role: ClientRole, required_role: ClientRole) -> None:
+    def check_client_role(self, client_roles: list[ClientRole], required_role: ClientRole) -> None:
         ...
 
     @abstractmethod
@@ -110,7 +109,7 @@ class BaseClientService(ABC):
         ...
 
     @abstractmethod
-    def get_client_role_from_token(self, token: str) -> str:
+    def get_client_roles_from_token(self, token: str) -> str:
         ...
 
     @abstractmethod
@@ -136,7 +135,6 @@ class ORMClientService(BaseClientService):
         first_name: str,
         last_name: str,
         middle_name: str,
-        role: str,
         email: str,
         hashed_password: str,
     ) -> ClientEntity:
@@ -145,12 +143,11 @@ class ORMClientService(BaseClientService):
                 first_name=first_name,
                 last_name=last_name,
                 middle_name=middle_name,
-                role=role,
                 email=email,
                 password=hashed_password,
             )
         except IntegrityError:
-            logger.warning(f"Client Creation Error ({email=}, {role=})")
+            logger.warning(f"Client Creation Error ({email=})")
             raise ClientAlreadyExistsException(email=email)
 
         return client.to_entity()
@@ -183,16 +180,16 @@ class ORMClientService(BaseClientService):
             logger.error(f"Client Update Credentials Error ({client_id=})")
             raise ClientUpdateException(id=client_id)
 
-    def update_role(
+    def update_roles(
             self,
             client_id: int,
-            new_role: ClientRole,
+            roles: list[str],
     ) -> None:
-        is_updated = ClientModel.objects.filter(id=client_id).update(
-            role=new_role,
-        )
-        if not is_updated:
-            logger.error(f"Client Update Role Error ({client_id=}, {new_role=})")
+        try:
+            client: ClientModel = ClientModel.objects.get(id=client_id)
+            client.roles.set(roles)
+        except:
+            logger.error(f"Client Update Role Error ({client_id=})")
             raise ClientUpdateException(id=client_id)
 
     def get_by_email(self, client_email: str) -> ClientEntity:
@@ -221,10 +218,10 @@ class ORMClientService(BaseClientService):
             logger.info("Client Validate Password Error")
             raise InvalidAuthDataException
 
-    def check_client_role(self, client_role: str, required_role: ClientRole) -> None:
-        if client_role != required_role:
-            logger.warning(f"Client Role Not Matching Error ({client_role=}, {required_role=})")
-            raise ClientRoleNotMatchingWithRequiredException(client_role=client_role, required_role=required_role)
+    def check_client_role(self, client_roles: list[ClientRole], required_role: ClientRole) -> None:
+        if required_role not in client_roles:
+            logger.warning(f"Client Role Not Matching Error ({client_roles=}, {required_role=})")
+            raise ClientRoleNotMatchingWithRequiredException(client_roles=client_roles, required_role=required_role)
 
     def generate_tokens(self, client: ClientEntity) -> TokenEntity:
         device_id = get_new_uuid()
@@ -239,14 +236,12 @@ class ORMClientService(BaseClientService):
         return TokenEntity(access_token=access_token)
 
     def get_raw_jwt(self, token: str) -> dict[str, Any]:
-        payload = self.token_service.get_raw_jwt(token=token)
-
-        return payload
+        return self.token_service.get_raw_jwt(token=token)
 
     def get_client_email_from_token(self, token: str) -> str:
         return self.token_service.get_client_email_from_token(token=token)
 
-    def get_client_role_from_token(self, token: str) -> str:
+    def get_client_roles_from_token(self, token: str) -> str:
         return self.token_service.get_client_role_from_token(token=token)
 
     def get_token_type_from_token(self, token: str) -> TokenType:

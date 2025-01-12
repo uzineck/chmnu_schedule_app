@@ -22,8 +22,7 @@ from core.api.v1.schedule.rooms.schemas import (
 )
 from core.apps.common.authentication.ninja_auth import (
     jwt_auth,
-    jwt_auth_admin,
-    jwt_auth_manager,
+    jwt_auth_room_manager,
 )
 from core.apps.common.cache.service import BaseCacheService
 from core.apps.common.cache.timeouts import Timeout
@@ -126,7 +125,7 @@ def get_room_list(
     "",
     response={201: ApiResponse[RoomSchema]},
     operation_id="create_room",
-    auth=[jwt_auth_admin, jwt_auth_manager],
+    auth=jwt_auth_room_manager,
 )
 def create_room(request: HttpRequest, schema: RoomNumberInSchema) -> ApiResponse[RoomSchema]:
     container = get_container()
@@ -163,7 +162,7 @@ def create_room(request: HttpRequest, schema: RoomNumberInSchema) -> ApiResponse
     "{room_uuid}/update_number",
     response=ApiResponse[RoomSchema],
     operation_id="update_room_number",
-    auth=[jwt_auth_admin, jwt_auth_manager],
+    auth=jwt_auth_room_manager,
 )
 def update_room_number(
     request: HttpRequest,
@@ -216,7 +215,7 @@ def update_room_number(
     "{room_uuid}/update_description",
     response=ApiResponse[RoomSchema],
     operation_id="update_room_description",
-    auth=[jwt_auth_admin, jwt_auth_manager],
+    auth=jwt_auth_room_manager,
 )
 def update_room_description(
     request: HttpRequest,
@@ -270,7 +269,7 @@ def update_room_description(
     "{room_uuid}",
     response=ApiResponse[StatusResponse],
     operation_id="delete_room",
-    auth=[jwt_auth_admin, jwt_auth_manager],
+    auth=jwt_auth_room_manager,
 )
 def delete_room(
     request: HttpRequest,

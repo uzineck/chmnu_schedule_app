@@ -21,7 +21,7 @@ class BaseGroupLessonValidatorService(ABC):
     @abstractmethod
     def validate(
             self,
-            client_role: ClientRole | None = None,
+            client_roles: list[ClientRole] | None = None,
             required_role: ClientRole | None = None,
             group: Group | None = None,
             subgroup: Subgroup | None = None,
@@ -43,9 +43,15 @@ class CheckGroupHasSubgroupValidatorService(BaseGroupLessonValidatorService):
 class ClientDoesNotMatchRolesValidatorService(BaseGroupLessonValidatorService):
     client_service: BaseClientService
 
-    def validate(self, client_role: ClientRole | None = None, required_role: ClientRole | None = None, *args, **kwargs):
-        if client_role and required_role:
-            self.client_service.check_client_role(client_role=client_role, required_role=required_role)
+    def validate(
+            self,
+            client_roles: list[ClientRole] | None = None,
+            required_role: ClientRole | None = None,
+            *args,
+            **kwargs,
+    ):
+        if client_roles and required_role:
+            self.client_service.check_client_role(client_roles=client_roles, required_role=required_role)
 
 
 @dataclass
@@ -68,7 +74,7 @@ class ComposedGroupLessonValidatorService(BaseGroupLessonValidatorService):
 
     def validate(
             self,
-            client_role: ClientRole | None = None,
+            client_roles: list[ClientRole] | None = None,
             required_role: ClientRole | None = None,
             group: Group | None = None,
             subgroup: Subgroup | None = None,
@@ -76,7 +82,7 @@ class ComposedGroupLessonValidatorService(BaseGroupLessonValidatorService):
     ):
         for validator in self.validators:
             validator.validate(
-                client_role=client_role,
+                client_roles=client_roles,
                 required_role=required_role,
                 group=group,
                 subgroup=subgroup,

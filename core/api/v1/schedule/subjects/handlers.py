@@ -21,8 +21,7 @@ from core.api.v1.schedule.subjects.schemas import (
 )
 from core.apps.common.authentication.ninja_auth import (
     jwt_auth,
-    jwt_auth_admin,
-    jwt_auth_manager,
+    jwt_auth_subject_manager,
 )
 from core.apps.common.cache.service import BaseCacheService
 from core.apps.common.cache.timeouts import Timeout
@@ -123,7 +122,7 @@ def get_subject_list(
     "",
     response={201: ApiResponse[SubjectSchema]},
     operation_id="create_subject",
-    auth=[jwt_auth_admin, jwt_auth_manager],
+    auth=jwt_auth_subject_manager,
 )
 def create(request: HttpRequest, schema: SubjectInSchema) -> ApiResponse[SubjectSchema]:
     container = get_container()
@@ -160,7 +159,7 @@ def create(request: HttpRequest, schema: SubjectInSchema) -> ApiResponse[Subject
     "{subject_uuid}/update",
     response=ApiResponse[SubjectSchema],
     operation_id="update_subject",
-    auth=[jwt_auth_admin, jwt_auth_manager],
+    auth=jwt_auth_subject_manager,
 )
 def update_subject(request: HttpRequest, subject_uuid: str, schema: SubjectInSchema) -> ApiResponse[SubjectSchema]:
     container = get_container()
@@ -209,7 +208,7 @@ def update_subject(request: HttpRequest, subject_uuid: str, schema: SubjectInSch
     "{subject_uuid}",
     response=ApiResponse[StatusResponse],
     operation_id="delete_subject",
-    auth=[jwt_auth_admin, jwt_auth_manager],
+    auth=jwt_auth_subject_manager,
 )
 def delete_subject(
     request: HttpRequest,

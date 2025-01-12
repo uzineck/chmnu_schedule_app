@@ -56,8 +56,14 @@ class OrdinaryNumber(models.IntegerChoices):
 
 class ClientRole(models.TextChoices):
     ADMIN = "admin", "Admin"
-    MANAGER = "manager", "Manager"
     HEADMAN = "headman", "Headman"
+    CLIENT_MANAGER = 'client_manager', 'Client Manager'
+    FACULTY_MANAGER = 'faculty_manager', 'Faculty Manager'
+    TEACHER_MANAGER = 'teacher_manager', 'Teacher Manager'
+    SUBJECT_MANAGER = 'subject_manager', 'Subject Manager'
+    ROOM_MANAGER = 'room_manager', 'Room Manager'
+    GROUP_MANAGER = 'group_manager', 'Group Manager'
+    SCHEDULE_MANAGER = 'schedule_manager', 'Schedule Manager'
     DEFAULT = "default", "Default"
 
 

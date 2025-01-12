@@ -8,6 +8,11 @@ from core.apps.clients.services.issuedjwttoken import (
     BaseIssuedJwtTokenService,
     ORMIssuedJwtTokenService,
 )
+from core.apps.clients.services.role import (
+    BaseRoleService,
+    ORMRoleService,
+)
+from core.apps.clients.usecases.admin.update_password import UpdateClientPasswordAdminUseCase
 from core.apps.clients.usecases.admin.update_role import UpdateClientRoleUseCase
 from core.apps.clients.usecases.client.create import CreateClientUseCase
 from core.apps.clients.usecases.client.get_info import GetClientInfoUseCase
@@ -33,6 +38,7 @@ def register_client_services(container: punq.Container):
     container.register(BasePasswordService, BcryptPasswordService)
     container.register(BaseTokenService, JWTTokenService)
     container.register(BaseIssuedJwtTokenService, ORMIssuedJwtTokenService)
+    container.register(BaseRoleService, ORMRoleService)
 
     container.register(CreateClientUseCase)
     container.register(LoginClientUseCase)
@@ -44,3 +50,5 @@ def register_client_services(container: punq.Container):
     container.register(GetHeadmanGroupUseCase)
     container.register(GetClientInfoUseCase)
     container.register(UpdateAccessTokenUseCase)
+
+    container.register(UpdateClientPasswordAdminUseCase)

@@ -5,6 +5,7 @@ from datetime import (
     timezone,
 )
 from tests.factories.client.client import ClientModelFactory
+from tests.factories.client.role import RoleModelFactory
 
 from core.apps.clients.services.client import BaseClientService
 from core.apps.clients.services.issuedjwttoken import BaseIssuedJwtTokenService
@@ -39,6 +40,14 @@ def client_create():
         return ClientModelFactory.create(**kwargs)
 
     return _client_create
+
+
+@pytest.fixture(scope='function')
+def role_create():
+    def _role_create(**kwargs):
+        return RoleModelFactory.create(**kwargs)
+
+    return _role_create
 
 
 @pytest.fixture(scope='function')

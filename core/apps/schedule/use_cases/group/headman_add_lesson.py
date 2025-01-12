@@ -34,7 +34,7 @@ class HeadmanAddLessonToGroupUseCase:
         self.uuid_validator_service.validate(uuid_str=lesson_uuid)
 
         client = self.client_service.get_by_email(client_email=headman_email)
-        self.group_lesson_validator_service.validate(client_role=client.role, required_role=ClientRole.HEADMAN)
+        self.group_lesson_validator_service.validate(client_roles=client.roles, required_role=ClientRole.HEADMAN)
 
         group = self.group_service.get_group_from_headman(headman_id=client.id)
         self.group_lesson_validator_service.validate(group=group, subgroup=subgroup)

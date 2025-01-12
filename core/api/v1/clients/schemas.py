@@ -23,7 +23,7 @@ class ClientSchemaPrivate(Schema):
     last_name: str
     first_name: str
     middle_name: str
-    role: ClientRole
+    roles: list[ClientRole]
     email: str
 
     @classmethod
@@ -32,7 +32,7 @@ class ClientSchemaPrivate(Schema):
             last_name=client.last_name,
             first_name=client.first_name,
             middle_name=client.middle_name,
-            role=client.role,
+            roles=client.roles,
             email=client.email,
         )
 
@@ -41,7 +41,7 @@ class SignUpInSchema(Schema):
     last_name: str
     first_name: str
     middle_name: str
-    role: ClientRole
+    roles: list[ClientRole]
     email: str
     password: str
     verify_password: str
@@ -62,7 +62,7 @@ class TokenClientOutSchema(ClientSchemaPrivate):
             last_name=client.last_name,
             first_name=client.first_name,
             middle_name=client.middle_name,
-            role=client.role,
+            roles=client.roles,
             email=client.email,
             access_token=tokens.access_token,
             refresh_token=tokens.refresh_token,
@@ -79,7 +79,7 @@ class TokenClientOutSchema(ClientSchemaPrivate):
             last_name=client.last_name,
             first_name=client.first_name,
             middle_name=client.middle_name,
-            role=client.role,
+            roles=client.roles,
             email=client.email,
             access_token=access_token,
             refresh_token=refresh_token,
@@ -115,7 +115,13 @@ class UpdatePwInSchema(Schema):
     verify_password: str
 
 
+class UpdatePwInAdminSchema(Schema):
+    new_password: str
+    verify_password: str
+
+
 class UpdateEmailInSchema(Schema):
+    client_email: str
     new_email: str
     password: str
 
@@ -126,5 +132,5 @@ class CredentialsInSchema(Schema):
     middle_name: str
 
 
-class RoleInSchema(Schema):
-    role: ClientRole
+class RolesInSchema(Schema):
+    roles: list[ClientRole]

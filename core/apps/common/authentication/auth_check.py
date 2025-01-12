@@ -33,8 +33,8 @@ class AuthCheck:
                     message="Revoked token",
                 )
 
-            user_role = token_service.get_client_role_from_token(token=token)
-            if not self._is_role_allowed(role=user_role):
+            user_roles = token_service.get_client_role_from_token(token=token)
+            if not self._is_role_allowed(roles=user_roles):
                 raise HttpError(
                     status_code=403,
                     message="Client does not have permission to access this resource",
@@ -54,8 +54,8 @@ class AuthCheck:
             )
         return token
 
-    def _is_role_allowed(self, role: str) -> bool:
-        return role in self.allowed_roles
+    def _is_role_allowed(self, roles: list[ClientRole]) -> bool:
+        return any(role in self.allowed_roles for role in roles)
 
     def _is_email_allowed(self, email: str) -> bool:
         if not self.allowed_emails:

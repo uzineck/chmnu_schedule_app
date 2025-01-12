@@ -1,5 +1,6 @@
 import pytest
 from tests.factories.client.client import ClientModelFactory
+from tests.factories.client.role import RoleModelFactory
 
 from core.apps.clients.exceptions.client import ClientAlreadyExistsException
 from core.apps.clients.usecases.client.create import CreateClientUseCase
@@ -21,7 +22,7 @@ def use_case_params(faker_ua, generate_email, generate_password):
     first_name = faker_ua.first_name()
     last_name = faker_ua.last_name()
     middle_name = faker_ua.middle_name()
-    role = ClientRole.DEFAULT
+    roles = [ClientRole.HEADMAN]
     email = generate_email()
     password = generate_password()
 
@@ -29,7 +30,7 @@ def use_case_params(faker_ua, generate_email, generate_password):
         "first_name": first_name,
         "last_name": last_name,
         "middle_name": middle_name,
-        "role": role,
+        "roles": roles,
         "email": email,
         "password": password,
         "verify_password": password,
@@ -44,7 +45,6 @@ def test_create_client_success(use_case: CreateClientUseCase, use_case_params):
     assert client.last_name == use_case_params["last_name"]
     assert client.middle_name == use_case_params["middle_name"]
     assert client.email == use_case_params["email"]
-    assert client.role == use_case_params["role"]
 
 
 @pytest.mark.django_db
@@ -53,7 +53,7 @@ def test_create_client_already_exists_failure(use_case: CreateClientUseCase, use
         first_name=use_case_params['first_name'],
         last_name=use_case_params['last_name'],
         middle_name=use_case_params['middle_name'],
-        role=use_case_params['role'],
+        roles=[RoleModelFactory(id=ClientRole.HEADMAN)],
         email=use_case_params['email'],
         password=use_case_params['password'],
     )

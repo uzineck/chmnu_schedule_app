@@ -21,9 +21,9 @@ from core.api.v1.schedule.groups.schemas import (
 from core.apps.clients.services.client import BaseClientService
 from core.apps.clients.usecases.headman.get_headman_group import GetHeadmanGroupUseCase
 from core.apps.common.authentication.ninja_auth import (
-    jwt_auth_admin,
+    jwt_auth_group_manager,
     jwt_auth_headman,
-    jwt_auth_manager,
+    jwt_auth_schedule_manager,
 )
 from core.apps.common.cache.service import BaseCacheService
 from core.apps.common.cache.timeouts import Timeout
@@ -125,7 +125,7 @@ def get_group_lessons(
     "{group_uuid}/info",
     response=ApiResponse[GroupSchemaWithHeadman],
     operation_id="get_group_info",
-    auth=[jwt_auth_admin, jwt_auth_manager],
+    auth=jwt_auth_group_manager,
 )
 def get_group_info(
         request: HttpRequest,
@@ -196,7 +196,7 @@ def get_headman_group(
     '',
     response={201: ApiResponse[GroupSchemaWithHeadman]},
     operation_id='create_group',
-    auth=[jwt_auth_admin, jwt_auth_manager],
+    auth=jwt_auth_group_manager,
 )
 def create_group(request: HttpRequest, schema: CreateGroupSchema) -> ApiResponse[GroupSchemaWithHeadman]:
     container = get_container()
@@ -232,7 +232,7 @@ def create_group(request: HttpRequest, schema: CreateGroupSchema) -> ApiResponse
     "{group_uuid}/update_headman",
     response=ApiResponse[GroupSchemaWithHeadman],
     operation_id='update_group_headman',
-    auth=[jwt_auth_admin, jwt_auth_manager],
+    auth=jwt_auth_group_manager,
 )
 def update_group_headman(
         request: HttpRequest,
@@ -275,7 +275,7 @@ def update_group_headman(
     '{group_uuid}/add/{lesson_uuid}',
     response=ApiResponse[StatusResponse],
     operation_id='add_lesson_to_group_admin',
-    auth=[jwt_auth_admin, jwt_auth_manager],
+    auth=jwt_auth_schedule_manager,
 )
 def add_lesson_to_group_admin(
         request: HttpRequest,
@@ -319,7 +319,7 @@ def add_lesson_to_group_admin(
     '{group_uuid}/{old_lesson_uuid}/update/{lesson_uuid}',
     response=ApiResponse[StatusResponse],
     operation_id='update_lesson_in_group_admin',
-    auth=[jwt_auth_admin, jwt_auth_manager],
+    auth=jwt_auth_schedule_manager,
 )
 def update_lesson_in_group_admin(
         request: HttpRequest,
@@ -375,7 +375,7 @@ def update_lesson_in_group_admin(
     '{group_uuid}/remove/{lesson_uuid}',
     response=ApiResponse[StatusResponse],
     operation_id='remove_lesson_from_group_admin',
-    auth=[jwt_auth_admin, jwt_auth_manager],
+    auth=jwt_auth_schedule_manager,
 )
 def remove_lesson_from_group_admin(
         request: HttpRequest,

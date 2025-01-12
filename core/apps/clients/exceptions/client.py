@@ -24,7 +24,7 @@ class ClientAlreadyExistsException(ServiceException):
 
 @dataclass(eq=False)
 class ClientRoleNotMatchingWithRequiredException(ServiceException):
-    client_role: str
+    client_roles: list[str]
     required_role: str
 
     @property

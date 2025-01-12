@@ -18,7 +18,7 @@ class CreateGroupUseCase:
 
     def execute(self, group_number: str, faculty_uuid: str, headman_email: str, has_subgroups: bool) -> GroupEntity:
         client = self.client_service.get_by_email(client_email=headman_email)
-        self.client_service.check_client_role(client_role=client.role, required_role=ClientRole.HEADMAN)
+        self.client_service.check_client_role(client_roles=client.roles, required_role=ClientRole.HEADMAN)
 
         faculty = self.faculty_service.get_by_uuid(faculty_uuid=faculty_uuid)
 

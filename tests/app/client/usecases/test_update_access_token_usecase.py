@@ -1,12 +1,14 @@
 import pytest
 from tests.factories.client.client import ClientModelFactory
 
+from core.apps.clients.entities.client import Client as ClientEntity
 from core.apps.clients.exceptions.client import ClientNotFoundException
 from core.apps.clients.exceptions.issuedjwttoken import ClientTokensRevokedException
 from core.apps.clients.services.client import BaseClientService
 from core.apps.clients.services.issuedjwttoken import BaseIssuedJwtTokenService
 from core.apps.clients.usecases.client.update_access_token import UpdateAccessTokenUseCase
 from core.apps.common.exceptions import InvalidTokenTypeException
+from core.apps.common.models import ClientRole
 
 
 @pytest.fixture
@@ -17,8 +19,16 @@ def use_case(container):
 @pytest.fixture(scope='function')
 def use_case_params(generate_device_id):
     client = ClientModelFactory.create()
+    client_entity = ClientEntity(
+        id=client.id,
+        first_name=client.first_name,
+        last_name=client.last_name,
+        email=client.email,
+        middle_name=client.middle_name,
+        roles=[ClientRole(role.id) for role in client.roles.all()],
+    )
     return {
-        "client": client,
+        "client": client_entity,
     }
 
 
@@ -55,7 +65,15 @@ def test_update_access_token_client_not_found_failure(
         client_service: BaseClientService,
 ):
     client = ClientModelFactory.build()
-    tokens = client_service.generate_tokens(client=client)
+    client_entity = ClientEntity(
+        id=client.id,
+        first_name=client.first_name,
+        last_name=client.last_name,
+        email=client.email,
+        middle_name=client.middle_name,
+        roles=[ClientRole(role.id) for role in client.roles.all()],
+    )
+    tokens = client_service.generate_tokens(client=client_entity)
 
     with pytest.raises(ClientNotFoundException):
         use_case.execute(token=tokens.refresh_token)

@@ -2,6 +2,7 @@ from dataclasses import dataclass
 
 from core.apps.clients.entities.client import Client as ClientEntity
 from core.apps.clients.services.client import BaseClientService
+from core.apps.clients.services.role import BaseRoleService
 from core.apps.common.authentication.password import BasePasswordService
 from core.apps.common.authentication.validators.email import BaseEmailValidatorService
 from core.apps.common.authentication.validators.password import BasePasswordValidatorService
@@ -10,6 +11,7 @@ from core.apps.common.authentication.validators.password import BasePasswordVali
 @dataclass
 class CreateClientUseCase:
     client_service: BaseClientService
+    role_service: BaseRoleService
     password_service: BasePasswordService
 
     password_validator_service: BasePasswordValidatorService
@@ -20,7 +22,7 @@ class CreateClientUseCase:
         first_name: str,
         last_name: str,
         middle_name: str,
-        role: str,
+        roles: list[str],
         email: str,
         password: str,
         verify_password: str,
@@ -34,8 +36,11 @@ class CreateClientUseCase:
             first_name=first_name,
             last_name=last_name,
             middle_name=middle_name,
-            role=role,
             email=email,
             hashed_password=hashed_password,
         )
-        return client
+        fetched_roles = self.role_service.fetch_roles(roles=roles)
+        self.client_service.update_roles(client_id=client.id, roles=fetched_roles)
+        updated_client = self.client_service.get_by_id(client_id=client.id)
+
+        return updated_client
