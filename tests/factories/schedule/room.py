@@ -10,7 +10,6 @@ faker = Faker()
 
 
 class RoomModelFactory(DjangoModelFactory):
-    id = factory.Sequence(lambda n: n)
     room_uuid = factory.LazyFunction(lambda: str(uuid.uuid4()))
     number = factory.LazyFunction(lambda: RoomModelFactory.generate_custom_number())
     description = None

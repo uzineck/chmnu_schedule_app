@@ -7,6 +7,7 @@ from core.apps.schedule.models.group import (
 )
 from core.apps.schedule.models.lesson import Lesson
 from core.apps.schedule.models.room import Room
+from core.apps.schedule.models.semester_settings import SemesterSettings
 from core.apps.schedule.models.subject import Subject
 from core.apps.schedule.models.teacher import Teacher
 from core.apps.schedule.models.timeslot import Timeslot
@@ -70,3 +71,14 @@ class RoomAdmin(admin.ModelAdmin):
 class TimeslotAdmin(admin.ModelAdmin):
     list_display = ('id', 'day', 'ord_number', 'is_even')
     list_filter = ('day', 'ord_number', 'is_even')
+
+
+@admin.register(SemesterSettings)
+class SemesterSettingsAdmin(admin.ModelAdmin):
+    list_display = ('start_date', 'is_above_line', 'updated_at')
+
+    def has_add_permission(self, request):
+        return not SemesterSettings.objects.exists()
+
+    def has_delete_permission(self, request, obj=None):
+        return False

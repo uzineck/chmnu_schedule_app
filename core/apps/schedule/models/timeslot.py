@@ -34,13 +34,10 @@ class Timeslot(TimedBaseModel):
         )
 
     def __str__(self):
-        return (
-            f"{self.day}\n"
-            f"{self.ord_number}\n"
-            f"{str(self.is_even)}"
-        )
+        return f"{self.day} | {self.ord_number} | {self.is_even}"
 
     class Meta:
         verbose_name = "Timeslot"
         verbose_name_plural = "Timeslots"
         unique_together = (("day", "ord_number", "is_even"),)
+        ordering = ["day", "ord_number", "is_even"]

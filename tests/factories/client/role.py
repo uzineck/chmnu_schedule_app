@@ -10,3 +10,4 @@ class RoleModelFactory(DjangoModelFactory):
 
     class Meta:
         model = Role
+        django_get_or_create = ('id',)

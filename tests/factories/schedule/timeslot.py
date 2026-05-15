@@ -9,7 +9,6 @@ from core.apps.schedule.models import Timeslot
 
 
 class TimeslotModelFactory(DjangoModelFactory):
-    id = factory.Sequence(lambda n: n)
     day = factory.Iterator(Day)
     ord_number = factory.Iterator(OrdinaryNumber)
     is_even = factory.Iterator([True, False])

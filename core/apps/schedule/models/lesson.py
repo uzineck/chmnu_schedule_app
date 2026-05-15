@@ -18,6 +18,7 @@ class Lesson(TimedBaseModel):
         verbose_name='UUID lesson representation',
         editable=False,
         default=uuid.uuid4,
+        unique=True,
     )
     type = models.CharField(
         verbose_name="Type of the lesson",
@@ -88,6 +89,9 @@ class Lesson(TimedBaseModel):
     class Meta:
         verbose_name = "Lesson"
         verbose_name_plural = "Lessons"
-        indexes = [
-            models.Index(fields=["lesson_uuid"]),
+        constraints = [
+            models.UniqueConstraint(
+                fields=['subject', 'teacher', 'room', 'timeslot', 'type'],
+                name='unique_lesson_combination',
+            ),
         ]

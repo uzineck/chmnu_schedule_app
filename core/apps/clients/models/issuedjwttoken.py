@@ -31,3 +31,6 @@ class IssuedJwtToken(TimedBaseModel):
     class Meta:
         verbose_name = 'JWT Token'
         verbose_name_plural = 'JWT Tokens'
+        indexes = [
+            models.Index(fields=['expiration_time']),
+        ]

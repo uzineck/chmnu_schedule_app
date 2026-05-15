@@ -7,7 +7,6 @@ from core.apps.schedule.models import Teacher
 
 
 class TeacherModelFactory(DjangoModelFactory):
-    id = factory.Sequence(lambda n: n)
     teacher_uuid = factory.LazyFunction(lambda: str(uuid.uuid4()))
     first_name = factory.Faker('first_name', locale='uk_UA')
     last_name = factory.Faker('last_name', locale='uk_UA')

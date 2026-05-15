@@ -11,7 +11,6 @@ from core.apps.schedule.models import Lesson
 
 
 class LessonModelFactory(DjangoModelFactory):
-    id = factory.Sequence(lambda n: n)
     lesson_uuid = factory.LazyFunction(lambda: str(uuid.uuid4()))
     type = factory.Iterator(LessonType)
     subject = factory.SubFactory(SubjectModelFactory)

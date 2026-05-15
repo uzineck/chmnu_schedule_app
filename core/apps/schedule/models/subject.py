@@ -2,15 +2,19 @@ from django.db import models
 
 import uuid
 
-from core.apps.common.models import TimedBaseModel
+from core.apps.common.models import (
+    SoftDeletable,
+    TimedBaseModel,
+)
 from core.apps.schedule.entities.subject import Subject as SubjectEntity
 
 
-class Subject(TimedBaseModel):
+class Subject(TimedBaseModel, SoftDeletable):
     subject_uuid = models.UUIDField(
         verbose_name='UUID subject representation',
         editable=False,
         default=uuid.uuid4,
+        unique=True,
     )
     title = models.CharField(
         verbose_name="Subject's title",
@@ -20,6 +24,7 @@ class Subject(TimedBaseModel):
     slug = models.SlugField(
         verbose_name="Subject's slug",
         max_length=150,
+        unique=True,
     )
 
     def to_entity(self) -> SubjectEntity:
@@ -28,6 +33,7 @@ class Subject(TimedBaseModel):
             uuid=str(self.subject_uuid),
             title=self.title,
             slug=self.slug,
+            is_active=self.is_active,
             created_at=self.created_at,
             updated_at=self.updated_at,
         )
@@ -38,7 +44,3 @@ class Subject(TimedBaseModel):
     class Meta:
         verbose_name = "Subject"
         verbose_name_plural = "Subjects"
-        indexes = [
-            models.Index(fields=["subject_uuid"]),
-            models.Index(fields=["title"]),
-        ]

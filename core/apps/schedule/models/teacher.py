@@ -3,17 +3,19 @@ from django.db import models
 import uuid
 
 from core.apps.common.models import (
+    SoftDeletable,
     TeachersDegree,
     TimedBaseModel,
 )
 from core.apps.schedule.entities.teacher import Teacher as TeacherEntity
 
 
-class Teacher(TimedBaseModel):
+class Teacher(TimedBaseModel, SoftDeletable):
     teacher_uuid = models.UUIDField(
         verbose_name='UUID teacher representation',
         editable=False,
         default=uuid.uuid4,
+        unique=True,
     )
     first_name = models.CharField(
         verbose_name="Teacher's First Name",
@@ -30,10 +32,7 @@ class Teacher(TimedBaseModel):
     rank = models.CharField(
         verbose_name="Teacher's rank",
         choices=TeachersDegree,
-    )
-    is_active = models.BooleanField(
-        verbose_name="Is teacher still teaching",
-        default=True,
+        max_length=30,
     )
 
     def to_entity(self) -> TeacherEntity:
@@ -50,11 +49,11 @@ class Teacher(TimedBaseModel):
         )
 
     def __str__(self):
-        return f"{self.last_name} {self.first_name[0]}. {self.middle_name[0]}."
+        initials = " ".join(
+            name[0] + "." for name in [self.first_name, self.middle_name] if name
+        )
+        return f"{self.last_name} {initials}".strip()
 
     class Meta:
         verbose_name = "Teacher"
         verbose_name_plural = "Teachers"
-        indexes = [
-            models.Index(fields=["teacher_uuid"]),
-        ]

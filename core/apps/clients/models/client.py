@@ -34,8 +34,12 @@ class Client(TimedBaseModel):
     )
     password = models.CharField(
         max_length=250,
-        blank=False,
-        null=False,
+        blank=True,
+        null=True,
+    )
+    is_email_confirmed = models.BooleanField(
+        verbose_name="Has the client confirmed their email and set a password",
+        default=False,
     )
 
     def to_entity(self) -> ClientEntity:
@@ -46,13 +50,18 @@ class Client(TimedBaseModel):
             middle_name=self.middle_name,
             roles=[ClientRole(role.id) for role in self.roles.all()],
             email=self.email,
-            password=self.password,
+            is_email_confirmed=self.is_email_confirmed,
             created_at=self.created_at,
             updated_at=self.updated_at,
         )
 
     def __str__(self):
-        return f"{self.last_name} {self.first_name[0]}. {self.middle_name[0]}."
+        parts = [self.last_name]
+        if self.first_name:
+            parts.append(f"{self.first_name[0]}.")
+        if self.middle_name:
+            parts.append(f"{self.middle_name[0]}.")
+        return " ".join(parts)
 
     class Meta:
         verbose_name = "Client"
