@@ -1,10 +1,18 @@
 from django.core.cache import cache
 
+import json
+import random
 from abc import (
     ABC,
     abstractmethod,
 )
 from typing import Any
+
+
+CACHE_TTL_JITTER_RATIO = 0.1
+
+
+CACHE_MISS = object()
 
 
 class BaseCacheService(ABC):
@@ -15,13 +23,13 @@ class BaseCacheService(ABC):
             *,
             identifier: str | None = None,
             func_prefix: str | None = None,
-            filters: str | None = None,
-            pagination_in: str | None = None,
+            filters: Any = None,
+            pagination_in: Any = None,
     ) -> str:
         ...
 
     @abstractmethod
-    def get_cache_value(self, key: str) -> Any:
+    def get_cache_value(self, key: str, default: Any = None) -> Any:
         ...
 
     @abstractmethod
@@ -44,6 +52,14 @@ class BaseCacheService(ABC):
     def invalidate_cache_pattern_list(self, keys: list[str]) -> None:
         ...
 
+    @abstractmethod
+    def try_acquire_lock(self, key: str, ttl: int) -> bool:
+        ...
+
+    @abstractmethod
+    def release_lock(self, key: str) -> None:
+        ...
+
 
 class RedisCacheService(BaseCacheService):
     def generate_cache_key(
@@ -51,19 +67,32 @@ class RedisCacheService(BaseCacheService):
             model_prefix: str,
             identifier: str | None = None,
             func_prefix: str | None = None,
-            filters: str | None = None,
-            pagination_in: str | None = None,
+            filters: Any = None,
+            pagination_in: Any = None,
     ) -> str:
-        return (
-            f"{model_prefix}"
-            f"{f'_{identifier}' if identifier else ''}"
-            f"{f'_{func_prefix}' if func_prefix else ''}"
-            f"{f'_{filters}' if filters else ''}"
-            f"{f'_{pagination_in}' if pagination_in else ''}"
-        )
+        parts = [model_prefix]
+        if identifier is not None:
+            parts.append(self._stringify_for_key(identifier))
+        if func_prefix is not None:
+            parts.append(self._stringify_for_key(func_prefix))
+        if filters is not None:
+            parts.append(self._stringify_for_key(filters))
+        if pagination_in is not None:
+            parts.append(self._stringify_for_key(pagination_in))
+        return '_'.join(parts)
 
-    def get_cache_value(self, key: str) -> Any:
-        return cache.get(key=key)
+    @staticmethod
+    def _stringify_for_key(value: Any) -> str:
+        if isinstance(value, str):
+            return value
+        if hasattr(value, 'model_dump'):
+            return json.dumps(value.model_dump(), sort_keys=True, default=str)
+        if hasattr(value, '__dict__'):
+            return json.dumps(vars(value), sort_keys=True, default=str)
+        return str(value)
+
+    def get_cache_value(self, key: str, default: Any = None) -> Any:
+        return cache.get(key=key, default=default)
 
     def set_cache(
             self,
@@ -71,6 +100,9 @@ class RedisCacheService(BaseCacheService):
             value,
             timeout: int | None = None,
     ) -> None:
+        if timeout is not None:
+            jitter = random.uniform(-CACHE_TTL_JITTER_RATIO, CACHE_TTL_JITTER_RATIO) * timeout  # noqa: DUO102
+            timeout = max(1, int(timeout + jitter))
         cache.set(key=key, value=value, timeout=timeout)
 
     def invalidate_cache(self, key: str) -> None:
@@ -86,3 +118,9 @@ class RedisCacheService(BaseCacheService):
     def invalidate_cache_pattern_list(self, keys: list[str]) -> None:
         for key in keys:
             cache.delete_pattern(key)
+
+    def try_acquire_lock(self, key: str, ttl: int) -> bool:
+        return cache.add(key, 1, timeout=ttl)
+
+    def release_lock(self, key: str) -> None:
+        cache.delete(key)

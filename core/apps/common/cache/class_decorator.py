@@ -1,118 +1,146 @@
+import inspect
+import logging
+import time
 from dataclasses import dataclass
 from functools import wraps
 from typing import (
+    Any,
     Callable,
     ParamSpec,
     TypeVar,
 )
 
-from core.apps.common.cache.service import BaseCacheService
+from core.apps.common.cache.service import (
+    BaseCacheService,
+    CACHE_MISS,
+)
 from core.apps.common.cache.timeouts import Timeout
 
+
+logger = logging.getLogger(__name__)
 
 F_Param = ParamSpec('F_Param')
 F_Return = TypeVar('F_Return')
 
+LOCK_TTL_SECONDS = 10
+FOLLOWER_POLL_INTERVAL = 0.05
+FOLLOWER_MAX_POLLS = 20
 
-@dataclass(eq=False)
+
+def _resolve_identifier(identifier: Any, kwargs: dict, result: Any) -> Any:
+    """Resolve identifier; callables may take (kwargs) or (kwargs, result)."""
+    if not callable(identifier):
+        return identifier
+    arity = len(inspect.signature(identifier).parameters)
+    if arity == 1:
+        return identifier(kwargs)
+    return identifier(kwargs, result)
+
+
+@dataclass(eq=False, frozen=True)
 class BaseCacheDecorator:
     cache_service: BaseCacheService
     model_prefix: str
-    identifier: str | bool | None = None
+    identifier: str | Callable | None = None
     func_prefix: str | None = None
-    filters: str | None = None
-    pagination_in: str | None = None
+    filters: Any = None
+    pagination_in: Any = None
 
-    def _manage_args_kwargs(self, *args, **kwargs):
-        print(f'kwargs: {kwargs}')
-        if self.identifier is True:
-            if f"{self.model_prefix}_uuid" in kwargs:
-                self.identifier = kwargs[f"{self.model_prefix}_uuid"]
-            if "request" in args:
-                self.identifier = args[0].auth
+    def _resolve_key_params(self, args: tuple, kwargs: dict, result: Any = None) -> dict[str, Any]:
+        """Compute per-call cache key params WITHOUT mutating self."""
+        identifier = _resolve_identifier(self.identifier, kwargs, result)
 
-        if not self.filters and "filters" in kwargs:
-            self.filters = kwargs["filters"]
+        filters = self.filters if self.filters is not None else kwargs.get('filters')
+        pagination = self.pagination_in if self.pagination_in is not None else kwargs.get('pagination_in')
 
-        if not self.pagination_in and "pagination_in" in kwargs:
-            self.pagination_in = kwargs["pagination_in"]
+        return {
+            'model_prefix': self.model_prefix,
+            'identifier': identifier,
+            'func_prefix': self.func_prefix,
+            'filters': filters,
+            'pagination_in': pagination,
+        }
 
 
-@dataclass
+@dataclass(eq=False, frozen=True)
 class BaseSetCacheDecorator(BaseCacheDecorator):
     timeout: Timeout | None = None
 
-    def __call__(self, original_func: Callable[F_Param, F_Return]) -> F_Return:
+    def __call__(self, original_func: Callable[F_Param, F_Return]) -> Callable[F_Param, F_Return]:
         @wraps(original_func)
         def wrapped(*args: F_Param.args, **kwargs: F_Param.kwargs) -> F_Return:
-            print(
-                f'BaseSetCacheDecorator call values '
-                f'{self.model_prefix=} '
-                f'{self.timeout=} '
-                f'{self.identifier=} '
-                f'{self.func_prefix=} '
-                f'{self.filters=} '
-                f'{self.pagination_in=} ',
-            )
-            self._manage_args_kwargs(*args, **kwargs)
-            print(
-                f'BaseSetCacheDecorator after _manage_args_kwargs values '
-                f'{self.model_prefix=} '
-                f'{self.timeout=} '
-                f'{self.identifier=} '
-                f'{self.func_prefix=} '
-                f'{self.filters=} '
-                f'{self.pagination_in=} ',
-            )
-            cache_key = self.cache_service.generate_cache_key(
-                model_prefix=self.model_prefix,
-                identifier=self.identifier,
-                func_prefix=self.func_prefix,
-                filters=self.filters,
-                pagination_in=self.pagination_in,
-            )
-            print(f'cache_key: {cache_key}')
-            result = self.cache_service.get_cache_value(key=cache_key)
-            if not result:
-                result = original_func(*args, **kwargs)
-                self.cache_service.set_cache(key=cache_key, value=result, timeout=self.timeout)
-            return result
+            params = self._resolve_key_params(args, kwargs)
+            cache_key = self.cache_service.generate_cache_key(**params)
+
+            cached = self.cache_service.get_cache_value(key=cache_key, default=CACHE_MISS)
+            if cached is not CACHE_MISS:
+                logger.debug('cache hit: %s', cache_key)
+                return cached
+
+            lock_key = f'{cache_key}:lock'
+            if self.cache_service.try_acquire_lock(lock_key, ttl=LOCK_TTL_SECONDS):
+                logger.debug('cache miss (leader): %s', cache_key)
+                try:
+                    result = original_func(*args, **kwargs)
+                    self.cache_service.set_cache(key=cache_key, value=result, timeout=self.timeout)
+                    return result
+                finally:
+                    self.cache_service.release_lock(lock_key)
+
+            logger.debug('cache miss (follower, waiting): %s', cache_key)
+            for _ in range(FOLLOWER_MAX_POLLS):
+                time.sleep(FOLLOWER_POLL_INTERVAL)
+                cached = self.cache_service.get_cache_value(key=cache_key, default=CACHE_MISS)
+                if cached is not CACHE_MISS:
+                    return cached
+
+            logger.debug('cache miss (follower, fallback): %s', cache_key)
+            return original_func(*args, **kwargs)
+
         return wrapped
 
 
+@dataclass(eq=False, frozen=True)
 class BaseDeleteCacheDecorator(BaseCacheDecorator):
-    def __call__(self, original_func: Callable[F_Param, F_Return]) -> F_Return:
+    def __call__(self, original_func: Callable[F_Param, F_Return]) -> Callable[F_Param, F_Return]:
         @wraps(original_func)
         def wrapped(*args: F_Param.args, **kwargs: F_Param.kwargs) -> F_Return:
-            print(
-                f'BaseDeleteCacheDecorator call values '
-                f'{self.model_prefix=} '
-                f'{self.identifier=} '
-                f'{self.func_prefix=} '
-                f'{self.filters=} '
-                f'{self.pagination_in=} ',
-            )
             result = original_func(*args, **kwargs)
-            self._manage_args_kwargs(**kwargs)
-            print(
-                f'BaseDeleteCacheDecorator after _manage_args_kwargs values '
-                f'{self.model_prefix=} '
-                f'{self.identifier=} '
-                f'{self.func_prefix=} '
-                f'{self.filters=} '
-                f'{self.pagination_in=} ',
-            )
-            cache_key = self.cache_service.generate_cache_key(
-                model_prefix=self.model_prefix,
-                identifier=self.identifier,
-                func_prefix=self.func_prefix,
-                filters=self.filters,
-                pagination_in=self.pagination_in,
-            )
-            print(f'cache_key: {cache_key}')
-
+            params = self._resolve_key_params(args, kwargs, result)
+            cache_key = self.cache_service.generate_cache_key(**params)
+            logger.debug('cache invalidate (pattern): %s', cache_key)
             self.cache_service.invalidate_cache_pattern(key=cache_key)
             return result
+
+        return wrapped
+
+
+@dataclass(eq=False, frozen=True)
+class BaseDeleteManyCacheDecorator:
+    cache_service: BaseCacheService
+    key_specs: tuple[dict, ...]
+
+    @staticmethod
+    def _resolve_spec(spec: dict, args: tuple, kwargs: dict, result: Any = None) -> dict:
+        identifier = spec.get('identifier')
+        if not callable(identifier):
+            return spec
+        resolved = dict(spec)
+        resolved['identifier'] = _resolve_identifier(identifier, kwargs, result)
+        return resolved
+
+    def __call__(self, original_func: Callable[F_Param, F_Return]) -> Callable[F_Param, F_Return]:
+        @wraps(original_func)
+        def wrapped(*args: F_Param.args, **kwargs: F_Param.kwargs) -> F_Return:
+            result = original_func(*args, **kwargs)
+            keys = [
+                self.cache_service.generate_cache_key(**self._resolve_spec(spec, args, kwargs, result))
+                for spec in self.key_specs
+            ]
+            logger.debug('cache invalidate (patterns): %s', keys)
+            self.cache_service.invalidate_cache_pattern_list(keys=keys)
+            return result
+
         return wrapped
 
 
@@ -125,42 +153,41 @@ class CacheDecorator:
             model_prefix: str,
             *,
             timeout: Timeout,
-            identifier: str | bool | None = None,
+            identifier: str | Callable | None = None,
             func_prefix: str | None = None,
-            filters: str | None = None,
-            pagination_in: str | None = None,
-    ) -> F_Return:
-        print('-' * 100)
-        print(
-            f'CacheDecorator values '
-            f'{model_prefix=} {timeout=} {identifier=} {func_prefix=} {filters=} {pagination_in=} ',
-        )
+            filters: Any = None,
+            pagination_in: Any = None,
+    ) -> BaseSetCacheDecorator:
         return BaseSetCacheDecorator(
+            cache_service=self.cache_service,
             model_prefix=model_prefix,
-            timeout=timeout,
             identifier=identifier,
             func_prefix=func_prefix,
             filters=filters,
             pagination_in=pagination_in,
-            cache_service=self.cache_service,
+            timeout=timeout,
         )
 
     def delete_cache(
             self,
             model_prefix: str,
             *,
-            identifier: str | bool | None = None,
+            identifier: str | Callable | None = None,
             func_prefix: str | None = None,
-            filters: str | None = None,
-            pagination_in: str | None = None,
-    ) -> F_Return:
-        print('-' * 100)
-        print(f'CacheDecorator values {model_prefix=} {identifier=} {func_prefix=} {filters=} {pagination_in=} ')
+            filters: Any = None,
+            pagination_in: Any = None,
+    ) -> BaseDeleteCacheDecorator:
         return BaseDeleteCacheDecorator(
+            cache_service=self.cache_service,
             model_prefix=model_prefix,
             identifier=identifier,
             func_prefix=func_prefix,
             filters=filters,
             pagination_in=pagination_in,
+        )
+
+    def delete_caches(self, key_specs: list[dict]) -> BaseDeleteManyCacheDecorator:
+        return BaseDeleteManyCacheDecorator(
             cache_service=self.cache_service,
+            key_specs=tuple(dict(spec) for spec in key_specs),
         )
