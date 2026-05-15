@@ -1,4 +1,3 @@
-import pytz
 from abc import (
     ABC,
     abstractmethod,
@@ -7,6 +6,7 @@ from datetime import (
     datetime,
     time,
 )
+from zoneinfo import ZoneInfo
 
 from core.apps.common.models import OrdinaryNumber
 
@@ -42,7 +42,7 @@ class BaseTimeService(ABC):
 
 class DatetimeTimeService(BaseTimeService):
     def get_current_time(self) -> datetime:
-        current_time = datetime.now(tz=pytz.timezone('Europe/Kyiv'))
+        current_time = datetime.now(tz=ZoneInfo('Europe/Zaporozhye'))
         return current_time
 
     def get_current_week_type(
@@ -76,7 +76,7 @@ class DatetimeTimeService(BaseTimeService):
         # Lesson time
         for lesson_number, (start_time, end_time) in lesson_timetable.items():
             if start_time <= current_time <= end_time:
-                return lesson_number  # Can be pydantic error(change to lesson_number.value)
+                return lesson_number.value
 
         # Break time
         if start_of_academic_day <= current_time <= end_of_academic_day:
