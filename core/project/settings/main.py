@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     # first party
     'core.apps.schedule.apps.ScheduleConfig',
     'core.apps.clients.apps.ClientsConfig',
+    'core.apps.notifications.apps.NotificationsConfig',
 
     # third party
     'elasticapm.contrib.django',
