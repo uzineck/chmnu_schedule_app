@@ -16,6 +16,24 @@ class TimedBaseModel(models.Model):
         abstract = True
 
 
+class ActiveManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(is_active=True)
+
+
+class SoftDeletable(models.Model):
+    is_active = models.BooleanField(
+        verbose_name='Is the record active (not soft-deleted)',
+        default=True,
+    )
+
+    objects = ActiveManager()
+    all_objects = models.Manager()
+
+    class Meta:
+        abstract = True
+
+
 class Day(models.TextChoices):
 
     MONDAY = "MN", "Monday"
