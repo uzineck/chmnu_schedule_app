@@ -1,12 +1,12 @@
 from dataclasses import dataclass
 
-from core.apps.common.exceptions import ServiceException
+from core.apps.common.exceptions import ValidationException
 
 
 @dataclass(eq=False)
-class InvalidUuidFormatStringException(ServiceException):
+class InvalidUuidFormatStringException(ValidationException):
     uuid_str: str
 
     @property
     def message(self):
-        return 'Неправильний формат рядка UUID'
+        return 'Invalid UUID string format'

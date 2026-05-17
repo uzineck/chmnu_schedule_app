@@ -1,22 +1,25 @@
 from dataclasses import dataclass
 
-from core.apps.common.exceptions import ServiceException
+from core.apps.common.exceptions import (
+    NotFoundException,
+    UpdateConflictException,
+)
 
 
 @dataclass(eq=False)
-class LessonNotFoundException(ServiceException):
+class LessonNotFoundException(NotFoundException):
     uuid: str | None = None
-    id: str | None = None
+    id: int | None = None
 
     @property
     def message(self):
-        return 'Пара з вказаним ідентифікатором не знайдено'
+        return 'Lesson with given identifier was not found'
 
 
 @dataclass(eq=False)
-class LessonDeleteError(ServiceException):
+class LessonDeleteError(UpdateConflictException):
     uuid: str | None = None
 
     @property
     def message(self):
-        return 'Виникла помилка при видаленні пари'
+        return 'Failed to delete lesson'

@@ -20,7 +20,6 @@ from core.api.v1.clients.schemas import (
     UpdateEmailInSchema,
     UpdatePwInSchema,
 )
-from core.apps.clients.services.client import BaseClientService
 from core.apps.clients.usecases.client.get_info import GetClientInfoUseCase
 from core.apps.clients.usecases.client.login import LoginClientUseCase
 from core.apps.clients.usecases.client.logout import LogoutClientUseCase
@@ -29,9 +28,6 @@ from core.apps.clients.usecases.client.update_credentials import UpdateClientCre
 from core.apps.clients.usecases.client.update_email import UpdateClientEmailUseCase
 from core.apps.clients.usecases.client.update_password import UpdateClientPasswordUseCase
 from core.apps.common.authentication.ninja_auth import jwt_auth
-from core.apps.common.cache.service import BaseCacheService
-from core.apps.common.cache.timeouts import Timeout
-from core.apps.common.exceptions import ServiceException
 from core.project.containers.containers import get_container
 
 
@@ -46,26 +42,8 @@ router = Router(tags=["Client"])
 )
 def get_client_info(request: HttpRequest) -> ApiResponse[ClientSchemaPrivate]:
     container = get_container()
-    cache_service: BaseCacheService = container.resolve(BaseCacheService)
-    client_service: BaseClientService = container.resolve(BaseClientService)
     use_case: GetClientInfoUseCase = container.resolve(GetClientInfoUseCase)
-    try:
-        user_email: str = client_service.get_client_email_from_token(token=request.auth)
-        cache_key = cache_service.generate_cache_key(
-            model_prefix="client",
-            identifier=user_email,
-            func_prefix="info",
-        )
-        client = cache_service.get_cache_value(key=cache_key)
-        if not client:
-            client = use_case.execute(user_email)
-            cache_service.set_cache(key=cache_key, value=client, timeout=Timeout.MONTH)
-
-    except ServiceException as e:
-        raise HttpError(
-            status_code=400,
-            message=e.message,
-        )
+    client = use_case.execute(email=request.client_email)
 
     return ApiResponse(
         data=ClientSchemaPrivate.from_entity(client=client),
@@ -80,14 +58,8 @@ def get_client_info(request: HttpRequest) -> ApiResponse[ClientSchemaPrivate]:
 def login(request: HttpRequest, response: HttpResponse, schema: LogInSchema) -> ApiResponse[TokenOutSchema]:
     container = get_container()
     use_case: LoginClientUseCase = container.resolve(LoginClientUseCase)
-    try:
-        client, jwt_tokens = use_case.execute(email=schema.email, password=schema.password)
-        response.set_cookie(key="refresh_token", value=jwt_tokens.refresh_token, httponly=True, samesite="Strict")
-    except ServiceException:
-        raise HttpError(
-            status_code=400,
-            message='Invalid email or password',
-        )
+    client, jwt_tokens = use_case.execute(email=schema.email, password=schema.password)
+    response.set_cookie(key="refresh_token", value=jwt_tokens.refresh_token, httponly=True, samesite="Strict")
 
     return ApiResponse(
         data=TokenOutSchema.from_values(access_token=jwt_tokens.access_token),
@@ -103,14 +75,8 @@ def login(request: HttpRequest, response: HttpResponse, schema: LogInSchema) -> 
 def logout(request: HttpRequest, response: HttpResponse) -> ApiResponse[StatusResponse]:
     container = get_container()
     use_case: LogoutClientUseCase = container.resolve(LogoutClientUseCase)
-    try:
-        use_case.execute(token=request.auth)
-        response.delete_cookie(key="refresh_token")
-    except ServiceException as e:
-        raise HttpError(
-            status_code=400,
-            message=e.message,
-        )
+    use_case.execute(client_email=request.client_email, device_id=request.device_id)
+    response.delete_cookie(key="refresh_token")
 
     return ApiResponse(
         data=StatusResponse(status="Successfully logged out"),
@@ -127,12 +93,7 @@ def update_access_token(request: HttpRequest) -> ApiResponse[TokenOutSchema]:
     use_case: UpdateAccessTokenUseCase = container.resolve(UpdateAccessTokenUseCase)
 
     try:
-        jwt_tokens = use_case.execute(request.COOKIES.get("refresh_token"))
-    except ServiceException as e:
-        raise HttpError(
-            status_code=400,
-            message=e.message,
-        )
+        jwt_tokens = use_case.execute(refresh_token=request.COOKIES.get("refresh_token"))
     except PyJWTError:
         raise HttpError(
             status_code=401,
@@ -151,22 +112,14 @@ def update_access_token(request: HttpRequest) -> ApiResponse[TokenOutSchema]:
 )
 def update_password(request: HttpRequest, schema: UpdatePwInSchema) -> ApiResponse[StatusResponse]:
     container = get_container()
-    client_service: BaseClientService = container.resolve(BaseClientService)
     use_case: UpdateClientPasswordUseCase = container.resolve(UpdateClientPasswordUseCase)
 
-    try:
-        user_email: str = client_service.get_client_email_from_token(token=request.auth)
-        use_case.execute(
-            email=user_email,
-            old_password=schema.old_password,
-            new_password=schema.new_password,
-            verify_password=schema.verify_password,
-        )
-    except ServiceException as e:
-        raise HttpError(
-            status_code=400,
-            message=e.message,
-        )
+    use_case.execute(
+        email=request.client_email,
+        old_password=schema.old_password,
+        new_password=schema.new_password,
+        verify_password=schema.verify_password,
+    )
 
     return ApiResponse(
         data=StatusResponse(
@@ -187,37 +140,15 @@ def update_email(
         schema: UpdateEmailInSchema,
 ) -> ApiResponse[TokenClientOutSchema]:
     container = get_container()
-    client_service = container.resolve(BaseClientService)
-    cache_service: BaseCacheService = container.resolve(BaseCacheService)
     use_case: UpdateClientEmailUseCase = container.resolve(UpdateClientEmailUseCase)
 
-    try:
-        user_email: str = client_service.get_client_email_from_token(token=request.auth)
-        client, jwt_tokens = use_case.execute(
-            old_email=user_email,
-            new_email=schema.new_email,
-            password=schema.password,
-        )
-        cache_service.invalidate_cache_pattern_list(
-            keys=[
-                cache_service.generate_cache_key(
-                    model_prefix="group",
-                    identifier=user_email,
-                    func_prefix="*",
-                ),
-                cache_service.generate_cache_key(
-                    model_prefix="client",
-                    identifier=user_email,
-                    func_prefix="*",
-                ),
-            ],
-        )
-        response.set_cookie(key="refresh_token", value=jwt_tokens.refresh_token, httponly=True, samesite="Strict")
-    except ServiceException as e:
-        raise HttpError(
-            status_code=400,
-            message=e.message,
-        )
+    client, jwt_tokens = use_case.execute(
+        old_email=request.client_email,
+        new_email=schema.new_email,
+        password=schema.password,
+    )
+    response.set_cookie(key="refresh_token", value=jwt_tokens.refresh_token, httponly=True, samesite="Strict")
+
     return ApiResponse(
         data=TokenClientOutSchema.from_entity_with_token_values(client=client, access_token=jwt_tokens.access_token),
     )
@@ -231,37 +162,14 @@ def update_email(
 )
 def update_credentials(request: HttpRequest, schema: CredentialsInSchema) -> ApiResponse[ClientSchemaPrivate]:
     container = get_container()
-    client_service: BaseClientService = container.resolve(BaseClientService)
-    cache_service: BaseCacheService = container.resolve(BaseCacheService)
     use_case: UpdateClientCredentialsUseCase = container.resolve(UpdateClientCredentialsUseCase)
 
-    try:
-        user_email: str = client_service.get_client_email_from_token(token=request.auth)
-        client = use_case.execute(
-            email=user_email,
-            first_name=schema.first_name,
-            last_name=schema.last_name,
-            middle_name=schema.middle_name,
-        )
-        cache_service.invalidate_cache_pattern_list(
-            keys=[
-                cache_service.generate_cache_key(
-                    model_prefix="group",
-                    identifier=user_email,
-                    func_prefix="*",
-                ),
-                cache_service.generate_cache_key(
-                    model_prefix="client",
-                    identifier=user_email,
-                    func_prefix="*",
-                ),
-            ],
-        )
-    except ServiceException as e:
-        raise HttpError(
-            status_code=400,
-            message=e.message,
-        )
+    client = use_case.execute(
+        email=request.client_email,
+        first_name=schema.first_name,
+        last_name=schema.last_name,
+        middle_name=schema.middle_name,
+    )
     return ApiResponse(
         data=ClientSchemaPrivate.from_entity(client=client),
     )

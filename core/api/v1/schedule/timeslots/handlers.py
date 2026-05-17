@@ -3,7 +3,6 @@ from ninja import (
     Form,
     Router,
 )
-from ninja.errors import HttpError
 
 from core.api.schemas import ApiResponse
 from core.api.v1.schedule.timeslots.schemas import (
@@ -11,7 +10,6 @@ from core.api.v1.schedule.timeslots.schemas import (
     TimeslotSchema,
 )
 from core.apps.common.authentication.ninja_auth import jwt_auth_admin
-from core.apps.common.exceptions import ServiceException
 from core.apps.schedule.use_cases.timeslot.get_or_create import CreateTimeslotUseCase
 from core.project.containers.containers import get_container
 
@@ -28,13 +26,7 @@ router = Router(tags=["Timeslots"])
 def get_or_create_timeslot(request: HttpRequest, schema: Form[CreateTimeslotSchema]) -> ApiResponse[TimeslotSchema]:
     container = get_container()
     use_case: CreateTimeslotUseCase = container.resolve(CreateTimeslotUseCase)
-    try:
-        timeslot = use_case.execute(day=schema.day, ord_number=schema.ord_number, is_even=schema.is_even)
-    except ServiceException as e:
-        raise HttpError(
-            status_code=400,
-            message=e.message,
-        )
+    timeslot = use_case.execute(day=schema.day, ord_number=schema.ord_number, is_even=schema.is_even)
     return ApiResponse(
         data=TimeslotSchema.from_entity(entity=timeslot),
     )

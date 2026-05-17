@@ -1,61 +1,76 @@
 from dataclasses import dataclass
 
-from core.apps.common.exceptions import ServiceException
+from core.apps.common.exceptions import (
+    AlreadyExistsException,
+    InUseException,
+    NotFoundException,
+    UpdateConflictException,
+    ValidationException,
+)
 
 
 @dataclass(eq=False)
-class RoomNotFoundException(ServiceException):
+class RoomNotFoundException(NotFoundException):
     uuid: str | None = None
     id: int | None = None
     number: str | None = None
 
     @property
     def message(self):
-        return 'Аудиторії з вказаним ідентифікатором не знайдено'
+        return 'Room with given identifier was not found'
 
 
 @dataclass(eq=False)
-class RoomAlreadyExistException(ServiceException):
+class RoomAlreadyExistException(AlreadyExistsException):
     number: str
 
     @property
     def message(self):
-        return 'Аудиторія з вказаним номером вже існує'
+        return 'Room with given number already exists'
 
 
 @dataclass(eq=False)
-class RoomUpdateException(ServiceException):
+class RoomUpdateException(UpdateConflictException):
     id: int
 
     @property
     def message(self):
-        return 'Виникла помилка при оновленні аудиторії'
+        return 'Failed to update room'
 
 
 @dataclass(eq=False)
-class RoomDeleteException(ServiceException):
+class RoomDeleteException(UpdateConflictException):
     id: int
 
     @property
     def message(self):
-        return 'Виникла помилка при видаленні аудиторії'
+        return 'Failed to delete room'
 
 
 @dataclass(eq=False)
-class OldAndNewRoomsAreSimilarException(ServiceException):
+class RoomIsUsedInLessonsException(InUseException):
+    id: int
+
+    @property
+    def message(self):
+        return 'Room is used in at least one lesson'
+
+
+@dataclass(eq=False)
+class OldAndNewRoomsAreSimilarException(ValidationException):
     old_number: str
     new_number: str
 
     @property
     def message(self):
-        return 'Старий і новий номер аудиторії збігаються'
+        return 'Old and new room numbers are identical'
 
 
 @dataclass(eq=False)
-class OldAndNewRoomDescriptionsAreSimilarException(ServiceException):
+class OldAndNewRoomDescriptionsAreSimilarException(ValidationException):
     old_description: str
     new_description: str
 
     @property
     def message(self):
-        return 'Старий і новий опис аудиторії збігаються'
+        return 'Old and new room descriptions are identical'

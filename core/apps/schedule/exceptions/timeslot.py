@@ -1,12 +1,12 @@
 from dataclasses import dataclass
 
-from core.apps.common.exceptions import ServiceException
+from core.apps.common.exceptions import NotFoundException
 
 
 @dataclass(eq=False)
-class TimeslotNotFoundException(ServiceException):
+class TimeslotNotFoundException(NotFoundException):
     timeslot_id: int
 
     @property
     def message(self):
-        return 'Таймслот з вказаним ідентифікатором не знайдено'
+        return 'Timeslot with provided id was not found'

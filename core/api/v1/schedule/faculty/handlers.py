@@ -3,7 +3,6 @@ from ninja import (
     Query,
     Router,
 )
-from ninja.errors import HttpError
 
 from core.api.filters import (
     PaginationIn,
@@ -25,9 +24,6 @@ from core.apps.common.authentication.ninja_auth import (
     jwt_auth,
     jwt_auth_faculty_manager,
 )
-from core.apps.common.cache.service import BaseCacheService
-from core.apps.common.cache.timeouts import Timeout
-from core.apps.common.exceptions import ServiceException
 from core.apps.common.filters import SearchFilter as SearchFilterEntity
 from core.apps.schedule.use_cases.faculty.create import CreateFacultyUseCase
 from core.apps.schedule.use_cases.faculty.delete import DeleteFacultyUseCase
@@ -49,23 +45,8 @@ router = Router(tags=['Faculty'])
 )
 def get_all_faculties(request: HttpRequest) -> ApiResponse[list[FacultySchema]]:
     container = get_container()
-    cache_service: BaseCacheService = container.resolve(BaseCacheService)
     use_case: GetAllFacultiesUseCase = container.resolve(GetAllFacultiesUseCase)
-    try:
-        cache_key = cache_service.generate_cache_key(
-            model_prefix="faculty",
-            func_prefix="all",
-        )
-        items = cache_service.get_cache_value(key=cache_key)
-        if not items:
-            items = [FacultySchema.from_entity(obj) for obj in use_case.execute()]
-            cache_service.set_cache(key=cache_key, value=items, timeout=Timeout.MONTH)
-
-    except ServiceException as e:
-        raise HttpError(
-            status_code=400,
-            message=e.message,
-        )
+    items = [FacultySchema.from_entity(obj) for obj in use_case.execute()]
     return ApiResponse(
         data=items,
     )
@@ -83,35 +64,16 @@ def get_faculty_list(
     pagination_in: Query[PaginationIn],
 ) -> ApiResponse[ListPaginatedResponse[FacultySchema]]:
     container = get_container()
-    cache_service: BaseCacheService = container.resolve(BaseCacheService)
     use_case: GetFacultyListUseCase = container.resolve(GetFacultyListUseCase)
-    try:
-        cache_key = cache_service.generate_cache_key(
-            model_prefix="faculty",
-            func_prefix="list",
-            filters=filters,
-            pagination_in=pagination_in,
-        )
-        items = cache_service.get_cache_value(key=cache_key)
-        if not items:
-            item_list, item_count = use_case.execute(
-                filters=SearchFilterEntity(search=filters.search),
-                pagination=pagination_in,
-            )
-            pagination_out = PaginationOut(
-                offset=pagination_in.offset,
-                limit=pagination_in.limit,
-                total=item_count,
-            )
-            items = item_list, pagination_out
-            cache_service.set_cache(key=cache_key, value=items, timeout=Timeout.DAY)
-
-        item_list, pagination_out = items
-    except ServiceException as e:
-        raise HttpError(
-            status_code=400,
-            message=e.message,
-        )
+    item_list, item_count = use_case.execute(
+        filters=SearchFilterEntity(search=filters.search),
+        pagination_in=pagination_in,
+    )
+    pagination_out = PaginationOut(
+        offset=pagination_in.offset,
+        limit=pagination_in.limit,
+        total=item_count,
+    )
 
     return ApiResponse(
         data=ListPaginatedResponse(
@@ -132,29 +94,8 @@ def create_faculty(
         schema: FacultyInSchema,
 ) -> ApiResponse[FacultySchema]:
     container = get_container()
-    cache_service: BaseCacheService = container.resolve(BaseCacheService)
     use_case: CreateFacultyUseCase = container.resolve(CreateFacultyUseCase)
-    try:
-        faculty = use_case.execute(name=schema.name, code_name=schema.code_name)
-        cache_service.invalidate_cache_pattern_list(
-            keys=[
-                cache_service.generate_cache_key(
-                    model_prefix="faculty",
-                    func_prefix="all",
-                ),
-                cache_service.generate_cache_key(
-                    model_prefix="faculty",
-                    func_prefix="list",
-                    filters="*",
-                    pagination_in="*",
-                ),
-            ],
-        )
-    except ServiceException as e:
-        raise HttpError(
-            status_code=400,
-            message=e.message,
-        )
+    faculty = use_case.execute(name=schema.name, code_name=schema.code_name)
     return ApiResponse(
         data=FacultySchema.from_entity(entity=faculty),
     )
@@ -172,39 +113,8 @@ def update_faculty_name(
         schema: FacultyNameSchema,
 ) -> ApiResponse[FacultySchema]:
     container = get_container()
-    cache_service: BaseCacheService = container.resolve(BaseCacheService)
     use_case: UpdateFacultyNameUseCase = container.resolve(UpdateFacultyNameUseCase)
-    try:
-        faculty = use_case.execute(faculty_uuid=faculty_uuid, name=schema.name)
-        cache_service.invalidate_cache_pattern_list(
-            keys=[
-                cache_service.generate_cache_key(
-                    model_prefix="faculty",
-                    func_prefix="all",
-                ),
-                cache_service.generate_cache_key(
-                    model_prefix="faculty",
-                    func_prefix="list",
-                    filters="*",
-                    pagination_in="*",
-                ),
-                cache_service.generate_cache_key(
-                    model_prefix="group",
-                    func_prefix="*",
-                ),
-                cache_service.generate_cache_key(
-                    model_prefix="teacher",
-                    identifier="*",
-                    func_prefix="lessons",
-                    filters="*",
-                ),
-            ],
-        )
-    except ServiceException as e:
-        raise HttpError(
-            status_code=400,
-            message=e.message,
-        )
+    faculty = use_case.execute(faculty_uuid=faculty_uuid, name=schema.name)
     return ApiResponse(
         data=FacultySchema.from_entity(entity=faculty),
     )
@@ -222,39 +132,8 @@ def update_faculty_code_name(
         schema: FacultyCodeNameSchema,
 ) -> ApiResponse[FacultySchema]:
     container = get_container()
-    cache_service: BaseCacheService = container.resolve(BaseCacheService)
     use_case: UpdateFacultyCodeNameUseCase = container.resolve(UpdateFacultyCodeNameUseCase)
-    try:
-        faculty = use_case.execute(faculty_uuid=faculty_uuid, code_name=schema.code_name)
-        cache_service.invalidate_cache_pattern_list(
-            keys=[
-                cache_service.generate_cache_key(
-                    model_prefix="faculty",
-                    func_prefix="all",
-                ),
-                cache_service.generate_cache_key(
-                    model_prefix="faculty",
-                    func_prefix="list",
-                    filters="*",
-                    pagination_in="*",
-                ),
-                cache_service.generate_cache_key(
-                    model_prefix="group",
-                    func_prefix="*",
-                ),
-                cache_service.generate_cache_key(
-                    model_prefix="teacher",
-                    identifier="*",
-                    func_prefix="lessons",
-                    filters="*",
-                ),
-            ],
-        )
-    except ServiceException as e:
-        raise HttpError(
-            status_code=400,
-            message=e.message,
-        )
+    faculty = use_case.execute(faculty_uuid=faculty_uuid, code_name=schema.code_name)
     return ApiResponse(
         data=FacultySchema.from_entity(entity=faculty),
     )
@@ -271,40 +150,8 @@ def delete_faculty(
     faculty_uuid: str,
 ) -> ApiResponse[StatusResponse]:
     container = get_container()
-    cache_service: BaseCacheService = container.resolve(BaseCacheService)
     use_case: DeleteFacultyUseCase = container.resolve(DeleteFacultyUseCase)
-    try:
-        use_case.execute(faculty_uuid=faculty_uuid)
-        cache_service.invalidate_cache_pattern_list(
-            keys=[
-                cache_service.generate_cache_key(
-                    model_prefix="faculty",
-                    func_prefix="all",
-                ),
-                cache_service.generate_cache_key(
-                    model_prefix="faculty",
-                    func_prefix="list",
-                    filters="*",
-                    pagination_in="*",
-                ),
-                cache_service.generate_cache_key(
-                    model_prefix="group",
-                    identifier="*",
-                ),
-                cache_service.generate_cache_key(
-                    model_prefix="teacher",
-                    identifier="*",
-                    func_prefix="lessons",
-                    filters="*",
-                ),
-            ],
-        )
-
-    except ServiceException as e:
-        raise HttpError(
-            status_code=400,
-            message=e.message,
-        )
+    use_case.execute(faculty_uuid=faculty_uuid)
 
     return ApiResponse(
         data=StatusResponse(status="Faculty deleted successfully"),

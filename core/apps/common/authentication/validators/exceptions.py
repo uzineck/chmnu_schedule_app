@@ -1,22 +1,17 @@
 from dataclasses import dataclass
 
-from core.apps.common.exceptions import ServiceException
+from core.apps.common.exceptions import ValidationException
 
 
 @dataclass(eq=False)
-class PasswordsNotMatchingException(ServiceException):
-    password1: str
-    password2: str
-
+class PasswordsNotMatchingException(ValidationException):
     @property
     def message(self):
         return 'Provided passwords do not match'
 
 
 @dataclass(eq=False)
-class InvalidPasswordPatternException(ServiceException):
-    password: str
-
+class InvalidPasswordPatternException(ValidationException):
     @property
     def message(self):
         return (
@@ -27,29 +22,17 @@ class InvalidPasswordPatternException(ServiceException):
 
 
 @dataclass(eq=False)
-class OldAndNewPasswordsAreSimilarException(ServiceException):
-    old_password: str
-    new_password: str
-
+class OldAndNewPasswordsAreSimilarException(ValidationException):
     @property
     def message(self):
-        return 'Old password and the new one are similar'
+        return 'Old and new passwords are identical'
 
 
 @dataclass(eq=False)
-class InvalidEmailPatternException(ServiceException):
-    email: str
-
-    @property
-    def message(self):
-        return 'The provided email does not meet the required email pattern: example@gmail.com (only @gmail.com)'
-
-
-@dataclass(eq=False)
-class OldAndNewEmailsAreSimilarException(ServiceException):
+class OldAndNewEmailsAreSimilarException(ValidationException):
     old_email: str
     new_email: str
 
     @property
     def message(self):
-        return 'Old email and the new one are similar'
+        return 'Old and new emails are identical'

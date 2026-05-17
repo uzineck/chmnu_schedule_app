@@ -1,49 +1,64 @@
 from dataclasses import dataclass
 
-from core.apps.common.exceptions import ServiceException
+from core.apps.common.exceptions import (
+    AlreadyExistsException,
+    InUseException,
+    NotFoundException,
+    UpdateConflictException,
+    ValidationException,
+)
 
 
 @dataclass(eq=False)
-class TeacherNotFoundException(ServiceException):
+class TeacherNotFoundException(NotFoundException):
     uuid: str | None = None
     id: int | None = None
 
     @property
     def message(self):
-        return 'Викладача з вказаним ідентифікатором не знайдено'
+        return 'Teacher with given identifier was not found'
 
 
 @dataclass(eq=False)
-class TeacherAlreadyExistsException(ServiceException):
+class TeacherAlreadyExistsException(AlreadyExistsException):
     first_name: str
     last_name: str
     middle_name: str
 
     @property
     def message(self):
-        return 'Викладач із зазначеними параметрами вже існує'
+        return 'Teacher with given parameters already exists'
 
 
 @dataclass(eq=False)
-class TeacherUpdateException(ServiceException):
+class TeacherUpdateException(UpdateConflictException):
     id: int
 
     @property
     def message(self):
-        return 'Виникла помилка під час оновлення викладача'
+        return 'Failed to update teacher'
 
 
 @dataclass(eq=False)
-class TeacherIsUsedInLessonsException(ServiceException):
+class TeacherDeleteException(UpdateConflictException):
     id: int
 
     @property
     def message(self):
-        return 'Викладач використовується у деякому занятті'
+        return 'Failed to delete teacher'
 
 
 @dataclass(eq=False)
-class OldAndNewTeacherNamesAreSimilarException(ServiceException):
+class TeacherIsUsedInLessonsException(InUseException):
+    id: int
+
+    @property
+    def message(self):
+        return 'Teacher is used in at least one lesson'
+
+
+@dataclass(eq=False)
+class OldAndNewTeacherNamesAreSimilarException(ValidationException):
     first_name: str
     last_name: str
     middle_name: str
@@ -53,14 +68,14 @@ class OldAndNewTeacherNamesAreSimilarException(ServiceException):
 
     @property
     def message(self):
-        return 'Старе і нове ім\'я викладача збігаються'
+        return 'Old and new teacher names are identical'
 
 
 @dataclass(eq=False)
-class OldAndNewTeacherRanksAreSimilarException(ServiceException):
+class OldAndNewTeacherRanksAreSimilarException(ValidationException):
     old_rank: str
     new_rank: str
 
     @property
     def message(self):
-        return 'Старе і нове звання викладача збігаються'
+        return 'Old and new teacher ranks are identical'

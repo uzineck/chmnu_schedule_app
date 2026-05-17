@@ -1,61 +1,76 @@
 from dataclasses import dataclass
 
-from core.apps.common.exceptions import ServiceException
+from core.apps.common.exceptions import (
+    AlreadyExistsException,
+    InUseException,
+    NotFoundException,
+    UpdateConflictException,
+    ValidationException,
+)
 
 
 @dataclass(eq=False)
-class FacultyNotFoundException(ServiceException):
+class FacultyNotFoundException(NotFoundException):
     uuid: str | None = None
     id: int | None = None
 
     @property
     def message(self):
-        return 'Факультет з вказаним ідентифікатором не знайдено'
+        return 'Faculty with given identifier was not found'
 
 
 @dataclass(eq=False)
-class FacultyAlreadyExistsException(ServiceException):
+class FacultyAlreadyExistsException(AlreadyExistsException):
     code_name: str | None = None
     name: str | None = None
 
     @property
     def message(self):
-        return 'Факультет із зазначеними параметрами вже існує'
+        return 'Faculty with given parameters already exists'
 
 
 @dataclass(eq=False)
-class FacultyUpdateException(ServiceException):
+class FacultyUpdateException(UpdateConflictException):
     id: int
 
     @property
     def message(self):
-        return 'Виникла помилка при оновленні факультету'
+        return 'Failed to update faculty'
 
 
 @dataclass(eq=False)
-class FacultyDeleteException(ServiceException):
+class FacultyDeleteException(UpdateConflictException):
     id: int
 
     @property
     def message(self):
-        return 'Виникла помилка при видаленні факультету'
+        return 'Failed to delete faculty'
 
 
 @dataclass(eq=False)
-class OldAndNewFacultyNamesAreSimilarException(ServiceException):
+class FacultyHasGroupsException(InUseException):
+    id: int
+
+    @property
+    def message(self):
+        return 'Faculty has groups attached and cannot be deleted'
+
+
+@dataclass(eq=False)
+class OldAndNewFacultyNamesAreSimilarException(ValidationException):
     old_name: str
     new_name: str
 
     @property
     def message(self):
-        return 'Стара і нова назва факультету збігаються'
+        return 'Old and new faculty names are identical'
 
 
 @dataclass(eq=False)
-class OldAndNewFacultyCodeNamesAreSimilarException(ServiceException):
+class OldAndNewFacultyCodeNamesAreSimilarException(ValidationException):
     old_code_name: str
     new_code_name: str
 
     @property
     def message(self):
-        return 'Стара і нова кодова назва факультету збігаються'
+        return 'Old and new faculty code names are identical'

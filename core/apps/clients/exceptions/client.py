@@ -1,43 +1,47 @@
 from dataclasses import dataclass
 
-from core.apps.common.exceptions import ServiceException
+from core.apps.common.exceptions import (
+    AlreadyExistsException,
+    NotFoundException,
+    PermissionException,
+    UpdateConflictException,
+)
 
 
 @dataclass(eq=False)
-class ClientNotFoundException(ServiceException):
+class ClientNotFoundException(NotFoundException):
     email: str | None = None
     id: int | None = None
 
     @property
     def message(self):
-        return 'Клієнта з вказаним ідентифікатором не знайдено'
+        return 'Client with given identifier was not found'
 
 
 @dataclass(eq=False)
-class ClientAlreadyExistsException(ServiceException):
+class ClientAlreadyExistsException(AlreadyExistsException):
     email: str
 
     @property
     def message(self):
-        return 'Клієнт з вказаним email вже зареєстрований'
+        return 'Client with given email is already registered'
 
 
 @dataclass(eq=False)
-class ClientRoleNotMatchingWithRequiredException(ServiceException):
+class ClientRoleNotMatchingWithRequiredException(PermissionException):
     client_roles: list[str]
     required_role: str
 
     @property
     def message(self):
-        return 'Клієнт з наданою роллю не відповідає ролі, необхідній для цієї операції'
+        return 'Client roles do not include the role required for this operation'
 
 
 @dataclass(eq=False)
-class ClientUpdateException(ServiceException):
+class ClientUpdateException(UpdateConflictException):
     id: int
     email: str | None = None
-    password: str | None = None
 
     @property
     def message(self):
-        return 'Виникла помилка під час оновлення клієнта'
+        return 'Failed to update client'
