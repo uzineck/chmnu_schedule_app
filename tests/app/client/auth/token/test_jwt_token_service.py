@@ -56,9 +56,9 @@ def test_create_refresh_token(
 
 
 @pytest.mark.django_db
-def test_get_raw_jwt_payload(token_service: BaseTokenService, service_params):
+def test_decode_token_payload(token_service: BaseTokenService, service_params):
     access_token = token_service.create_access_token(**service_params)
-    payload = token_service.get_raw_jwt(token=access_token)
+    payload = token_service.decode_token(token=access_token)
 
     assert payload["exp"] == token_service.get_expiration_time_from_token(token=access_token)
     assert payload["type"] == token_service.get_token_type_from_token(token=access_token)

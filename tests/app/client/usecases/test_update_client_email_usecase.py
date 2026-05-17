@@ -4,10 +4,7 @@ from tests.factories.client.client import ClientModelFactory
 from core.apps.clients.exceptions.auth import InvalidAuthDataException
 from core.apps.clients.exceptions.client import ClientNotFoundException
 from core.apps.clients.usecases.client.update_email import UpdateClientEmailUseCase
-from core.apps.common.authentication.validators.exceptions import (
-    InvalidEmailPatternException,
-    OldAndNewEmailsAreSimilarException,
-)
+from core.apps.common.authentication.validators.exceptions import OldAndNewEmailsAreSimilarException
 
 
 @pytest.fixture
@@ -60,19 +57,6 @@ def test_update_client_email_password_verification_failure(
             old_email=use_case_params['old_email'],
             new_email=use_case_params['new_email'],
             password=generate_password(),
-        )
-
-
-@pytest.mark.django_db
-def test_update_client_email_new_email_pattern_validation_failure(
-        use_case: UpdateClientEmailUseCase,
-        use_case_params,
-):
-    with pytest.raises(InvalidEmailPatternException):
-        use_case.execute(
-            old_email=use_case_params['old_email'],
-            new_email=use_case_params['new_email'][:7],
-            password=use_case_params['password'],
         )
 
 

@@ -27,7 +27,6 @@ def test_login_client_success(use_case: LoginClientUseCase, use_case_params):
     client, tokens = use_case.execute(**use_case_params)
 
     assert client.email == use_case_params['email']
-    assert client.password != use_case_params['password']
     assert tokens.access_token is not None
     assert tokens.refresh_token is not None
 

@@ -4,6 +4,10 @@ from core.apps.clients.services.client import (
     BaseClientService,
     ORMClientService,
 )
+from core.apps.clients.services.client_auth import (
+    BaseClientAuthService,
+    ORMClientAuthService,
+)
 from core.apps.clients.services.issuedjwttoken import (
     BaseIssuedJwtTokenService,
     ORMIssuedJwtTokenService,
@@ -35,6 +39,7 @@ from core.apps.common.authentication.token import (
 
 def register_client_services(container: punq.Container):
     container.register(BaseClientService, ORMClientService)
+    container.register(BaseClientAuthService, ORMClientAuthService)
     container.register(BasePasswordService, BcryptPasswordService)
     container.register(BaseTokenService, JWTTokenService)
     container.register(BaseIssuedJwtTokenService, ORMIssuedJwtTokenService)

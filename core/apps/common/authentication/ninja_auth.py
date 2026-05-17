@@ -13,6 +13,8 @@ jwt_auth_group_manager = JWTBearer([ClientRole.GROUP_MANAGER, ClientRole.ADMIN])
 jwt_auth_schedule_manager = JWTBearer([ClientRole.SCHEDULE_MANAGER, ClientRole.ADMIN])
 jwt_auth_teacher_manager = JWTBearer([ClientRole.TEACHER_MANAGER, ClientRole.ADMIN])
 
+jwt_auth_schedule_or_headman = JWTBearer([ClientRole.HEADMAN, ClientRole.SCHEDULE_MANAGER, ClientRole.ADMIN])
+
 jwt_auth = JWTBearer([
     ClientRole.ADMIN,
     ClientRole.HEADMAN,

@@ -8,6 +8,7 @@ from tests.factories.client.client import ClientModelFactory
 from tests.factories.client.role import RoleModelFactory
 
 from core.apps.clients.services.client import BaseClientService
+from core.apps.clients.services.client_auth import BaseClientAuthService
 from core.apps.clients.services.issuedjwttoken import BaseIssuedJwtTokenService
 from core.apps.common.authentication.password import BasePasswordService
 from core.apps.common.authentication.token import BaseTokenService
@@ -17,6 +18,11 @@ from core.apps.common.factory import convert_to_timestamp
 @pytest.fixture
 def client_service(container) -> BaseClientService:
     return container.resolve(BaseClientService)
+
+
+@pytest.fixture
+def client_auth_service(container) -> BaseClientAuthService:
+    return container.resolve(BaseClientAuthService)
 
 
 @pytest.fixture
