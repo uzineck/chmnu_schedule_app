@@ -1,5 +1,8 @@
+from django.db import transaction
+
 from dataclasses import dataclass
 
+from core.apps.common.cache.decorator import cache_decorator
 from core.apps.common.models import Subgroup
 from core.apps.schedule.entities.group import Group as GroupEntity
 from core.apps.schedule.entities.group_lessons import GroupLesson as GroupLessonEntity
@@ -20,6 +23,14 @@ class AdminAddLessonToGroupUseCase:
     uuid_validator_service: BaseUuidValidatorService
     group_lesson_validator_service: BaseGroupLessonValidatorService
 
+    @cache_decorator.delete_caches([
+        dict(model_prefix='group', func_prefix='all'),
+        dict(model_prefix='group', identifier=lambda kw: kw['group_uuid'], func_prefix='lessons', filters='*'),
+        dict(
+            model_prefix='teacher', identifier=lambda kw, res: res[1].teacher.uuid,
+            func_prefix='lessons', filters='*',
+        ),
+    ])
     def execute(self, group_uuid: str, subgroup: Subgroup | None, lesson_uuid: str) -> tuple[GroupEntity, LessonEntity]:
         self.uuid_validator_service.validate(uuid_list=[group_uuid, lesson_uuid])
 
@@ -36,6 +47,8 @@ class AdminAddLessonToGroupUseCase:
 
         self.group_lesson_validator_service.validate(group_lesson=group_subgroup_lesson_entity)
 
-        self.group_lesson_service.save(group_lesson=group_subgroup_lesson_entity)
+        with transaction.atomic():
+            self.group_lesson_service.save(group_lesson=group_subgroup_lesson_entity)
+            self.group_service.bump_schedule_updated_at(group_id=group.id)
 
         return group, lesson

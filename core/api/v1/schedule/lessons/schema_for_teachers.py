@@ -1,55 +1,46 @@
 from ninja import Schema
 
-from typing import Iterable
-
-from core.api.v1.schedule.groups.schemas import GroupSchemaForTeacherLesson
+from core.api.v1.schedule.groups.schemas import GroupSchemaForLesson
 from core.api.v1.schedule.rooms.schemas import RoomSchema
 from core.api.v1.schedule.subjects.schemas import SubjectSchema
 from core.api.v1.schedule.teachers.schemas import TeacherSchema
 from core.api.v1.schedule.timeslots.schemas import TimeslotSchema
 from core.apps.common.models import LessonType
-from core.apps.schedule.entities.group import Group as GroupEntity
-from core.apps.schedule.entities.lesson import Lesson as LessonEntity
 from core.apps.schedule.entities.teacher import Teacher as TeacherEntity
+from core.apps.schedule.entities.views import LessonWithGroupsView
 
 
-class LessonForTeacherOutSchema(Schema):
+class LessonWithGroupsOutSchema(Schema):
     uuid: str
     type: LessonType
-    groups: list[GroupSchemaForTeacherLesson]
+    groups: list[GroupSchemaForLesson]
     subject: SubjectSchema
     room: RoomSchema
     timeslot: TimeslotSchema
 
     @classmethod
-    def from_entity(cls, lesson: LessonEntity, groups: list[GroupEntity]) -> 'LessonForTeacherOutSchema':
+    def from_view(cls, view: LessonWithGroupsView) -> 'LessonWithGroupsOutSchema':
         return cls(
-            uuid=lesson.uuid,
-            type=lesson.type,
-            subject=SubjectSchema.from_entity(lesson.subject),
-            room=RoomSchema.from_entity(lesson.room),
-            timeslot=TimeslotSchema.from_entity(lesson.timeslot),
-            groups=[GroupSchemaForTeacherLesson.from_entity(group) for group in groups],
+            uuid=view.lesson.uuid,
+            type=view.lesson.type,
+            subject=SubjectSchema.from_entity(view.lesson.subject),
+            room=RoomSchema.from_entity(view.lesson.room),
+            timeslot=TimeslotSchema.from_entity(view.lesson.timeslot),
+            groups=[GroupSchemaForLesson.from_view(gv) for gv in view.groups],
         )
 
 
 class TeacherLessonsOutSchema(Schema):
     teacher: TeacherSchema
-    lessons: list[LessonForTeacherOutSchema] | None = None
+    lessons: list[LessonWithGroupsOutSchema] | None = None
 
     @classmethod
-    def from_entity_with_lesson_entities(
+    def from_views(
             cls,
-            teacher_entity: TeacherEntity,
-            lesson_entities: Iterable[LessonEntity],
-            group_entities: dict[int, [GroupEntity]],
+            teacher: TeacherEntity,
+            views: list[LessonWithGroupsView],
     ) -> 'TeacherLessonsOutSchema':
         return cls(
-            teacher=TeacherSchema.from_entity(entity=teacher_entity),
-            lessons=[
-                LessonForTeacherOutSchema.from_entity(
-                    lesson,
-                    group_entities.get(lesson.id, []),
-                ) for lesson in lesson_entities
-            ] if lesson_entities else None,
+            teacher=TeacherSchema.from_entity(entity=teacher),
+            lessons=[LessonWithGroupsOutSchema.from_view(v) for v in views] if views else None,
         )

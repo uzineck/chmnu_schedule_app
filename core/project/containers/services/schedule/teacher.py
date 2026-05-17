@@ -5,7 +5,7 @@ from core.apps.schedule.services.teacher import (
     ORMTeacherService,
 )
 from core.apps.schedule.use_cases.teacher.create import CreateTeacherUseCase
-from core.apps.schedule.use_cases.teacher.deactivate import DeactivateTeacherUseCase
+from core.apps.schedule.use_cases.teacher.delete import DeleteTeacherUseCase
 from core.apps.schedule.use_cases.teacher.get_all import GetAllTeachersUseCase
 from core.apps.schedule.use_cases.teacher.get_list import GetTeacherListUseCase
 from core.apps.schedule.use_cases.teacher.get_teacher_lessons import GetLessonsForTeacherUseCase
@@ -22,4 +22,4 @@ def register_teacher_services(container: punq.Container):
     container.register(GetLessonsForTeacherUseCase)
     container.register(UpdateTeacherNameUseCase)
     container.register(UpdateTeacherRankUseCase)
-    container.register(DeactivateTeacherUseCase)
+    container.register(DeleteTeacherUseCase)

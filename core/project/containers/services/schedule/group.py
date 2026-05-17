@@ -8,6 +8,7 @@ from core.apps.schedule.use_cases.group.admin_add_lesson import AdminAddLessonTo
 from core.apps.schedule.use_cases.group.admin_remove_lesson import AdminRemoveLessonFromGroupUseCase
 from core.apps.schedule.use_cases.group.admin_update_lesson import AdminUpdateLessonInGroupUseCase
 from core.apps.schedule.use_cases.group.create import CreateGroupUseCase
+from core.apps.schedule.use_cases.group.delete import DeleteGroupUseCase
 from core.apps.schedule.use_cases.group.get_all import GetAllGroupsUseCase
 from core.apps.schedule.use_cases.group.get_group_lessons import GetGroupLessonsUseCase
 from core.apps.schedule.use_cases.group.get_info import GetGroupInfoUseCase
@@ -22,6 +23,7 @@ def register_group_services(container: punq.Container):
 
     container.register(GetAllGroupsUseCase)
     container.register(CreateGroupUseCase)
+    container.register(DeleteGroupUseCase)
     container.register(GetGroupLessonsUseCase)
     container.register(GetGroupInfoUseCase)
     container.register(UpdateGroupHeadmanUseCase)

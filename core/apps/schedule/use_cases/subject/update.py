@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from transliterate import slugify
 
+from core.apps.common.cache.decorator import cache_decorator
 from core.apps.schedule.entities.subject import Subject as SubjectEntity
 from core.apps.schedule.services.subject import BaseSubjectService
 from core.apps.schedule.validators.subject import BaseSubjectValidatorService
@@ -14,6 +15,12 @@ class UpdateSubjectUseCase:
     uuid_validator_service: BaseUuidValidatorService
     subject_validator_service: BaseSubjectValidatorService
 
+    @cache_decorator.delete_caches([
+        dict(model_prefix='subject', func_prefix='all'),
+        dict(model_prefix='subject', func_prefix='list', filters='*', pagination_in='*'),
+        dict(model_prefix='group', identifier='*', func_prefix='lessons', filters='*'),
+        dict(model_prefix='teacher', identifier='*', func_prefix='lessons', filters='*'),
+    ])
     def execute(self, subject_uuid: str, title: str) -> SubjectEntity:
         self.uuid_validator_service.validate(uuid_str=subject_uuid)
 

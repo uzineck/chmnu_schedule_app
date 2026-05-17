@@ -1,6 +1,9 @@
+from django.db import transaction
+
 from dataclasses import dataclass
 
 from core.apps.clients.services.client import BaseClientService
+from core.apps.clients.services.issuedjwttoken import BaseIssuedJwtTokenService
 from core.apps.common.authentication.password import BasePasswordService
 from core.apps.common.authentication.validators.password import BasePasswordValidatorService
 
@@ -8,6 +11,7 @@ from core.apps.common.authentication.validators.password import BasePasswordVali
 @dataclass
 class UpdateClientPasswordAdminUseCase:
     client_service: BaseClientService
+    issued_jwt_token_service: BaseIssuedJwtTokenService
     password_service: BasePasswordService
 
     password_validator_service: BasePasswordValidatorService
@@ -20,4 +24,6 @@ class UpdateClientPasswordAdminUseCase:
         )
         hashed_password = self.password_service.hash_password(plain_password=new_password)
 
-        self.client_service.update_password(client_id=client.id, hashed_password=hashed_password)
+        with transaction.atomic():
+            self.client_service.update_password(client_id=client.id, hashed_password=hashed_password)
+            self.issued_jwt_token_service.revoke_client_tokens(subject=client)

@@ -1,6 +1,7 @@
-from collections.abc import Iterable
 from dataclasses import dataclass
 
+from core.apps.common.cache.decorator import cache_decorator
+from core.apps.common.cache.timeouts import Timeout
 from core.apps.schedule.entities.faculty import Faculty as FacultyEntity
 from core.apps.schedule.services.faculty import BaseFacultyService
 
@@ -9,7 +10,6 @@ from core.apps.schedule.services.faculty import BaseFacultyService
 class GetAllFacultiesUseCase:
     faculty_service: BaseFacultyService
 
-    def execute(self) -> Iterable[FacultyEntity]:
-        faculties = self.faculty_service.get_all()
-
-        return faculties
+    @cache_decorator.get_or_set_cache(model_prefix='faculty', func_prefix='all', timeout=Timeout.WEEK)
+    def execute(self) -> list[FacultyEntity]:
+        return list(self.faculty_service.get_all())

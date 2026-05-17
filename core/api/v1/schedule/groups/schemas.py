@@ -1,13 +1,16 @@
 from ninja import Schema
 
-from collections.abc import Iterable
+from datetime import datetime
 
 from core.api.v1.clients.schemas import ClientSchemaPrivate
 from core.api.v1.schedule.faculty.schemas import FacultyCodeNameSchema
 from core.api.v1.schedule.lessons.schema_for_groups import LessonForGroupOutSchema
 from core.apps.common.models import Subgroup
 from core.apps.schedule.entities.group import Group as GroupEntity
-from core.apps.schedule.entities.lesson import Lesson as LessonEntity
+from core.apps.schedule.entities.views import (
+    GroupForLessonView,
+    LessonForGroupView,
+)
 
 
 class GroupSchema(Schema):
@@ -70,6 +73,7 @@ class GroupAllOutSchema(Schema):
     number: str
     faculty: FacultyCodeNameSchema
     has_subgroups: bool
+    schedule_updated_at: datetime | None = None
 
     @classmethod
     def from_entity(cls, entity: GroupEntity) -> 'GroupAllOutSchema':
@@ -78,6 +82,7 @@ class GroupAllOutSchema(Schema):
             number=entity.number,
             faculty=FacultyCodeNameSchema.from_entity(entity.faculty),
             has_subgroups=entity.has_subgroups,
+            schedule_updated_at=entity.schedule_updated_at,
         )
 
 
@@ -86,29 +91,29 @@ class GroupLessonsOutSchema(Schema):
     lessons: list[LessonForGroupOutSchema] | None = None
 
     @classmethod
-    def from_entity_with_lesson_entities(
+    def from_views(
             cls,
             group_entity: GroupEntity,
-            lesson_entities: Iterable[LessonEntity],
+            lesson_views: list[LessonForGroupView],
             subgroup: Subgroup | None = None,
     ) -> 'GroupLessonsOutSchema':
         return cls(
             group=GroupSchemaWithSubgroup.from_entity(entity=group_entity, subgroup=subgroup),
-            lessons=[LessonForGroupOutSchema.from_entity(obj) for obj in lesson_entities] if lesson_entities else None,
+            lessons=[LessonForGroupOutSchema.from_view(v) for v in lesson_views] if lesson_views else None,
         )
 
 
-class GroupSchemaForTeacherLesson(Schema):
+class GroupSchemaForLesson(Schema):
     uuid: str
     number: str
     subgroups: list[Subgroup] | None = None
 
     @classmethod
-    def from_entity(cls, entity: GroupEntity) -> 'GroupSchemaForTeacherLesson':
+    def from_view(cls, view: 'GroupForLessonView') -> 'GroupSchemaForLesson':
         return cls(
-            uuid=entity.uuid,
-            number=entity.number,
-            subgroups=entity.subgroups,
+            uuid=view.group.uuid,
+            number=view.group.number,
+            subgroups=view.subgroups or None,
         )
 
 

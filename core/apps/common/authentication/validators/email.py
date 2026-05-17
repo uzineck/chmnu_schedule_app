@@ -1,4 +1,3 @@
-import re
 from abc import (
     ABC,
     abstractmethod,
@@ -7,10 +6,7 @@ from dataclasses import dataclass
 
 from core.apps.clients.exceptions.client import ClientAlreadyExistsException
 from core.apps.clients.services.client import BaseClientService
-from core.apps.common.authentication.validators.exceptions import (
-    InvalidEmailPatternException,
-    OldAndNewEmailsAreSimilarException,
-)
+from core.apps.common.authentication.validators.exceptions import OldAndNewEmailsAreSimilarException
 
 
 class BaseEmailValidatorService(ABC):
@@ -30,13 +26,6 @@ class EmailAlreadyInUseValidatorService(BaseEmailValidatorService):
     def validate(self, email: str, *args, **kwargs):
         if self.client_service.check_client_exists(client_email=email):
             raise ClientAlreadyExistsException(email=email)
-
-
-class EmailPatternValidatorService(BaseEmailValidatorService):
-    def validate(self, email: str, *args, **kwargs):
-        pattern = r'^[a-zA-Z0-9_.+-]+@gmail\.com$'
-        if not re.match(pattern, email):
-            raise InvalidEmailPatternException(email=email)
 
 
 class SimilarOldAndNewEmailValidatorService(BaseEmailValidatorService):

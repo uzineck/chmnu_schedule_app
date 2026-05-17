@@ -46,9 +46,4 @@ class GetOrCreateLessonUseCase:
             timeslot=timeslot,
         )
 
-        if self.lesson_service.check_exists(lesson=lesson_entity):
-            lesson = self.lesson_service.get_by_lesson_entity(lesson=lesson_entity)
-            return lesson
-
-        saved_lesson = self.lesson_service.save(lesson=lesson_entity)
-        return saved_lesson
+        return self.lesson_service.get_or_create(lesson=lesson_entity)

@@ -4,7 +4,7 @@ from abc import (
 )
 from dataclasses import dataclass
 
-from core.apps.clients.services.client import BaseClientService
+from core.apps.clients.services.client_auth import BaseClientAuthService
 from core.apps.common.models import (
     ClientRole,
     Subgroup,
@@ -36,12 +36,12 @@ class CheckGroupHasSubgroupValidatorService(BaseGroupLessonValidatorService):
 
     def validate(self, group: Group | None = None, subgroup: Subgroup | None = None, *args, **kwargs):
         if group:
-            self.group_service.check_if_group_has_subgroup(group=group, subgroup=subgroup)
+            self.group_service.validate_subgroup_for_group(group=group, subgroup=subgroup)
 
 
 @dataclass
 class ClientDoesNotMatchRolesValidatorService(BaseGroupLessonValidatorService):
-    client_service: BaseClientService
+    client_auth_service: BaseClientAuthService
 
     def validate(
             self,
@@ -51,7 +51,7 @@ class ClientDoesNotMatchRolesValidatorService(BaseGroupLessonValidatorService):
             **kwargs,
     ):
         if client_roles and required_role:
-            self.client_service.check_client_role(client_roles=client_roles, required_role=required_role)
+            self.client_auth_service.check_client_role(client_roles=client_roles, required_role=required_role)
 
 
 @dataclass

@@ -1,3 +1,5 @@
+from django.db import transaction
+
 from dataclasses import dataclass
 
 from core.apps.clients.entities.client import Client as ClientEntity
@@ -32,15 +34,18 @@ class CreateClientUseCase:
         self.password_validator_service.validate(password=password, verify_password=verify_password)
 
         hashed_password = self.password_service.hash_password(plain_password=password)
-        client = self.client_service.create(
-            first_name=first_name,
-            last_name=last_name,
-            middle_name=middle_name,
-            email=email,
-            hashed_password=hashed_password,
-        )
         fetched_roles = self.role_service.fetch_roles(roles=roles)
-        self.client_service.update_roles(client_id=client.id, roles=fetched_roles)
-        updated_client = self.client_service.get_by_id(client_id=client.id)
+        if len(fetched_roles) != len(roles):
+            raise ValueError(f"Unknown role IDs in {roles}")
 
-        return updated_client
+        with transaction.atomic():
+            client = self.client_service.create(
+                first_name=first_name,
+                last_name=last_name,
+                middle_name=middle_name,
+                email=email,
+                hashed_password=hashed_password,
+            )
+            self.client_service.update_roles(client_id=client.id, roles=fetched_roles)
+
+        return self.client_service.get_by_id(client_id=client.id)

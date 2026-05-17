@@ -1,6 +1,9 @@
+from django.db import transaction
+
 from dataclasses import dataclass
 
 from core.apps.clients.services.client import BaseClientService
+from core.apps.common.cache.decorator import cache_decorator
 from core.apps.common.models import (
     ClientRole,
     Subgroup,
@@ -25,6 +28,18 @@ class HeadmanUpdateLessonInGroupUseCase:
     uuid_validator_service: BaseUuidValidatorService
     group_lesson_validator_service: BaseGroupLessonValidatorService
 
+    @cache_decorator.delete_caches([
+        dict(model_prefix='group', func_prefix='all'),
+        dict(model_prefix='group', identifier=lambda kw, res: res[0].uuid, func_prefix='lessons', filters='*'),
+        dict(
+            model_prefix='teacher', identifier=lambda kw, res: res[1].teacher.uuid,
+            func_prefix='lessons', filters='*',
+        ),
+        dict(
+            model_prefix='teacher', identifier=lambda kw, res: res[2].teacher.uuid,
+            func_prefix='lessons', filters='*',
+        ),
+    ])
     def execute(
             self,
             headman_email: str,
@@ -58,11 +73,13 @@ class HeadmanUpdateLessonInGroupUseCase:
 
         self.group_lesson_validator_service.validate(group_lesson=new_group_subgroup_lesson_entity)
 
-        self.group_lesson_service.save(group_lesson=new_group_subgroup_lesson_entity)
+        with transaction.atomic():
+            self.group_lesson_service.save(group_lesson=new_group_subgroup_lesson_entity)
+            self.group_lesson_service.delete(group_lesson=old_group_subgroup_lesson_entity)
 
-        self.group_lesson_service.delete(group_lesson=old_group_subgroup_lesson_entity)
+            if not self.group_lesson_service.check_lesson_belongs_to_any_group(lesson_id=old_lesson.id):
+                self.lesson_service.delete_by_uuid(lesson_uuid=old_lesson.uuid)
 
-        if not self.group_lesson_service.check_lesson_belongs_to_any_group(lesson_id=old_lesson.id):
-            self.lesson_service.delete_by_uuid(lesson_uuid=old_lesson.uuid)
+            self.group_service.bump_schedule_updated_at(group_id=group.id)
 
         return group, new_lesson, old_lesson

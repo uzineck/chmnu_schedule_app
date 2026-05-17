@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 
+from core.apps.common.cache.decorator import cache_decorator
 from core.apps.schedule.entities.faculty import Faculty as FacultyEntity
 from core.apps.schedule.services.faculty import BaseFacultyService
 from core.apps.schedule.validators.faculty import BaseFacultyValidatorService
@@ -13,6 +14,12 @@ class UpdateFacultyNameUseCase:
     uuid_validator_service: BaseUuidValidatorService
     faculty_validator_service: BaseFacultyValidatorService
 
+    @cache_decorator.delete_caches([
+        dict(model_prefix='faculty', func_prefix='all'),
+        dict(model_prefix='faculty', func_prefix='list', filters='*', pagination_in='*'),
+        dict(model_prefix='group', func_prefix='*'),
+        dict(model_prefix='teacher', identifier='*', func_prefix='lessons', filters='*'),
+    ])
     def execute(self, faculty_uuid: str, name: str) -> FacultyEntity:
         self.uuid_validator_service.validate(uuid_str=faculty_uuid)
 

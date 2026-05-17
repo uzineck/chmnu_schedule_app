@@ -31,23 +31,24 @@ class MatchingVerifyPasswordsValidatorService(BasePasswordValidatorService):
             *args,
             **kwargs,
     ):
-        if verify_password is not None:
-            if not (password == verify_password):
-                raise PasswordsNotMatchingException(password1=password, password2=verify_password)
+        if verify_password is None:
+            raise ValueError("verify_password is required")
+        if password != verify_password:
+            raise PasswordsNotMatchingException()
 
 
 class PasswordPatternValidatorService(BasePasswordValidatorService):
     def validate(self, password: str, *args, **kwargs):
         pattern = r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d@$!#%\^:;.,`~\'"*?&+=\-_()]{8,}$'
         if not re.match(pattern, password):
-            raise InvalidPasswordPatternException(password=password)
+            raise InvalidPasswordPatternException()
 
 
 class SimilarOldAndNewPasswordValidatorService(BasePasswordValidatorService):
     def validate(self, password: str, old_password: str | None = None, *args, **kwargs):
         if old_password is not None:
             if old_password == password:
-                raise OldAndNewPasswordsAreSimilarException(old_password=old_password, new_password=password)
+                raise OldAndNewPasswordsAreSimilarException()
 
 
 @dataclass

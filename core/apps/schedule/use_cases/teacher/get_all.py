@@ -1,6 +1,7 @@
 from dataclasses import dataclass
-from typing import Iterable
 
+from core.apps.common.cache.decorator import cache_decorator
+from core.apps.common.cache.timeouts import Timeout
 from core.apps.schedule.entities.teacher import Teacher as TeacherEntity
 from core.apps.schedule.services.teacher import BaseTeacherService
 
@@ -9,5 +10,6 @@ from core.apps.schedule.services.teacher import BaseTeacherService
 class GetAllTeachersUseCase:
     teacher_service: BaseTeacherService
 
-    def execute(self) -> Iterable[TeacherEntity]:
-        return self.teacher_service.get_all()
+    @cache_decorator.get_or_set_cache(model_prefix='teacher', func_prefix='all', timeout=Timeout.WEEK)
+    def execute(self) -> list[TeacherEntity]:
+        return list(self.teacher_service.get_all())

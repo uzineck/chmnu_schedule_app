@@ -1,5 +1,7 @@
 from ninja import Schema
 
+from pydantic import EmailStr
+
 from core.apps.clients.entities.client import Client as ClientEntity
 from core.apps.clients.entities.token import Token as TokenEntity
 from core.apps.common.models import ClientRole
@@ -42,13 +44,13 @@ class SignUpInSchema(Schema):
     first_name: str
     middle_name: str
     roles: list[ClientRole]
-    email: str
+    email: EmailStr
     password: str
     verify_password: str
 
 
 class LogInSchema(Schema):
-    email: str
+    email: EmailStr
     password: str
 
 
@@ -122,7 +124,7 @@ class UpdatePwInAdminSchema(Schema):
 
 class UpdateEmailInSchema(Schema):
     client_email: str
-    new_email: str
+    new_email: EmailStr
     password: str
 
 
