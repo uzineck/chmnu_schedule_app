@@ -171,15 +171,18 @@ def test_update_code_name_faculty_failure(faculty_service: BaseFacultyService, f
 
 
 @pytest.mark.django_db
-def test_delete_faculty_success(faculty_service: BaseFacultyService, faculty_create):
+def test_soft_delete_faculty_success(faculty_service: BaseFacultyService, faculty_create):
     faculty = faculty_create()
 
-    assert faculty_service.delete(faculty_id=faculty.id) is None
+    assert faculty_service.soft_delete(faculty_id=faculty.id) is None
+
+    faculty.refresh_from_db()
+    assert faculty.is_active is False
 
 
 @pytest.mark.django_db
-def test_delete_faculty_failure(faculty_service: BaseFacultyService, faculty_build):
+def test_soft_delete_faculty_failure(faculty_service: BaseFacultyService, faculty_build):
     faculty = faculty_build()
 
     with pytest.raises(FacultyDeleteException):
-        faculty_service.delete(faculty_id=faculty.id)
+        faculty_service.soft_delete(faculty_id=faculty.id)

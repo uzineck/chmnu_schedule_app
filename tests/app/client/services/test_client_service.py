@@ -1,19 +1,13 @@
 import pytest
 from tests.factories.client.role import RoleModelFactory
 
-from core.apps.clients.entities.client import Client as ClientEntity
-from core.apps.clients.exceptions.auth import InvalidAuthDataException
 from core.apps.clients.exceptions.client import (
     ClientAlreadyExistsException,
     ClientNotFoundException,
-    ClientRoleNotMatchingWithRequiredException,
     ClientUpdateException,
 )
 from core.apps.clients.services.client import BaseClientService
-from core.apps.common.models import (
-    ClientRole,
-    TokenType,
-)
+from core.apps.common.models import ClientRole
 
 
 @pytest.fixture
@@ -96,52 +90,6 @@ def test_get_client_by_id_not_found_failure(client_service: BaseClientService, c
 
 
 @pytest.mark.django_db
-def test_client_password_validation_success(client_service: BaseClientService, create_client_with_password):
-    client, plain_password = create_client_with_password
-
-    assert client_service.validate_password(client_password=client.password, plain_password=plain_password) is None
-
-
-@pytest.mark.django_db
-def test_client_password_validation_failure(
-        client_service: BaseClientService,
-        create_client_with_password,
-        generate_password,
-):
-    client, plain_password = create_client_with_password
-    new_plain_password = generate_password()
-    with pytest.raises(InvalidAuthDataException):
-        client_service.validate_password(client_password=client.password, plain_password=new_plain_password)
-
-
-@pytest.mark.django_db
-def test_client_role_check_success(client_service: BaseClientService, client_create):
-    client_headman = client_create(roles=[RoleModelFactory(id=ClientRole.HEADMAN)])
-    client_admin = client_create(roles=[RoleModelFactory(id=ClientRole.ADMIN)])
-
-    admin_roles = [ClientRole(role.id) for role in client_admin.roles.all()]
-    headman_roles = [ClientRole(role.id) for role in client_headman.roles.all()]
-
-    assert client_service.check_client_role(client_roles=headman_roles, required_role=ClientRole.HEADMAN) is None
-    assert client_service.check_client_role(client_roles=admin_roles, required_role=ClientRole.ADMIN) is None
-
-
-@pytest.mark.django_db
-def test_client_role_check_failure(client_service: BaseClientService, client_create):
-    client_headman = client_create(roles=[RoleModelFactory(id=ClientRole.HEADMAN)])
-    client_admin = client_create(roles=[RoleModelFactory(id=ClientRole.ADMIN)])
-
-    admin_roles = [ClientRole(role.id) for role in client_admin.roles.all()]
-    headman_roles = [ClientRole(role.id) for role in client_headman.roles.all()]
-
-    with pytest.raises(ClientRoleNotMatchingWithRequiredException):
-        client_service.check_client_role(client_roles=headman_roles, required_role=ClientRole.ADMIN)
-
-    with pytest.raises(ClientRoleNotMatchingWithRequiredException):
-        client_service.check_client_role(client_roles=admin_roles, required_role=ClientRole.HEADMAN)
-
-
-@pytest.mark.django_db
 def test_client_update_email_success(client_service: BaseClientService, client_create, generate_email):
     client = client_create()
     new_email = generate_email()
@@ -170,10 +118,10 @@ def test_client_update_password_success(
     client, plain_password = create_client_with_password
     new_client, new_plain_password = build_client_with_password
     client_service.update_password(client_id=client.id, hashed_password=new_client.password)
-    updated_client = client_service.get_by_id(client.id)
 
-    assert updated_client.password == new_client.password
-    assert updated_client.password != client.password
+    stored_hash = client_service.get_password_hash_by_email(client_email=client.email)
+    assert stored_hash == new_client.password
+    assert stored_hash != client.password
 
 
 @pytest.mark.django_db
@@ -235,58 +183,3 @@ def test_client_update_role_failure(client_service: BaseClientService, client_bu
 
     with pytest.raises(ClientUpdateException):
         client_service.update_roles(client_id=client.id, roles=[ClientRole.ADMIN])
-
-
-@pytest.mark.django_db
-def test_generate_client_tokens(client_service: BaseClientService, client_create, get_current_timestamp):
-    client = client_create()
-    client_entity = ClientEntity(
-        id=client.id,
-        first_name=client.first_name,
-        last_name=client.last_name,
-        email=client.email,
-        middle_name=client.middle_name,
-        roles=[ClientRole(role.id) for role in client.roles.all()],
-    )
-    tokens = client_service.generate_tokens(client=client_entity)
-
-    assert tokens.access_token is not None
-    assert tokens.refresh_token is not None
-    assert (
-        client_service.get_device_id_from_token(token=tokens.access_token) ==
-        client_service.get_device_id_from_token(token=tokens.refresh_token)
-    )
-    assert client_service.get_token_type_from_token(token=tokens.access_token) == TokenType.ACCESS
-    assert client_service.get_token_type_from_token(token=tokens.refresh_token) == TokenType.REFRESH
-    assert client_service.get_expiration_time_from_token(token=tokens.access_token) > get_current_timestamp
-    assert client_service.get_expiration_time_from_token(token=tokens.refresh_token) > get_current_timestamp
-    assert client_service.get_client_roles_from_token(token=tokens.access_token) == client_entity.roles
-    assert client_service.get_client_roles_from_token(token=tokens.refresh_token) == client_entity.roles
-    assert client_service.get_client_email_from_token(token=tokens.access_token) == client_entity.email
-    assert client_service.get_client_email_from_token(token=tokens.refresh_token) == client_entity.email
-
-
-@pytest.mark.django_db
-def test_update_access_token(
-        client_service: BaseClientService,
-        client_create,
-        get_current_timestamp,
-        generate_device_id,
-):
-    client = client_create()
-    client_entity = ClientEntity(
-        id=client.id,
-        first_name=client.first_name,
-        last_name=client.last_name,
-        email=client.email,
-        middle_name=client.middle_name,
-        roles=[ClientRole(role.id) for role in client.roles.all()],
-    )
-    tokens = client_service.update_access_token(client=client_entity, device_id=generate_device_id)
-
-    assert tokens.access_token is not None
-    assert tokens.refresh_token is None
-    assert client_service.get_token_type_from_token(token=tokens.access_token) == TokenType.ACCESS
-    assert client_service.get_client_email_from_token(token=tokens.access_token) == client_entity.email
-    assert client_service.get_client_roles_from_token(token=tokens.access_token) == client_entity.roles
-    assert client_service.get_expiration_time_from_token(token=tokens.access_token) > get_current_timestamp

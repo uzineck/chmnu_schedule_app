@@ -1,7 +1,6 @@
 from django.db import IntegrityError
 from django.db.models import Q
 
-import logging
 from abc import (
     ABC,
     abstractmethod,
@@ -13,14 +12,12 @@ from core.apps.common.models import TeachersDegree
 from core.apps.schedule.entities.teacher import Teacher as TeacherEntity
 from core.apps.schedule.exceptions.teacher import (
     TeacherAlreadyExistsException,
+    TeacherDeleteException,
     TeacherNotFoundException,
     TeacherUpdateException,
 )
 from core.apps.schedule.filters.teacher import TeacherFilter
 from core.apps.schedule.models.teacher import Teacher as TeacherModel
-
-
-logger = logging.getLogger(__name__)
 
 
 class BaseTeacherService(ABC):
@@ -59,6 +56,15 @@ class BaseTeacherService(ABC):
         ...
 
     @abstractmethod
+    def find_any_by_full_name(
+            self,
+            first_name: str,
+            last_name: str,
+            middle_name: str,
+    ) -> TeacherEntity | None:
+        ...
+
+    @abstractmethod
     def update_name(
             self,
             teacher_id: int,
@@ -77,17 +83,17 @@ class BaseTeacherService(ABC):
         ...
 
     @abstractmethod
-    def update_is_active(
-            self,
-            teacher_id: int,
-            is_active: bool = False,
-    ) -> None:
+    def soft_delete(self, teacher_id: int) -> None:
+        ...
+
+    @abstractmethod
+    def restore(self, teacher_id: int) -> None:
         ...
 
 
 class ORMTeacherService(BaseTeacherService):
     def _build_teacher_query(self, filters: TeacherFilter) -> Q:
-        query = Q(is_active=True)
+        query = Q()
 
         if filters.first_name is not None:
             query &= (Q(first_name__icontains=filters.first_name))
@@ -115,18 +121,14 @@ class ORMTeacherService(BaseTeacherService):
                 rank=rank,
             )
         except IntegrityError:
-            logger.error(f"Teacher Creation Error ({first_name=}, {last_name=}, {middle_name=}, {rank=})")
             raise TeacherAlreadyExistsException(first_name=first_name, last_name=last_name, middle_name=middle_name)
 
         return teacher.to_entity()
 
-    def get_all(self) -> Iterable[TeacherEntity]:
-        teachers = TeacherModel.objects.filter(is_active=True).all()
+    def get_all(self) -> list[TeacherEntity]:
+        return [teacher.to_entity() for teacher in TeacherModel.objects.all()]
 
-        for teacher in teachers:
-            yield teacher.to_entity()
-
-    def get_list(self, filters: TeacherFilter, pagination: PaginationIn) -> Iterable[TeacherEntity]:
+    def get_list(self, filters: TeacherFilter, pagination: PaginationIn) -> list[TeacherEntity]:
         query = self._build_teacher_query(filters)
         qs = TeacherModel.objects.filter(query)[pagination.offset:pagination.offset + pagination.limit]
         return [teacher.to_entity() for teacher in qs]
@@ -138,18 +140,16 @@ class ORMTeacherService(BaseTeacherService):
 
     def get_by_uuid(self, teacher_uuid: str) -> TeacherEntity:
         try:
-            teacher = TeacherModel.objects.get(teacher_uuid=teacher_uuid, is_active=True)
+            teacher = TeacherModel.objects.get(teacher_uuid=teacher_uuid)
         except TeacherModel.DoesNotExist:
-            logger.error(f"Teacher Does Not Exist Error ({teacher_uuid=})")
             raise TeacherNotFoundException(uuid=teacher_uuid)
 
         return teacher.to_entity()
 
     def get_by_id(self, teacher_id: int) -> TeacherEntity:
         try:
-            teacher = TeacherModel.objects.get(id=teacher_id, is_active=True)
+            teacher = TeacherModel.objects.get(id=teacher_id)
         except TeacherModel.DoesNotExist:
-            logger.error(f"Teacher Does Not Exist Error ({teacher_id=})")
             raise TeacherNotFoundException(id=teacher_id)
 
         return teacher.to_entity()
@@ -160,6 +160,19 @@ class ORMTeacherService(BaseTeacherService):
             last_name=last_name,
             middle_name=middle_name,
         ).exists()
+
+    def find_any_by_full_name(
+            self,
+            first_name: str,
+            last_name: str,
+            middle_name: str,
+    ) -> TeacherEntity | None:
+        teacher = TeacherModel.all_objects.filter(
+            first_name=first_name,
+            last_name=last_name,
+            middle_name=middle_name,
+        ).first()
+        return teacher.to_entity() if teacher is not None else None
 
     def update_name(
             self,
@@ -174,7 +187,6 @@ class ORMTeacherService(BaseTeacherService):
             middle_name=middle_name,
         )
         if not is_updated:
-            logger.error(f"Teacher Update Full Name Error ({teacher_id=}, {first_name=}, {last_name=}, {middle_name=})")
             raise TeacherUpdateException(id=teacher_id)
 
     def update_rank(
@@ -186,16 +198,13 @@ class ORMTeacherService(BaseTeacherService):
             rank=rank,
         )
         if not is_updated:
-            logger.error(f"Teacher Update Rank Error ({teacher_id=}, {rank=})")
             raise TeacherUpdateException(id=teacher_id)
 
-    def update_is_active(
-            self,
-            teacher_id: int,
-            is_active: bool = False,
-    ) -> None:
-        is_updated = TeacherModel.objects.filter(id=teacher_id).update(is_active=is_active)
+    def soft_delete(self, teacher_id: int) -> None:
+        is_updated = TeacherModel.objects.filter(id=teacher_id).update(is_active=False)
 
         if not is_updated:
-            logger.error(f"Teacher Update Is Active(Deactivate) Error ({teacher_id=}, {is_active=})")
-            raise TeacherUpdateException(id=teacher_id)
+            raise TeacherDeleteException(id=teacher_id)
+
+    def restore(self, teacher_id: int) -> None:
+        TeacherModel.all_objects.filter(id=teacher_id).update(is_active=True)

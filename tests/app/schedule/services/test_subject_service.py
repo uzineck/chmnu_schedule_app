@@ -145,15 +145,51 @@ def test_update_subject_failure(subject_service: BaseSubjectService, subject_bui
 
 
 @pytest.mark.django_db
-def test_delete_subject_success(subject_service: BaseSubjectService, subject_create):
+def test_soft_delete_subject_success(subject_service: BaseSubjectService, subject_create):
     subject = subject_create()
 
-    assert subject_service.delete(subject_id=subject.id) is None
+    assert subject_service.soft_delete(subject_id=subject.id) is None
+
+    subject.refresh_from_db()
+    assert subject.is_active is False
 
 
 @pytest.mark.django_db
-def test_delete_subject_failure(subject_service: BaseSubjectService, subject_build):
+def test_soft_delete_subject_failure(subject_service: BaseSubjectService, subject_build):
     subject = subject_build()
 
     with pytest.raises(SubjectDeleteException):
-        subject_service.delete(subject_id=subject.id)
+        subject_service.soft_delete(subject_id=subject.id)
+
+
+@pytest.mark.django_db
+def test_soft_deleted_subject_excluded_from_default_queries(
+        subject_service: BaseSubjectService,
+        subject_create,
+):
+    subject = subject_create()
+    subject_service.soft_delete(subject_id=subject.id)
+
+    with pytest.raises(SubjectNotFoundException):
+        subject_service.get_by_id(subject_id=subject.id)
+
+
+@pytest.mark.django_db
+def test_find_any_by_title_returns_soft_deleted(subject_service: BaseSubjectService, subject_create):
+    subject = subject_create()
+    subject_service.soft_delete(subject_id=subject.id)
+
+    found = subject_service.find_any_by_title(title=subject.title)
+    assert found is not None
+    assert found.id == subject.id
+    assert found.is_active is False
+
+
+@pytest.mark.django_db
+def test_restore_subject_reactivates(subject_service: BaseSubjectService, subject_create):
+    subject = subject_create()
+    subject_service.soft_delete(subject_id=subject.id)
+    subject_service.restore(subject_id=subject.id)
+
+    restored = subject_service.get_by_id(subject_id=subject.id)
+    assert restored.is_active is True

@@ -1,6 +1,6 @@
 from django.db import IntegrityError
+from django.utils import timezone
 
-import logging
 from abc import (
     ABC,
     abstractmethod,
@@ -18,9 +18,6 @@ from core.apps.schedule.exceptions.group import (
     HeadmanNotAssignedToAnyGroup,
 )
 from core.apps.schedule.models.group import Group as GroupModel
-
-
-logger = logging.getLogger(__name__)
 
 
 class BaseGroupService(ABC):
@@ -51,11 +48,7 @@ class BaseGroupService(ABC):
         ...
 
     @abstractmethod
-    def check_if_group_has_subgroup(self, group: GroupEntity, subgroup: Subgroup) -> bool:
-        ...
-
-    @abstractmethod
-    def get_group_list_from_lesson(self, lesson_id: int) -> Iterable[GroupEntity]:
+    def validate_subgroup_for_group(self, group: GroupEntity, subgroup: Subgroup | None) -> None:
         ...
 
     @abstractmethod
@@ -68,6 +61,26 @@ class BaseGroupService(ABC):
 
     @abstractmethod
     def update_group_headman(self, group_id: int, headman_id: int) -> None:
+        ...
+
+    @abstractmethod
+    def bump_schedule_updated_at(self, group_id: int) -> None:
+        ...
+
+    @abstractmethod
+    def find_any_by_number(self, group_number: str) -> GroupEntity | None:
+        ...
+
+    @abstractmethod
+    def check_faculty_has_groups(self, faculty_id: int) -> bool:
+        ...
+
+    @abstractmethod
+    def soft_delete(self, group_id: int) -> None:
+        ...
+
+    @abstractmethod
+    def restore(self, group_id: int) -> None:
         ...
 
 
@@ -87,19 +100,17 @@ class ORMGroupService(BaseGroupService):
                 headman_id=headman_id,
             )
         except IntegrityError:
-            logger.error(f"Group Creation Error ({group_number=}, {headman_id=})")
             raise GroupAlreadyExistsException(group_number=group_number, headman_id=headman_id)
 
         return group.to_entity()
 
-    def get_all(self) -> Iterable[GroupEntity]:
+    def get_all(self) -> list[GroupEntity]:
         groups = (
             GroupModel.objects.
             all().
             select_related("headman", "faculty")
         )
-        for group in groups:
-            yield group.to_entity()
+        return [group.to_entity() for group in groups]
 
     def get_by_uuid(self, group_uuid: str) -> GroupEntity:
         try:
@@ -109,7 +120,6 @@ class ORMGroupService(BaseGroupService):
                 get(group_uuid=group_uuid)
             )
         except GroupModel.DoesNotExist:
-            logger.warning(f"Group Does Not Exist Error ({group_uuid=})")
             raise GroupNotFoundException(uuid=group_uuid)
 
         return group.to_entity()
@@ -122,7 +132,6 @@ class ORMGroupService(BaseGroupService):
                 get(id=group_id)
             )
         except GroupModel.DoesNotExist:
-            logger.error(f"Group Does Not Exist Error ({group_id=})")
             raise GroupNotFoundException(id=group_id)
 
         return group.to_entity()
@@ -130,32 +139,12 @@ class ORMGroupService(BaseGroupService):
     def check_exists_by_number(self, group_number: str) -> bool:
         return GroupModel.objects.filter(number=group_number).exists()
 
-    def check_if_group_has_subgroup(self, group: GroupEntity, subgroup: Subgroup | None) -> bool:
+    def validate_subgroup_for_group(self, group: GroupEntity, subgroup: Subgroup | None) -> None:
         if not group.has_subgroups and subgroup is not None:
-            logger.info(
-                f"Group Has Subgroup Error "
-                f"(group_number={group.number}, group_has_subgroups={group.has_subgroups}, {subgroup=})",
-            )
             raise GroupWithoutSubgroupsInvalidSubgroupException(subgroup=subgroup)
 
         if group.has_subgroups and subgroup is None:
-            logger.info(
-                f"Group Does Not Have Subgroup Error "
-                f"(group_number={group.number}, group_has_subgroups={group.has_subgroups}, {subgroup=})",
-            )
             raise GroupWithSubgroupsInvalidSubgroupException
-
-        return True
-
-    def get_group_list_from_lesson(self, lesson_id: int) -> Iterable[GroupEntity]:
-        groups = (
-            GroupModel.objects.
-            filter(group__lesson_id=lesson_id).
-            select_related("headman", "faculty").
-            distinct('number')
-        )
-
-        return [group.to_entity() for group in groups]
 
     def check_if_headman_assigned_to_group(self, headman_id: int) -> bool:
         return GroupModel.objects.filter(headman__id=headman_id).exists()
@@ -168,7 +157,6 @@ class ORMGroupService(BaseGroupService):
         )
 
         if not group:
-            logger.error(f"Headman Not Assigned To Any Group Error ({headman_id=})")
             raise HeadmanNotAssignedToAnyGroup(headman_id=headman_id)
 
         return group.to_entity()
@@ -177,5 +165,25 @@ class ORMGroupService(BaseGroupService):
         is_updated = GroupModel.objects.filter(id=group_id).update(headman_id=headman_id)
 
         if not is_updated:
-            logger.error(f"Group Update Headman Error ({group_id=}, {headman_id=})")
             raise GroupHeadmanUpdateException(group_id=group_id, headman_id=headman_id)
+
+    def bump_schedule_updated_at(self, group_id: int) -> None:
+        GroupModel.objects.filter(id=group_id).update(schedule_updated_at=timezone.now())
+
+    def find_any_by_number(self, group_number: str) -> GroupEntity | None:
+        group = (
+            GroupModel.all_objects.
+            select_related("headman", "faculty").
+            filter(number=group_number).
+            first()
+        )
+        return group.to_entity() if group is not None else None
+
+    def check_faculty_has_groups(self, faculty_id: int) -> bool:
+        return GroupModel.objects.filter(faculty_id=faculty_id).exists()
+
+    def soft_delete(self, group_id: int) -> None:
+        GroupModel.objects.filter(id=group_id).update(is_active=False)
+
+    def restore(self, group_id: int) -> None:
+        GroupModel.all_objects.filter(id=group_id).update(is_active=True)

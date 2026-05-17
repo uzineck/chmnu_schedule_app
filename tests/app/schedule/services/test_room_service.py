@@ -161,15 +161,18 @@ def test_update_room_description_failure(room_service: BaseRoomService, room_bui
 
 
 @pytest.mark.django_db
-def test_delete_room_success(room_service: BaseRoomService, room_create):
+def test_soft_delete_room_success(room_service: BaseRoomService, room_create):
     room = room_create()
 
-    assert room_service.delete(room_id=room.id) is None
+    assert room_service.soft_delete(room_id=room.id) is None
+
+    room.refresh_from_db()
+    assert room.is_active is False
 
 
 @pytest.mark.django_db
-def test_delete_room_failure(room_service: BaseRoomService, room_build):
+def test_soft_delete_room_failure(room_service: BaseRoomService, room_build):
     room = room_build()
 
     with pytest.raises(RoomDeleteException):
-        room_service.delete(room_id=room.id)
+        room_service.soft_delete(room_id=room.id)

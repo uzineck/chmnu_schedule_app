@@ -1,7 +1,6 @@
 from django.db import IntegrityError
 from django.db.models import Q
 
-import logging
 from abc import (
     ABC,
     abstractmethod,
@@ -18,9 +17,6 @@ from core.apps.schedule.exceptions.faculty import (
     FacultyUpdateException,
 )
 from core.apps.schedule.models import Faculty as FacultyModel
-
-
-logger = logging.getLogger(__name__)
 
 
 class BaseFacultyService(ABC):
@@ -57,6 +53,10 @@ class BaseFacultyService(ABC):
         ...
 
     @abstractmethod
+    def find_any_by_code_name(self, faculty_code_name: str) -> FacultyEntity | None:
+        ...
+
+    @abstractmethod
     def update_name(self, faculty_id: int, new_name: str) -> None:
         ...
 
@@ -65,12 +65,16 @@ class BaseFacultyService(ABC):
         ...
 
     @abstractmethod
-    def delete(self, faculty_id: int) -> None:
+    def soft_delete(self, faculty_id: int) -> None:
+        ...
+
+    @abstractmethod
+    def restore(self, faculty_id: int) -> None:
         ...
 
 
 class ORMFacultyService(BaseFacultyService):
-    def _build_subject_query(self, filters: SearchFilterEntity) -> Q:
+    def _build_faculty_query(self, filters: SearchFilterEntity) -> Q:
         query = Q()
 
         if filters.search is not None:
@@ -85,26 +89,22 @@ class ORMFacultyService(BaseFacultyService):
                 name=name,
             )
         except IntegrityError:
-            logger.error(f"Faculty Creation Error ({name=}, {code_name=})")
             raise FacultyAlreadyExistsException(code_name=code_name, name=name)
 
         return faculty.to_entity()
 
-    def get_all(self) -> Iterable[FacultyEntity]:
-        faculties = FacultyModel.objects.all()
+    def get_all(self) -> list[FacultyEntity]:
+        return [faculty.to_entity() for faculty in FacultyModel.objects.all()]
 
-        for faculty in faculties:
-            yield faculty.to_entity()
-
-    def get_list(self, filters: SearchFilterEntity, pagination: PaginationIn) -> Iterable[FacultyEntity]:
-        query = self._build_subject_query(filters)
+    def get_list(self, filters: SearchFilterEntity, pagination: PaginationIn) -> list[FacultyEntity]:
+        query = self._build_faculty_query(filters)
         qs = FacultyModel.objects.filter(query)[
             pagination.offset:pagination.offset + pagination.limit
         ]
         return [faculty.to_entity() for faculty in qs]
 
     def get_count(self, filters: SearchFilterEntity) -> int:
-        query = self._build_subject_query(filters)
+        query = self._build_faculty_query(filters)
 
         return FacultyModel.objects.filter(query).count()
 
@@ -112,7 +112,6 @@ class ORMFacultyService(BaseFacultyService):
         try:
             faculty = FacultyModel.objects.get(faculty_uuid=faculty_uuid)
         except FacultyModel.DoesNotExist:
-            logger.error(f"Faculty Does Not Exist Error ({faculty_uuid=})")
             raise FacultyNotFoundException(uuid=faculty_uuid)
 
         return faculty.to_entity()
@@ -121,7 +120,6 @@ class ORMFacultyService(BaseFacultyService):
         try:
             faculty = FacultyModel.objects.get(id=faculty_id)
         except FacultyModel.DoesNotExist:
-            logger.error(f"Faculty Does Not Exist Error ({faculty_id=})")
             raise FacultyNotFoundException(id=faculty_id)
 
         return faculty.to_entity()
@@ -132,23 +130,27 @@ class ORMFacultyService(BaseFacultyService):
     def check_exists_by_code_name(self, faculty_code_name: str) -> bool:
         return FacultyModel.objects.filter(code_name=faculty_code_name).exists()
 
+    def find_any_by_code_name(self, faculty_code_name: str) -> FacultyEntity | None:
+        faculty = FacultyModel.all_objects.filter(code_name=faculty_code_name).first()
+        return faculty.to_entity() if faculty is not None else None
+
     def update_name(self, faculty_id: int, new_name: str) -> None:
         is_updated = FacultyModel.objects.filter(id=faculty_id).update(name=new_name)
 
         if not is_updated:
-            logger.error(f"Faculty Update Name Error ({faculty_id=}, {new_name=})")
             raise FacultyUpdateException(id=faculty_id)
 
     def update_code_name(self, faculty_id: int, new_code_name: str) -> None:
         is_updated = FacultyModel.objects.filter(id=faculty_id).update(code_name=new_code_name)
 
         if not is_updated:
-            logger.error(f"Faculty Update Code Name Error ({faculty_id=}, {new_code_name=})")
             raise FacultyUpdateException(id=faculty_id)
 
-    def delete(self, faculty_id: int) -> None:
-        is_deleted, _ = FacultyModel.objects.filter(id=faculty_id).delete()
+    def soft_delete(self, faculty_id: int) -> None:
+        is_updated = FacultyModel.objects.filter(id=faculty_id).update(is_active=False)
 
-        if not is_deleted:
-            logger.error(f"Faculty Delete Error ({faculty_id=})")
+        if not is_updated:
             raise FacultyDeleteException(id=faculty_id)
+
+    def restore(self, faculty_id: int) -> None:
+        FacultyModel.all_objects.filter(id=faculty_id).update(is_active=True)

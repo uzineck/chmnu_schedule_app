@@ -2,6 +2,7 @@ import pytest
 
 from core.api.filters import PaginationIn
 from core.apps.schedule.exceptions.teacher import (
+    TeacherDeleteException,
     TeacherNotFoundException,
     TeacherUpdateException,
 )
@@ -187,19 +188,55 @@ def test_update_rank_teacher_failure(teacher_service: BaseTeacherService, teache
 
 
 @pytest.mark.django_db
-def test_update_is_active_teacher_success(teacher_service: BaseTeacherService, teacher_create):
+def test_soft_delete_teacher_success(teacher_service: BaseTeacherService, teacher_create):
     teacher = teacher_create()
 
-    assert teacher_service.update_is_active(
-        teacher_id=teacher.id,
-    ) is None
+    assert teacher_service.soft_delete(teacher_id=teacher.id) is None
+
+    teacher.refresh_from_db()
+    assert teacher.is_active is False
 
 
 @pytest.mark.django_db
-def test_update_is_active_teacher_failure(teacher_service: BaseTeacherService, teacher_build):
+def test_soft_delete_teacher_failure(teacher_service: BaseTeacherService, teacher_build):
     teacher = teacher_build()
 
-    with pytest.raises(TeacherUpdateException):
-        teacher_service.update_is_active(
-            teacher_id=teacher.id,
-        )
+    with pytest.raises(TeacherDeleteException):
+        teacher_service.soft_delete(teacher_id=teacher.id)
+
+
+@pytest.mark.django_db
+def test_soft_deleted_teacher_excluded_from_default_queries(
+        teacher_service: BaseTeacherService,
+        teacher_create,
+):
+    teacher = teacher_create()
+    teacher_service.soft_delete(teacher_id=teacher.id)
+
+    with pytest.raises(TeacherNotFoundException):
+        teacher_service.get_by_id(teacher_id=teacher.id)
+
+
+@pytest.mark.django_db
+def test_find_any_by_full_name_returns_soft_deleted(teacher_service: BaseTeacherService, teacher_create):
+    teacher = teacher_create()
+    teacher_service.soft_delete(teacher_id=teacher.id)
+
+    found = teacher_service.find_any_by_full_name(
+        first_name=teacher.first_name,
+        last_name=teacher.last_name,
+        middle_name=teacher.middle_name,
+    )
+    assert found is not None
+    assert found.id == teacher.id
+    assert found.is_active is False
+
+
+@pytest.mark.django_db
+def test_restore_teacher_reactivates(teacher_service: BaseTeacherService, teacher_create):
+    teacher = teacher_create()
+    teacher_service.soft_delete(teacher_id=teacher.id)
+    teacher_service.restore(teacher_id=teacher.id)
+
+    restored = teacher_service.get_by_id(teacher_id=teacher.id)
+    assert restored.is_active is True
