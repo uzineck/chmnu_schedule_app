@@ -1,8 +1,15 @@
-import pytest
-from tests.factories.schedule.lesson import LessonModelFactory
+from django.db.models import Q
 
+import pytest
+from tests.factories.schedule.group import GroupModelFactory
+from tests.factories.schedule.group_lesson import GroupLessonModelFactory
+
+from core.apps.common.models import Subgroup
 from core.apps.schedule.entities.lesson import Lesson as LessonEntity
-from core.apps.schedule.exceptions.lesson import LessonNotFoundException
+from core.apps.schedule.exceptions.lesson import (
+    LessonDeleteError,
+    LessonNotFoundException,
+)
 from core.apps.schedule.filters.group import LessonFilter
 from core.apps.schedule.services.lesson import BaseLessonService
 
@@ -37,94 +44,48 @@ def build_lesson(lesson_build, subject_build, teacher_build, room_build, timeslo
     return lesson
 
 
-@pytest.fixture(scope='function')
-def create_lesson_batch_one_teacher(
-        lesson_create,
-        subject_create_batch,
+@pytest.mark.django_db
+def test_get_or_create_lesson_creates_new(
+        lesson_service: BaseLessonService,
+        subject_create,
         teacher_create,
-        room_create_batch,
-        timeslot_create_batch,
+        room_create,
+        timeslot_create,
 ):
-    size = 5
-    subjects = subject_create_batch(size=size)
+    subject = subject_create()
     teacher = teacher_create()
-    rooms = room_create_batch(size=size)
-    timeslots = timeslot_create_batch(size=size, is_even=True)
-    lessons = []
-    for i in range(size):
-        lessons.append(
-            lesson_create(
-                subject=subjects[i],
-                teacher=teacher,
-                room=rooms[i],
-                timeslot=timeslots[i],
-            ),
-        )
+    room = room_create()
+    timeslot = timeslot_create()
+    lesson_entity = LessonEntity(
+        subject=subject.to_entity(),
+        teacher=teacher.to_entity(),
+        room=room.to_entity(),
+        timeslot=timeslot.to_entity(),
+    )
 
-    return lessons
+    result = lesson_service.get_or_create(lesson=lesson_entity)
 
-
-@pytest.fixture(scope='function')
-def create_lesson_batch_two_teachers(
-        lesson_create,
-        subject_create_batch,
-        teacher_create,
-        room_create_batch,
-        timeslot_create_batch,
-):
-    size = 5
-    size_for_first_teacher = 3
-    size_for_second_teacher = 2
-    first_teacher = teacher_create()
-    second_teacher = teacher_create()
-    subjects = subject_create_batch(size=size)
-    rooms = room_create_batch(size=size)
-    timeslots = timeslot_create_batch(size=size, is_even=True)
-    lessons = []
-    for i in range(size):
-        if i < size_for_first_teacher:
-            lessons.append(
-                LessonModelFactory.create(
-                    subject=subjects[i],
-                    teacher=first_teacher,
-                    room=rooms[i],
-                    timeslot=timeslots[i],
-                ),
-            )
-        else:
-            lessons.append(
-                LessonModelFactory.create(
-                    subject=subjects[i],
-                    teacher=second_teacher,
-                    room=rooms[i],
-                    timeslot=timeslots[i],
-                ),
-            )
-
-    return lessons, size_for_first_teacher, size_for_second_teacher
+    assert result.id is not None
+    assert result.subject.uuid == subject.subject_uuid
+    assert result.teacher.uuid == teacher.teacher_uuid
+    assert result.room.uuid == room.room_uuid
 
 
 @pytest.mark.django_db
-def test_save_lesson(lesson_service: BaseLessonService, create_lesson):
+def test_get_or_create_lesson_returns_existing(lesson_service: BaseLessonService, create_lesson):
     lesson = create_lesson
     lesson_entity = LessonEntity(
-        id=lesson.id,
-        uuid=lesson.lesson_uuid,
-        subject=lesson.subject,
-        teacher=lesson.teacher,
-        room=lesson.room,
-        timeslot=lesson.timeslot,
+        subject=lesson.subject.to_entity(),
+        teacher=lesson.teacher.to_entity(),
+        room=lesson.room.to_entity(),
+        timeslot=lesson.timeslot.to_entity(),
+        type=lesson.type,
     )
-    saved_lesson = lesson_service.save(lesson=lesson_entity)
 
-    assert saved_lesson.id == lesson.id
-    assert saved_lesson.uuid == lesson.lesson_uuid
-    assert saved_lesson.subject.uuid == lesson.subject.subject_uuid
-    assert saved_lesson.teacher.uuid == lesson.teacher.teacher_uuid
-    assert saved_lesson.room.uuid == lesson.room.room_uuid
-    assert saved_lesson.timeslot.day == lesson.timeslot.day
-    assert saved_lesson.timeslot.ord_number == lesson.timeslot.ord_number
-    assert saved_lesson.timeslot.is_even == lesson.timeslot.is_even
+    result = lesson_service.get_or_create(lesson=lesson_entity)
+
+    assert result.id == lesson.id
+    assert result.uuid == str(lesson.lesson_uuid)
 
 
 @pytest.mark.django_db
@@ -133,7 +94,7 @@ def test_get_by_uuid_lesson_success(lesson_service: BaseLessonService, create_le
 
     found_lesson = lesson_service.get_by_uuid(lesson.lesson_uuid)
 
-    assert found_lesson.uuid == lesson.lesson_uuid
+    assert found_lesson.uuid == str(lesson.lesson_uuid)
 
 
 @pytest.mark.django_db
@@ -145,112 +106,156 @@ def test_get_by_uuid_lesson_failure(lesson_service: BaseLessonService, build_les
 
 
 @pytest.mark.django_db
-def test_get_by_lesson_entity_lesson_success(lesson_service: BaseLessonService, create_lesson):
-    lesson = create_lesson
-    lesson_entity = LessonEntity(
-        id=lesson.id,
-        uuid=lesson.lesson_uuid,
-        subject=lesson.subject,
-        teacher=lesson.teacher,
-        room=lesson.room,
-        timeslot=lesson.timeslot,
-    )
-
-    found_lesson = lesson_service.get_by_lesson_entity(lesson=lesson_entity)
-
-    assert found_lesson.id == lesson.id
-    assert found_lesson.uuid == lesson.lesson_uuid
-    assert found_lesson.subject.uuid == lesson.subject.subject_uuid
-    assert found_lesson.teacher.uuid == lesson.teacher.teacher_uuid
-    assert found_lesson.room.uuid == lesson.room.room_uuid
-    assert found_lesson.timeslot.day == lesson.timeslot.day
-    assert found_lesson.timeslot.ord_number == lesson.timeslot.ord_number
-    assert found_lesson.timeslot.is_even == lesson.timeslot.is_even
-
-
-@pytest.mark.django_db
-def test_get_by_lesson_entity_lesson_failure(lesson_service: BaseLessonService, build_lesson):
-    lesson = build_lesson
-    lesson_entity = LessonEntity(
-        id=lesson.id,
-        uuid=lesson.lesson_uuid,
-        subject=lesson.subject,
-        teacher=lesson.teacher,
-        room=lesson.room,
-        timeslot=lesson.timeslot,
-    )
-
-    with pytest.raises(LessonNotFoundException):
-        lesson_service.get_by_lesson_entity(lesson=lesson_entity)
-
-
-@pytest.mark.django_db
-def test_check_exists_lesson_success(lesson_service: BaseLessonService, create_lesson):
-    lesson = create_lesson
-    lesson_entity = LessonEntity(
-        id=lesson.id,
-        uuid=lesson.lesson_uuid,
-        subject=lesson.subject,
-        teacher=lesson.teacher,
-        room=lesson.room,
-        timeslot=lesson.timeslot,
-    )
-
-    assert lesson_service.check_exists(lesson=lesson_entity) is True
-
-
-@pytest.mark.django_db
-def test_check_exists_lesson_failure(lesson_service: BaseLessonService, build_lesson):
-    lesson = build_lesson
-    lesson_entity = LessonEntity(
-        id=lesson.id,
-        uuid=lesson.lesson_uuid,
-        subject=lesson.subject,
-        teacher=lesson.teacher,
-        room=lesson.room,
-        timeslot=lesson.timeslot,
-    )
-
-    assert lesson_service.check_exists(lesson=lesson_entity) is False
-
-
-@pytest.mark.django_db
-def test_get_lessons_for_teacher_lesson_one_teacher(
+def test_check_if_teacher_has_lessons_true_when_scheduled(
         lesson_service: BaseLessonService,
-        create_lesson_batch_one_teacher,
+        create_lesson,
 ):
-    lessons = create_lesson_batch_one_teacher
-    teacher_id = lessons[0].teacher.id
-    found_lessons = lesson_service.get_lessons_for_teacher(
-        teacher_id=teacher_id,
+    GroupLessonModelFactory(lesson=create_lesson)
+
+    assert lesson_service.check_if_teacher_has_lessons(teacher_id=create_lesson.teacher_id) is True
+
+
+@pytest.mark.django_db
+def test_check_if_teacher_has_lessons_false_when_only_orphan(
+        lesson_service: BaseLessonService,
+        create_lesson,
+):
+    assert lesson_service.check_if_teacher_has_lessons(teacher_id=create_lesson.teacher_id) is False
+
+
+@pytest.mark.django_db
+def test_check_if_subject_has_lessons_true_when_scheduled(
+        lesson_service: BaseLessonService,
+        create_lesson,
+):
+    GroupLessonModelFactory(lesson=create_lesson)
+
+    assert lesson_service.check_if_subject_has_lessons(subject_id=create_lesson.subject_id) is True
+
+
+@pytest.mark.django_db
+def test_check_if_subject_has_lessons_false_when_only_orphan(
+        lesson_service: BaseLessonService,
+        create_lesson,
+):
+    assert lesson_service.check_if_subject_has_lessons(subject_id=create_lesson.subject_id) is False
+
+
+@pytest.mark.django_db
+def test_check_if_room_has_lessons_true_when_scheduled(
+        lesson_service: BaseLessonService,
+        create_lesson,
+):
+    GroupLessonModelFactory(lesson=create_lesson)
+
+    assert lesson_service.check_if_room_has_lessons(room_id=create_lesson.room_id) is True
+
+
+@pytest.mark.django_db
+def test_check_if_room_has_lessons_false_when_only_orphan(
+        lesson_service: BaseLessonService,
+        create_lesson,
+):
+    assert lesson_service.check_if_room_has_lessons(room_id=create_lesson.room_id) is False
+
+
+# --- get_lessons_with_groups + get_lessons_with_subgroups_for_group ---
+
+@pytest.mark.django_db
+def test_get_lessons_with_groups_for_teacher_buckets_rows(
+        lesson_service: BaseLessonService,
+        create_lesson,
+):
+    group = GroupModelFactory()
+    GroupLessonModelFactory(lesson=create_lesson, group=group, subgroup=Subgroup.A)
+    GroupLessonModelFactory(lesson=create_lesson, group=group, subgroup=Subgroup.B)
+
+    views = lesson_service.get_lessons_with_groups_for_teacher(
+        teacher_id=create_lesson.teacher_id,
+        filter_query=LessonFilter(is_even=create_lesson.timeslot.is_even),
+    )
+
+    assert len(views) == 1
+    assert len(views[0].groups) == 1
+    assert sorted(views[0].groups[0].subgroups) == [Subgroup.A, Subgroup.B]
+
+
+@pytest.mark.django_db
+def test_get_lessons_with_groups_for_teacher_empty_when_no_match(
+        lesson_service: BaseLessonService,
+        create_lesson,
+):
+    views = lesson_service.get_lessons_with_groups_for_teacher(
+        teacher_id=create_lesson.teacher_id,
         filter_query=LessonFilter(is_even=True),
     )
 
-    assert len(found_lessons) == len(lessons)
-    assert found_lessons[0].teacher.id == teacher_id
+    assert views == []
 
 
 @pytest.mark.django_db
-def test_get_lessons_for_teacher_lesson_two_teachers(
+def test_get_lessons_with_subgroups_for_group_buckets_rows(
         lesson_service: BaseLessonService,
-        create_lesson_batch_two_teachers,
+        create_lesson,
 ):
-    lessons, size_for_first_teacher, size_for_second_teacher = create_lesson_batch_two_teachers
-    teacher_ids = {lesson.teacher.id for lesson in lessons}
+    group = GroupModelFactory()
+    GroupLessonModelFactory(lesson=create_lesson, group=group, subgroup=Subgroup.A)
+    GroupLessonModelFactory(lesson=create_lesson, group=group, subgroup=Subgroup.B)
 
-    assert len(teacher_ids) == 2
+    views = lesson_service.get_lessons_with_subgroups_for_group(
+        group_id=group.id,
+        filter_query=LessonFilter(is_even=create_lesson.timeslot.is_even),
+    )
 
-    teacher_lessons = []
+    assert len(views) == 1
+    assert sorted(views[0].subgroups) == [Subgroup.A, Subgroup.B]
 
-    for teacher_id in teacher_ids:
-        found_lessons = lesson_service.get_lessons_for_teacher(
-            teacher_id=teacher_id,
-            filter_query=LessonFilter(is_even=True),
-        )
 
-        assert found_lessons[0].teacher.id == teacher_id
+@pytest.mark.django_db
+def test_get_lessons_with_subgroups_for_group_subgroup_filter(
+        lesson_service: BaseLessonService,
+        create_lesson,
+):
+    group = GroupModelFactory()
+    GroupLessonModelFactory(lesson=create_lesson, group=group, subgroup=Subgroup.A)
 
-        teacher_lessons.append(found_lessons)
+    views = lesson_service.get_lessons_with_subgroups_for_group(
+        group_id=group.id,
+        filter_query=LessonFilter(is_even=create_lesson.timeslot.is_even, subgroup=Subgroup.A),
+    )
 
-    assert len(teacher_lessons[0]) == size_for_first_teacher
-    assert len(teacher_lessons[1]) == size_for_second_teacher
+    assert len(views) == 1
+
+
+# --- delete_by_uuid ---
+
+@pytest.mark.django_db
+def test_delete_by_uuid_happy_path(lesson_service: BaseLessonService, create_lesson):
+    lesson_service.delete_by_uuid(lesson_uuid=str(create_lesson.lesson_uuid))
+
+    with pytest.raises(LessonNotFoundException):
+        lesson_service.get_by_uuid(lesson_uuid=str(create_lesson.lesson_uuid))
+
+
+@pytest.mark.django_db
+def test_delete_by_uuid_raises_when_not_found(lesson_service: BaseLessonService):
+    with pytest.raises(LessonDeleteError):
+        lesson_service.delete_by_uuid(lesson_uuid="00000000-0000-0000-0000-000000000000")
+
+
+# --- get_lessons_with_groups (raw Q-based) ---
+
+@pytest.mark.django_db
+def test_get_lessons_with_groups_with_raw_query(
+        lesson_service: BaseLessonService,
+        create_lesson,
+):
+    group = GroupModelFactory()
+    GroupLessonModelFactory(lesson=create_lesson, group=group)
+
+    views = lesson_service.get_lessons_with_groups(
+        lesson_filter=Q(lesson__teacher_id=create_lesson.teacher_id),
+    )
+
+    assert len(views) == 1
+    assert views[0].lesson.uuid == str(create_lesson.lesson_uuid)
