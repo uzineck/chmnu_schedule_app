@@ -6,7 +6,7 @@ authors = ["Your Name <you@example.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "3.10.11"
+python = "~3.10.11"
 django = "^5.0.3"
 django-environ = "^0.11.2"
 django-ninja = "^1.1.0"
@@ -21,6 +21,7 @@ transliterate = "^1.10.2"
 pytz = "^2024.2"
 django-apscheduler = "^0.7.0"
 django-cors-headers = "^4.6.0"
+pydantic = {extras = ["email"], version = "^2.13.4"}
 
 
 [tool.poetry.group.dev.dependencies]
@@ -30,6 +31,8 @@ pre-commit = "^3.7.0"
 pytest = "^8.3.3"
 pytest-django = "^4.9.0"
 factory-boy = "^3.3.1"
+pytest-cov = "^7.1.0"
+pip-audit = "^2.10.0"
 
 
 [build-system]
