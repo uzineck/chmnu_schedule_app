@@ -1,2 +1,51 @@
-docker_compose/
+# Version control
+.git/
+.gitignore
+.gitattributes
+.github/
+
+# Secrets — never bake into image. The compose file mounts .env at runtime via env_file.
+.env
+.env.local
+.env.*.local
+
+# Python bytecode and caches
+__pycache__/
 *.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Local virtualenvs — image installs deps via poetry inside.
+.venv/
+venv/
+env/
+ENV/
+
+# Runtime artifacts from local runs
+logs/
+*.log
+*.sqlite3
+static/
+
+# IDE / editor
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Docker config — no need to bake compose files into the image
+docker_compose/
+.dockerignore
+Dockerfile
+
+# Frontend artifacts (if added later)
+node_modules/

@@ -1,7 +1,10 @@
 .idea/
+.claude/
 *.pyc
+__pycache__/
 .env
 .env.prod
+.coverage
 static/*
 !static/.gitkeep
 logs/apps/client/*

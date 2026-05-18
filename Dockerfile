@@ -1,21 +1,22 @@
-FROM python:3.10.11-slim-bullseye
+FROM python:3.10-slim-bookworm
 
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
 WORKDIR /app
 
-RUN apt update -y && \
-    apt install -y python3-dev \
-    gcc \
-    musl-dev \
-    libpq-dev \
-    nmap
+RUN apt-get update -y && \
+    apt-get install -y --no-install-recommends \
+        python3-dev \
+        gcc \
+        libpq-dev \
+        curl && \
+    rm -rf /var/lib/apt/lists/*
 
-ADD pyproject.toml /app
+COPY pyproject.toml poetry.lock /app/
 
 RUN pip install --upgrade pip
-RUN pip install poetry
+RUN pip install "poetry==1.8.4"
 
 RUN poetry config virtualenvs.create false
 RUN poetry install --no-root --no-interaction --no-ansi

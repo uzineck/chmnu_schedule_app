@@ -17,12 +17,13 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-    restart: always
+    restart: unless-stopped
 
 
   pgadmin:
     image: dpage/pgadmin4:latest
     container_name: pgadmin
+    profiles: ["dev"]
     depends_on:
       - postgres
     links:
@@ -33,7 +34,7 @@ services:
       - pgadmin-data:/var/lib/pgadmin
     env_file:
       - ../.env
-    restart: always
+    restart: unless-stopped
 
   redis:
     image: redis:latest
@@ -51,18 +52,19 @@ services:
       test: "redis-cli --raw ping"
       interval: 2s
       timeout: 15s
-    restart: always
+    restart: unless-stopped
 
   redis-insight:
     image: redis/redisinsight:latest
     container_name: redisinsight
+    profiles: ["dev"]
     env_file:
       - ../.env
     ports:
       - "${REDISINSIGHT_PORT}:5540"
     volumes:
       - redis-insight:/data
-    restart: always
+    restart: unless-stopped
 
 volumes:
   postgres_data:

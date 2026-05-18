@@ -1,4 +1,8 @@
 #!/bin/bash
 # !WARNING This file should not contain last blank line
-# python manage.py runserver 0.0.0.0:8000
-gunicorn core.project.wsgi:application -w 2 --bind 0.0.0.0:8000 --reload
+WORKERS="${GUNICORN_WORKERS:-2}"
+if [ "${DJANGO_ENV}" = "dev" ]; then
+    exec gunicorn core.project.wsgi:application -w "${WORKERS}" --bind 0.0.0.0:8000 --reload
+else
+    exec gunicorn core.project.wsgi:application -w "${WORKERS}" --bind 0.0.0.0:8000
+fi

@@ -11,13 +11,13 @@ services:
     env_file:
       - ../.env
     environment:
-      DJANGO_ENV: dev
-      DJANGO_SETTINGS_MODULE: core.project.settings.dev
+      DJANGO_ENV: prod
+      DJANGO_SETTINGS_MODULE: core.project.settings.prod
+      GUNICORN_WORKERS: ${GUNICORN_WORKERS:-4}
     depends_on:
       - postgres
     volumes:
       - static:/app/static/
-      - ..:/app/
     healthcheck:
       test: ["CMD-SHELL", "curl -fsS http://localhost:8000/api/v1/ping/ || exit 1"]
       interval: 30s
