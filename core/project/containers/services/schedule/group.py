@@ -12,6 +12,7 @@ from core.apps.schedule.use_cases.group.delete import DeleteGroupUseCase
 from core.apps.schedule.use_cases.group.get_all import GetAllGroupsUseCase
 from core.apps.schedule.use_cases.group.get_group_lessons import GetGroupLessonsUseCase
 from core.apps.schedule.use_cases.group.get_info import GetGroupInfoUseCase
+from core.apps.schedule.use_cases.group.get_list import GetGroupListUseCase
 from core.apps.schedule.use_cases.group.headman_add_lesson import HeadmanAddLessonToGroupUseCase
 from core.apps.schedule.use_cases.group.headman_remove_lesson import HeadmanRemoveLessonFromGroupUseCase
 from core.apps.schedule.use_cases.group.headman_update_lesson import HeadmanUpdateLessonInGroupUseCase
@@ -22,6 +23,7 @@ def register_group_services(container: punq.Container):
     container.register(BaseGroupService, ORMGroupService)
 
     container.register(GetAllGroupsUseCase)
+    container.register(GetGroupListUseCase)
     container.register(CreateGroupUseCase)
     container.register(DeleteGroupUseCase)
     container.register(GetGroupLessonsUseCase)

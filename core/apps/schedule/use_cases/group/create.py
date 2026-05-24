@@ -23,7 +23,10 @@ class CreateGroupUseCase:
     group_validator_service: BaseGroupValidatorService
     uuid_validator_service: BaseUuidValidatorService
 
-    @cache_decorator.delete_cache(model_prefix='group', func_prefix='all')
+    @cache_decorator.delete_caches([
+        dict(model_prefix='group', func_prefix='all'),
+        dict(model_prefix='group', func_prefix='list', filters='*', pagination_in='*'),
+    ])
     def execute(self, group_number: str, faculty_uuid: str, headman_email: str, has_subgroups: bool) -> GroupEntity:
         self.uuid_validator_service.validate(uuid_str=faculty_uuid)
 

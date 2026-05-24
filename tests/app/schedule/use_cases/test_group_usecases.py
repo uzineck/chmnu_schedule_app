@@ -1,15 +1,18 @@
-import pytest
 from django.core.cache import cache
+
+import pytest
 from tests.factories.client.client import ClientModelFactory
 from tests.factories.client.role import RoleModelFactory
 from tests.factories.schedule.group import GroupModelFactory
 from tests.factories.schedule.group_lesson import GroupLessonModelFactory
 from tests.factories.schedule.lesson import LessonModelFactory
 
+from core.api.filters import PaginationIn
 from core.apps.clients.exceptions.client import (
     ClientNotFoundException,
     ClientRoleNotMatchingWithRequiredException,
 )
+from core.apps.common.filters import SearchFilter
 from core.apps.common.models import (
     ClientRole,
     Subgroup,
@@ -28,6 +31,7 @@ from core.apps.schedule.use_cases.group.create import CreateGroupUseCase
 from core.apps.schedule.use_cases.group.delete import DeleteGroupUseCase
 from core.apps.schedule.use_cases.group.get_group_lessons import GetGroupLessonsUseCase
 from core.apps.schedule.use_cases.group.get_info import GetGroupInfoUseCase
+from core.apps.schedule.use_cases.group.get_list import GetGroupListUseCase
 from core.apps.schedule.use_cases.group.update_headman import UpdateGroupHeadmanUseCase
 
 
@@ -64,6 +68,11 @@ def update_headman_use_case(container) -> UpdateGroupHeadmanUseCase:
 
 
 @pytest.fixture
+def get_list_use_case(container) -> GetGroupListUseCase:
+    return container.resolve(GetGroupListUseCase)
+
+
+@pytest.fixture
 def headman_client():
     def _build(email: str = None):
         role = RoleModelFactory(id=ClientRole.HEADMAN)
@@ -72,6 +81,51 @@ def headman_client():
             kwargs["email"] = email
         return ClientModelFactory(**kwargs)
     return _build
+
+
+# --- GetList ---
+
+@pytest.mark.django_db
+def test_get_group_list_returns_paginated(get_list_use_case, group_create_batch):
+    group_create_batch(size=5)
+
+    items, count = get_list_use_case.execute(
+        filters=SearchFilter(),
+        pagination_in=PaginationIn(offset=0, limit=10),
+    )
+
+    assert count == 5
+    assert len(list(items)) == 5
+
+
+@pytest.mark.django_db
+def test_get_group_list_search_filters_by_number(get_list_use_case):
+    GroupModelFactory(number="ПМ-101")
+    GroupModelFactory(number="ПМ-102")
+    GroupModelFactory(number="ІН-201")
+
+    items, count = get_list_use_case.execute(
+        filters=SearchFilter(search="ПМ"),
+        pagination_in=PaginationIn(offset=0, limit=10),
+    )
+
+    items = list(items)
+    assert count == 2
+    assert {g.number for g in items} == {"ПМ-101", "ПМ-102"}
+
+
+@pytest.mark.django_db
+def test_get_group_list_handles_groups_without_headman(get_list_use_case):
+    GroupModelFactory(headman=None)
+
+    items, count = get_list_use_case.execute(
+        filters=SearchFilter(),
+        pagination_in=PaginationIn(offset=0, limit=10),
+    )
+
+    items = list(items)
+    assert count == 1
+    assert items[0].headman is None
 
 
 # --- Create ---

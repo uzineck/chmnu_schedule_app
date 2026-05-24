@@ -45,3 +45,13 @@ class ClientUpdateException(UpdateConflictException):
     @property
     def message(self):
         return 'Failed to update client'
+
+
+@dataclass(eq=False)
+class InsufficientPrivilegeToManageRoleException(PermissionException):
+    caller_roles: list[str]
+    target_roles: list[str]
+
+    @property
+    def message(self):
+        return 'Caller does not have permission to assign the requested roles'

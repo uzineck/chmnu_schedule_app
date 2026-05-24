@@ -23,6 +23,7 @@ class UpdateGroupHeadmanUseCase:
         dict(model_prefix='group', identifier=lambda kw: kw['group_uuid'], func_prefix='info'),
         dict(model_prefix='group', identifier=lambda kw: kw['new_headman_email'], func_prefix='group'),
         dict(model_prefix='group', identifier=lambda kw, res: res[1], func_prefix='group'),
+        dict(model_prefix='group', func_prefix='list', filters='*', pagination_in='*'),
     ])
     def execute(self, group_uuid: str, new_headman_email: str) -> tuple[GroupEntity, str | None]:
         self.uuid_validator_service.validate(uuid_str=group_uuid)

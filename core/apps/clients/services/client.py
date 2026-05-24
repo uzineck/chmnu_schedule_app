@@ -1,16 +1,20 @@
+from django.db.models import Q
 from django.db.utils import IntegrityError
 
 from abc import (
     ABC,
     abstractmethod,
 )
+from typing import Iterable
 
+from core.api.filters import PaginationIn
 from core.apps.clients.entities.client import Client as ClientEntity
 from core.apps.clients.exceptions.client import (
     ClientAlreadyExistsException,
     ClientNotFoundException,
     ClientUpdateException,
 )
+from core.apps.clients.filters.client import ClientSearchFilter
 from core.apps.clients.models.client import Client as ClientModel
 
 
@@ -24,6 +28,18 @@ class BaseClientService(ABC):
         email: str,
         hashed_password: str,
     ) -> ClientEntity:
+        ...
+
+    @abstractmethod
+    def get_all(self, filters: ClientSearchFilter) -> Iterable[ClientEntity]:
+        ...
+
+    @abstractmethod
+    def get_list(self, filters: ClientSearchFilter, pagination: PaginationIn) -> Iterable[ClientEntity]:
+        ...
+
+    @abstractmethod
+    def get_count(self, filters: ClientSearchFilter) -> int:
         ...
 
     @abstractmethod
@@ -70,6 +86,22 @@ class BaseClientService(ABC):
 
 
 class ORMClientService(BaseClientService):
+    def _build_client_query(self, filters: ClientSearchFilter) -> Q:
+        query = Q()
+
+        if filters.search is not None:
+            query &= (
+                Q(email__icontains=filters.search) |
+                Q(first_name__icontains=filters.search) |
+                Q(last_name__icontains=filters.search) |
+                Q(middle_name__icontains=filters.search)
+            )
+
+        if filters.allowed_roles is not None:
+            query &= Q(roles__id__in=list(filters.allowed_roles))
+
+        return query
+
     def create(
         self,
         first_name: str,
@@ -90,6 +122,34 @@ class ORMClientService(BaseClientService):
             raise ClientAlreadyExistsException(email=email)
 
         return client.to_entity()
+
+    def get_all(self, filters: ClientSearchFilter) -> list[ClientEntity]:
+        query = self._build_client_query(filters)
+        qs = (
+            ClientModel.objects.
+            filter(query).
+            prefetch_related('roles').
+            distinct().
+            order_by('last_name', 'first_name')
+        )
+        return [client.to_entity() for client in qs]
+
+    def get_list(self, filters: ClientSearchFilter, pagination: PaginationIn) -> list[ClientEntity]:
+        query = self._build_client_query(filters)
+        qs = (
+            ClientModel.objects.
+            filter(query).
+            prefetch_related('roles').
+            distinct().
+            order_by('last_name', 'first_name')
+            [pagination.offset:pagination.offset + pagination.limit]
+        )
+        return [client.to_entity() for client in qs]
+
+    def get_count(self, filters: ClientSearchFilter) -> int:
+        query = self._build_client_query(filters)
+
+        return ClientModel.objects.filter(query).distinct().count()
 
     def update_email(self, client_id: int, email: str) -> None:
         is_updated = ClientModel.objects.filter(id=client_id).update(email=email)

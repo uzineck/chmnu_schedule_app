@@ -1,4 +1,5 @@
 from django.db import IntegrityError
+from django.db.models import Q
 from django.utils import timezone
 
 from abc import (
@@ -7,6 +8,8 @@ from abc import (
 )
 from typing import Iterable
 
+from core.api.filters import PaginationIn
+from core.apps.common.filters import SearchFilter as SearchFilterEntity
 from core.apps.common.models import Subgroup
 from core.apps.schedule.entities.group import Group as GroupEntity
 from core.apps.schedule.exceptions.group import (
@@ -33,6 +36,14 @@ class BaseGroupService(ABC):
 
     @abstractmethod
     def get_all(self) -> Iterable[GroupEntity]:
+        ...
+
+    @abstractmethod
+    def get_list(self, filters: SearchFilterEntity, pagination: PaginationIn) -> Iterable[GroupEntity]:
+        ...
+
+    @abstractmethod
+    def get_count(self, filters: SearchFilterEntity) -> int:
         ...
 
     @abstractmethod
@@ -85,6 +96,14 @@ class BaseGroupService(ABC):
 
 
 class ORMGroupService(BaseGroupService):
+    def _build_group_query(self, filters: SearchFilterEntity) -> Q:
+        query = Q()
+
+        if filters.search is not None:
+            query &= Q(number__icontains=filters.search)
+
+        return query
+
     def create(
         self,
         group_number: str,
@@ -111,6 +130,21 @@ class ORMGroupService(BaseGroupService):
             select_related("headman", "faculty")
         )
         return [group.to_entity() for group in groups]
+
+    def get_list(self, filters: SearchFilterEntity, pagination: PaginationIn) -> list[GroupEntity]:
+        query = self._build_group_query(filters)
+        qs = (
+            GroupModel.objects.
+            filter(query).
+            select_related("headman", "faculty")
+            [pagination.offset:pagination.offset + pagination.limit]
+        )
+        return [group.to_entity() for group in qs]
+
+    def get_count(self, filters: SearchFilterEntity) -> int:
+        query = self._build_group_query(filters)
+
+        return GroupModel.objects.filter(query).count()
 
     def get_by_uuid(self, group_uuid: str) -> GroupEntity:
         try:

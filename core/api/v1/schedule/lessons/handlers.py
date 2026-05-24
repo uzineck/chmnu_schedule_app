@@ -1,7 +1,10 @@
 from django.http import HttpRequest
 from ninja import Router
 
-from core.api.schemas import ApiResponse
+from core.api.schemas import (
+    ApiErrorResponse,
+    ApiResponse,
+)
 from core.api.v1.schedule.lessons.schema_for_groups import (
     LessonForGroupOutSchema,
     UpdatedLessonOutSchema,
@@ -21,15 +24,33 @@ router = Router(tags=["Lessons"])
 
 @router.post(
     "",
-    response={201: ApiResponse[LessonForGroupOutSchema]},
+    response={
+        201: ApiResponse[LessonForGroupOutSchema],
+        400: ApiErrorResponse,
+        401: ApiErrorResponse,
+        403: ApiErrorResponse,
+        404: ApiErrorResponse,
+    },
     operation_id="get_or_create_lesson",
     auth=jwt_auth_schedule_or_headman,
+    summary="Get-or-create a lesson definition",
+    description=(
+        "Returns the existing lesson matching the supplied (subject, teacher, room, timeslot, "
+        "type) combination, or creates a fresh one if no match exists. The request body wraps "
+        "two nested payloads:\n\n"
+        "- `schema` — references to the related catalog entities (`subject_uuid`, `teacher_uuid`, "
+        "`room_uuid`).\n"
+        "- `lesson_schema` — the lesson's own attributes (`type` and `timeslot`).\n\n"
+        "The response does not include `subgroups`; that field is only populated when the lesson "
+        "is fetched in the context of a specific group. Requires ADMIN, SCHEDULE_MANAGER, or "
+        "HEADMAN role."
+    ),
 )
 def get_or_create_lesson(
     request: HttpRequest,
     schema: CreateLessonInSchema,
     lesson_schema: LessonInSchema,
-) -> ApiResponse[LessonForGroupOutSchema]:
+) -> tuple[int, ApiResponse[LessonForGroupOutSchema]]:
     container = get_container()
     use_case: GetOrCreateLessonUseCase = container.resolve(GetOrCreateLessonUseCase)
 
@@ -40,14 +61,28 @@ def get_or_create_lesson(
         room_uuid=schema.room_uuid,
     )
 
-    return ApiResponse(data=LessonForGroupOutSchema.from_entity(lesson))
+    return 201, ApiResponse(data=LessonForGroupOutSchema.from_entity(lesson))
 
 
 @router.patch(
     "{lesson_uuid}/update",
-    response=ApiResponse[UpdatedLessonOutSchema],
+    response={
+        200: ApiResponse[UpdatedLessonOutSchema],
+        400: ApiErrorResponse,
+        401: ApiErrorResponse,
+        403: ApiErrorResponse,
+        404: ApiErrorResponse,
+        409: ApiErrorResponse,
+    },
     operation_id="update_lesson",
     auth=jwt_auth_schedule_or_headman,
+    summary="Update a lesson definition",
+    description=(
+        "Replaces the lesson identified by `lesson_uuid` with a new (subject, teacher, room, "
+        "timeslot, type) combination. The response returns both the `updated_lesson` and the "
+        "`old_lesson` snapshot so the client can refresh local caches without an extra fetch. "
+        "Requires ADMIN, SCHEDULE_MANAGER, or HEADMAN role."
+    ),
 )
 def update_lesson(
     request: HttpRequest,

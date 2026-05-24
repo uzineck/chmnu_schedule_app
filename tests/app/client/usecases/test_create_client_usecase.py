@@ -2,7 +2,10 @@ import pytest
 from tests.factories.client.client import ClientModelFactory
 from tests.factories.client.role import RoleModelFactory
 
-from core.apps.clients.exceptions.client import ClientAlreadyExistsException
+from core.apps.clients.exceptions.client import (
+    ClientAlreadyExistsException,
+    InsufficientPrivilegeToManageRoleException,
+)
 from core.apps.clients.usecases.client.create import CreateClientUseCase
 from core.apps.common.authentication.validators.exceptions import (
     InvalidPasswordPatternException,
@@ -26,6 +29,7 @@ def use_case_params(faker_ua, generate_email, generate_password):
     password = generate_password()
 
     return {
+        "caller_roles": [ClientRole.ADMIN],
         "first_name": first_name,
         "last_name": last_name,
         "middle_name": middle_name,
@@ -84,3 +88,52 @@ def test_create_client_password_validator_match_failure(
 
     with pytest.raises(PasswordsNotMatchingException):
         use_case.execute(**use_case_params)
+
+
+@pytest.mark.django_db
+def test_create_client_as_client_manager_can_create_headman(use_case: CreateClientUseCase, use_case_params):
+    RoleModelFactory(id=ClientRole.HEADMAN)
+    use_case_params["caller_roles"] = [ClientRole.CLIENT_MANAGER]
+
+    client = use_case.execute(**use_case_params)
+
+    assert ClientRole.HEADMAN in client.roles
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "forbidden_role",
+    [ClientRole.ADMIN, ClientRole.CLIENT_MANAGER, ClientRole.FACULTY_MANAGER, ClientRole.SCHEDULE_MANAGER],
+)
+def test_create_client_as_client_manager_cannot_create_privileged_roles(
+        use_case: CreateClientUseCase,
+        use_case_params,
+        forbidden_role,
+):
+    use_case_params["caller_roles"] = [ClientRole.CLIENT_MANAGER]
+    use_case_params["roles"] = [forbidden_role]
+
+    with pytest.raises(InsufficientPrivilegeToManageRoleException):
+        use_case.execute(**use_case_params)
+
+
+@pytest.mark.django_db
+def test_create_client_as_client_manager_cannot_mix_headman_with_privileged_role(
+        use_case: CreateClientUseCase,
+        use_case_params,
+):
+    use_case_params["caller_roles"] = [ClientRole.CLIENT_MANAGER]
+    use_case_params["roles"] = [ClientRole.HEADMAN, ClientRole.ADMIN]
+
+    with pytest.raises(InsufficientPrivilegeToManageRoleException):
+        use_case.execute(**use_case_params)
+
+
+@pytest.mark.django_db
+def test_create_client_as_admin_can_create_any_role(use_case: CreateClientUseCase, use_case_params):
+    RoleModelFactory(id=ClientRole.ADMIN)
+    use_case_params["roles"] = [ClientRole.ADMIN]
+
+    client = use_case.execute(**use_case_params)
+
+    assert ClientRole.ADMIN in client.roles

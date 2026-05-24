@@ -18,6 +18,7 @@ class GroupSchema(Schema):
     number: str
     faculty: FacultyCodeNameSchema
     has_subgroups: bool
+    schedule_updated_at: datetime | None = None
 
     @classmethod
     def from_entity(cls, entity: GroupEntity) -> 'GroupSchema':
@@ -26,6 +27,7 @@ class GroupSchema(Schema):
             number=entity.number,
             faculty=FacultyCodeNameSchema.from_entity(entity.faculty),
             has_subgroups=entity.has_subgroups,
+            schedule_updated_at=entity.schedule_updated_at,
         )
 
 
@@ -39,16 +41,13 @@ class GroupSchemaWithSubgroup(GroupSchema):
             number=entity.number,
             faculty=FacultyCodeNameSchema.from_entity(entity.faculty),
             has_subgroups=entity.has_subgroups,
+            schedule_updated_at=entity.schedule_updated_at,
             subgroup=subgroup,
         )
 
 
-class GroupSchemaWithHeadman(Schema):
-    uuid: str
-    number: str
-    faculty: FacultyCodeNameSchema
-    has_subgroups: bool
-    headman: ClientSchemaPrivate
+class GroupSchemaWithHeadman(GroupSchema):
+    headman: ClientSchemaPrivate | None = None
 
     @classmethod
     def from_entity(cls, entity: GroupEntity) -> 'GroupSchemaWithHeadman':
@@ -57,7 +56,8 @@ class GroupSchemaWithHeadman(Schema):
             number=entity.number,
             faculty=FacultyCodeNameSchema.from_entity(entity.faculty),
             has_subgroups=entity.has_subgroups,
-            headman=ClientSchemaPrivate.from_entity(entity.headman),
+            schedule_updated_at=entity.schedule_updated_at,
+            headman=ClientSchemaPrivate.from_entity(entity.headman) if entity.headman else None,
         )
 
 
@@ -68,22 +68,9 @@ class CreateGroupSchema(Schema):
     has_subgroups: bool
 
 
-class GroupAllOutSchema(Schema):
-    uuid: str
-    number: str
-    faculty: FacultyCodeNameSchema
-    has_subgroups: bool
-    schedule_updated_at: datetime | None = None
-
-    @classmethod
-    def from_entity(cls, entity: GroupEntity) -> 'GroupAllOutSchema':
-        return cls(
-            uuid=entity.uuid,
-            number=entity.number,
-            faculty=FacultyCodeNameSchema.from_entity(entity.faculty),
-            has_subgroups=entity.has_subgroups,
-            schedule_updated_at=entity.schedule_updated_at,
-        )
+class GroupAllOutSchema(GroupSchema):
+    """Alias of `GroupSchema` kept for the `get_all_groups` operation_id; the
+    full group dataset is identical to the base schema."""
 
 
 class GroupLessonsOutSchema(Schema):

@@ -10,6 +10,7 @@ from core.api.filters import (
     SearchFilter,
 )
 from core.api.schemas import (
+    ApiErrorResponse,
     ApiResponse,
     ListPaginatedResponse,
     StatusResponse,
@@ -38,10 +39,17 @@ router = Router(tags=["Rooms"])
 
 @router.get(
     'all',
-    response=ApiResponse[list[RoomSchema]],
+    response={
+        200: ApiResponse[list[RoomSchema]],
+        401: ApiErrorResponse,
+    },
     operation_id='get_all_rooms',
     auth=jwt_auth,
-
+    summary="List every active room",
+    description=(
+        "Returns the full collection of active rooms — no pagination, no filtering. Intended for "
+        "dropdowns. Use `get_room_list` for paginated / searchable access."
+    ),
 )
 def get_all_rooms(request: HttpRequest) -> ApiResponse[list[RoomSchema]]:
     container = get_container()
@@ -54,9 +62,14 @@ def get_all_rooms(request: HttpRequest) -> ApiResponse[list[RoomSchema]]:
 
 @router.get(
     "",
-    response=ApiResponse[ListPaginatedResponse[RoomSchema]],
+    response={
+        200: ApiResponse[ListPaginatedResponse[RoomSchema]],
+        401: ApiErrorResponse,
+    },
     operation_id="get_room_list",
     auth=jwt_auth,
+    summary="Search and paginate rooms",
+    description="Returns a paginated list of active rooms; `search` matches against the room number and description.",
 )
 def get_room_list(
     request: HttpRequest,
@@ -85,25 +98,48 @@ def get_room_list(
 
 @router.post(
     "",
-    response={201: ApiResponse[RoomSchema]},
+    response={
+        201: ApiResponse[RoomSchema],
+        400: ApiErrorResponse,
+        401: ApiErrorResponse,
+        403: ApiErrorResponse,
+        409: ApiErrorResponse,
+    },
     operation_id="create_room",
     auth=jwt_auth_room_manager,
+    summary="Create a room",
+    description=(
+        "Registers a new room. `number` must be unique across active rooms. Description is set "
+        "via a separate endpoint. Requires ADMIN or ROOM_MANAGER role."
+    ),
 )
-def create_room(request: HttpRequest, schema: RoomNumberInSchema) -> ApiResponse[RoomSchema]:
+def create_room(
+        request: HttpRequest,
+        schema: RoomNumberInSchema,
+) -> tuple[int, ApiResponse[RoomSchema]]:
     container = get_container()
     use_case: CreateRoomUseCase = container.resolve(CreateRoomUseCase)
     room = use_case.execute(number=schema.number)
 
-    return ApiResponse(
+    return 201, ApiResponse(
         data=RoomSchema.from_entity(entity=room),
     )
 
 
 @router.patch(
     "{room_uuid}/update_number",
-    response=ApiResponse[RoomSchema],
+    response={
+        200: ApiResponse[RoomSchema],
+        400: ApiErrorResponse,
+        401: ApiErrorResponse,
+        403: ApiErrorResponse,
+        404: ApiErrorResponse,
+        409: ApiErrorResponse,
+    },
     operation_id="update_room_number",
     auth=jwt_auth_room_manager,
+    summary="Change a room's number",
+    description="Renames a room. Returns 409 if the new number is already taken by another active room.",
 )
 def update_room_number(
     request: HttpRequest,
@@ -121,9 +157,16 @@ def update_room_number(
 
 @router.patch(
     "{room_uuid}/update_description",
-    response=ApiResponse[RoomSchema],
+    response={
+        200: ApiResponse[RoomSchema],
+        401: ApiErrorResponse,
+        403: ApiErrorResponse,
+        404: ApiErrorResponse,
+    },
     operation_id="update_room_description",
     auth=jwt_auth_room_manager,
+    summary="Change a room's description",
+    description="Updates the free-text description (e.g. 'computer lab, 25 stations'). Number is left untouched.",
 )
 def update_room_description(
     request: HttpRequest,
@@ -141,9 +184,17 @@ def update_room_description(
 
 @router.delete(
     "{room_uuid}",
-    response=ApiResponse[StatusResponse],
+    response={
+        200: ApiResponse[StatusResponse],
+        401: ApiErrorResponse,
+        403: ApiErrorResponse,
+        404: ApiErrorResponse,
+        409: ApiErrorResponse,
+    },
     operation_id="delete_room",
     auth=jwt_auth_room_manager,
+    summary="Soft-delete a room",
+    description="Marks the room inactive. Returns 409 if the room is still referenced by any active lesson.",
 )
 def delete_room(
     request: HttpRequest,

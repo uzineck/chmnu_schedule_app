@@ -1,5 +1,6 @@
-import pytest
 from django.core.cache import cache
+
+import pytest
 from tests.factories.schedule.lesson import LessonModelFactory
 
 from core.apps.common.models import LessonType
@@ -200,5 +201,3 @@ def test_update_lesson_swap_subject_happy_path(
 
     assert updated.subject.uuid == str(new_subject.subject_uuid)
     assert old.uuid == str(existing_lesson.lesson_uuid)
-
-

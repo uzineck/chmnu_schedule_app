@@ -1,5 +1,6 @@
 import pytest
 from tests.factories.schedule.faculty import FacultyModelFactory
+from tests.factories.schedule.group import GroupModelFactory
 from tests.factories.schedule.lesson import LessonModelFactory
 from tests.factories.schedule.room import RoomModelFactory
 from tests.factories.schedule.subject import SubjectModelFactory
@@ -7,6 +8,7 @@ from tests.factories.schedule.teacher import TeacherModelFactory
 from tests.factories.schedule.timeslot import TimeslotModelFactory
 
 from core.apps.schedule.services.faculty import BaseFacultyService
+from core.apps.schedule.services.group import BaseGroupService
 from core.apps.schedule.services.lesson import BaseLessonService
 from core.apps.schedule.services.room import BaseRoomService
 from core.apps.schedule.services.subject import BaseSubjectService
@@ -32,6 +34,11 @@ def teacher_service(container) -> BaseTeacherService:
 @pytest.fixture
 def faculty_service(container) -> BaseFacultyService:
     return container.resolve(BaseFacultyService)
+
+
+@pytest.fixture
+def group_service(container) -> BaseGroupService:
+    return container.resolve(BaseGroupService)
 
 
 @pytest.fixture
@@ -74,6 +81,14 @@ def faculty_create_batch():
         return FacultyModelFactory.create_batch(size=size, **kwargs)
 
     return _faculty_create_batch
+
+
+@pytest.fixture(scope='function')
+def group_create_batch():
+    def _group_create_batch(size: int, **kwargs) -> list:
+        return GroupModelFactory.create_batch(size=size, **kwargs)
+
+    return _group_create_batch
 
 
 @pytest.fixture(scope='function')

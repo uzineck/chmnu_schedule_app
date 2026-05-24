@@ -16,6 +16,8 @@ from core.apps.clients.services.role import (
     BaseRoleService,
     ORMRoleService,
 )
+from core.apps.clients.usecases.admin.get_all import GetAllClientsUseCase
+from core.apps.clients.usecases.admin.get_list import GetClientListUseCase
 from core.apps.clients.usecases.admin.update_password import UpdateClientPasswordAdminUseCase
 from core.apps.clients.usecases.admin.update_role import UpdateClientRoleUseCase
 from core.apps.clients.usecases.client.create import CreateClientUseCase
@@ -57,3 +59,5 @@ def register_client_services(container: punq.Container):
     container.register(UpdateAccessTokenUseCase)
 
     container.register(UpdateClientPasswordAdminUseCase)
+    container.register(GetAllClientsUseCase)
+    container.register(GetClientListUseCase)

@@ -19,6 +19,8 @@ class UpdateClientRoleUseCase:
     @cache_decorator.delete_caches([
         dict(model_prefix='group', identifier=lambda kw: kw['email'], func_prefix='*'),
         dict(model_prefix='client', identifier=lambda kw: kw['email'], func_prefix='*'),
+        dict(model_prefix='client', func_prefix='all', filters='*'),
+        dict(model_prefix='client', func_prefix='list', filters='*', pagination_in='*'),
     ])
     def execute(self, email: str, roles: list[ClientRole]) -> ClientEntity:
         client = self.client_service.get_by_email(client_email=email)

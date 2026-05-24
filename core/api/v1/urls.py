@@ -12,6 +12,11 @@ router.add_router('clients/', client_router)
 router.add_router('schedule/', schedule_router)
 
 
-@router.get("ping/")
+@router.get(
+    "ping/",
+    operation_id="ping",
+    summary="Liveness probe",
+    description="Returns `{\"status\": \"ok\"}` if the API process is up. Used by container healthchecks.",
+)
 def ping(request: HttpRequest):
     return {"status": "ok"}

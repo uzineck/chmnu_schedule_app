@@ -10,6 +10,7 @@ from core.api.filters import (
     SearchFilter,
 )
 from core.api.schemas import (
+    ApiErrorResponse,
     ApiResponse,
     ListPaginatedResponse,
     StatusResponse,
@@ -36,9 +37,17 @@ router = Router(tags=["Subjects"])
 
 @router.get(
     'all',
-    response=ApiResponse[list[SubjectSchema]],
+    response={
+        200: ApiResponse[list[SubjectSchema]],
+        401: ApiErrorResponse,
+    },
     operation_id='get_all_subjects',
     auth=jwt_auth,
+    summary="List every active subject",
+    description=(
+        "Returns the full collection of active subjects — no pagination, no filtering. Intended "
+        "for dropdowns. Use `get_subject_list` for paginated / searchable access."
+    ),
 )
 def get_all_subjects(request: HttpRequest) -> ApiResponse[list[SubjectSchema]]:
     container = get_container()
@@ -51,9 +60,14 @@ def get_all_subjects(request: HttpRequest) -> ApiResponse[list[SubjectSchema]]:
 
 @router.get(
     "",
-    response=ApiResponse[ListPaginatedResponse[SubjectSchema]],
+    response={
+        200: ApiResponse[ListPaginatedResponse[SubjectSchema]],
+        401: ApiErrorResponse,
+    },
     operation_id="get_subject_list",
     auth=jwt_auth,
+    summary="Search and paginate subjects",
+    description="Returns a paginated list of active subjects; `search` matches against the subject title and slug.",
 )
 def get_subject_list(
     request: HttpRequest,
@@ -82,25 +96,48 @@ def get_subject_list(
 
 @router.post(
     "",
-    response={201: ApiResponse[SubjectSchema]},
+    response={
+        201: ApiResponse[SubjectSchema],
+        400: ApiErrorResponse,
+        401: ApiErrorResponse,
+        403: ApiErrorResponse,
+        409: ApiErrorResponse,
+    },
     operation_id="create_subject",
     auth=jwt_auth_subject_manager,
+    summary="Create a subject",
+    description=(
+        "Registers a new subject. The slug is derived from `title` and must be unique across "
+        "active subjects. Requires ADMIN or SUBJECT_MANAGER role."
+    ),
 )
-def create(request: HttpRequest, schema: SubjectInSchema) -> ApiResponse[SubjectSchema]:
+def create(
+        request: HttpRequest,
+        schema: SubjectInSchema,
+) -> tuple[int, ApiResponse[SubjectSchema]]:
     container = get_container()
     use_case: CreateSubjectUseCase = container.resolve(CreateSubjectUseCase)
     subject = use_case.execute(title=schema.title)
 
-    return ApiResponse(
+    return 201, ApiResponse(
         data=SubjectSchema.from_entity(entity=subject),
     )
 
 
 @router.patch(
     "{subject_uuid}/update",
-    response=ApiResponse[SubjectSchema],
+    response={
+        200: ApiResponse[SubjectSchema],
+        400: ApiErrorResponse,
+        401: ApiErrorResponse,
+        403: ApiErrorResponse,
+        404: ApiErrorResponse,
+        409: ApiErrorResponse,
+    },
     operation_id="update_subject",
     auth=jwt_auth_subject_manager,
+    summary="Rename a subject",
+    description="Updates the subject `title` and regenerates its slug. Returns 409 if the new slug collides.",
 )
 def update_subject(request: HttpRequest, subject_uuid: str, schema: SubjectInSchema) -> ApiResponse[SubjectSchema]:
     container = get_container()
@@ -114,9 +151,17 @@ def update_subject(request: HttpRequest, subject_uuid: str, schema: SubjectInSch
 
 @router.delete(
     "{subject_uuid}",
-    response=ApiResponse[StatusResponse],
+    response={
+        200: ApiResponse[StatusResponse],
+        401: ApiErrorResponse,
+        403: ApiErrorResponse,
+        404: ApiErrorResponse,
+        409: ApiErrorResponse,
+    },
     operation_id="delete_subject",
     auth=jwt_auth_subject_manager,
+    summary="Soft-delete a subject",
+    description="Marks the subject inactive. Returns 409 if any active lesson still references it.",
 )
 def delete_subject(
     request: HttpRequest,

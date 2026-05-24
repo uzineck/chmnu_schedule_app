@@ -31,7 +31,3 @@ class TimeslotSchema(CreateTimeslotSchema):
             ord_number=entity.ord_number,
             is_even=entity.is_even,
         )
-
-
-class TimeslotInSchema(Schema):
-    timeslot_id: int

@@ -14,6 +14,14 @@ router = Router(tags=["Time"])
     "current",
     response=ApiResponse[TimeInfoOutSchema],
     operation_id="get_current_time_info",
+    summary="Get the current academic week context",
+    description=(
+        "Returns the server's view of the current academic week: whether it is even or odd "
+        "relative to the semester start, the current weekday index (1=Monday … 7=Sunday), and "
+        "the ordinal number of the lesson currently in session (0 if outside teaching hours). "
+        "Used by clients to highlight 'today / now' in the schedule. Public — no authentication "
+        "required."
+    ),
 )
 def get_current_time_info(request: HttpRequest) -> ApiResponse[TimeInfoOutSchema]:
     container = get_container()

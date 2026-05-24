@@ -8,6 +8,7 @@ from ninja.errors import HttpError
 from jwt import PyJWTError
 
 from core.api.schemas import (
+    ApiErrorResponse,
     ApiResponse,
     StatusResponse,
 )
@@ -36,9 +37,18 @@ router = Router(tags=["Client"])
 
 @router.get(
     "info",
-    response={200: ApiResponse[ClientSchemaPrivate]},
+    response={
+        200: ApiResponse[ClientSchemaPrivate],
+        401: ApiErrorResponse,
+        404: ApiErrorResponse,
+    },
     operation_id='get_client_info',
     auth=jwt_auth,
+    summary="Get current client profile",
+    description=(
+        "Returns the authenticated client's profile (name, email, roles).\n\n"
+        "Identity is resolved from the access token; no body or query parameters are accepted."
+    ),
 )
 def get_client_info(request: HttpRequest) -> ApiResponse[ClientSchemaPrivate]:
     container = get_container()
@@ -52,8 +62,19 @@ def get_client_info(request: HttpRequest) -> ApiResponse[ClientSchemaPrivate]:
 
 @router.post(
     "log-in",
-    response=ApiResponse[TokenOutSchema],
+    response={
+        200: ApiResponse[TokenOutSchema],
+        400: ApiErrorResponse,
+        401: ApiErrorResponse,
+        404: ApiErrorResponse,
+    },
     operation_id='login',
+    summary="Log in with email and password",
+    description=(
+        "Authenticates a client and issues a JWT pair. The access token is returned in the JSON body; "
+        "the refresh token is set as an HttpOnly, SameSite=Strict cookie named `refresh_token` and is "
+        "never exposed in the response body."
+    ),
 )
 def login(request: HttpRequest, response: HttpResponse, schema: LogInSchema) -> ApiResponse[TokenOutSchema]:
     container = get_container()
@@ -68,9 +89,17 @@ def login(request: HttpRequest, response: HttpResponse, schema: LogInSchema) -> 
 
 @router.post(
     "log-out",
-    response=ApiResponse[StatusResponse],
+    response={
+        200: ApiResponse[StatusResponse],
+        401: ApiErrorResponse,
+    },
     operation_id='logout',
     auth=jwt_auth,
+    summary="Log out the current device",
+    description=(
+        "Revokes the access token for the calling device and clears the `refresh_token` cookie. "
+        "Other devices remain logged in."
+    ),
 )
 def logout(request: HttpRequest, response: HttpResponse) -> ApiResponse[StatusResponse]:
     container = get_container()
@@ -85,8 +114,16 @@ def logout(request: HttpRequest, response: HttpResponse) -> ApiResponse[StatusRe
 
 @router.post(
     "update_access_token",
-    response=ApiResponse[TokenOutSchema],
+    response={
+        200: ApiResponse[TokenOutSchema],
+        401: ApiErrorResponse,
+    },
     operation_id='update_access_token',
+    summary="Refresh the access token",
+    description=(
+        "Issues a new access token using the `refresh_token` cookie. The refresh token itself is "
+        "long-lived and is not rotated. Returns 401 if the cookie is missing, expired, or invalid."
+    ),
 )
 def update_access_token(request: HttpRequest) -> ApiResponse[TokenOutSchema]:
     container = get_container()
@@ -106,9 +143,18 @@ def update_access_token(request: HttpRequest) -> ApiResponse[TokenOutSchema]:
 
 @router.patch(
     "update_password",
-    response=ApiResponse[StatusResponse],
+    response={
+        200: ApiResponse[StatusResponse],
+        400: ApiErrorResponse,
+        401: ApiErrorResponse,
+    },
     operation_id='update_password',
     auth=jwt_auth,
+    summary="Change the current client's password",
+    description=(
+        "Updates the authenticated client's password. Requires the current password as `old_password`; "
+        "`new_password` must equal `verify_password` and satisfy the password policy."
+    ),
 )
 def update_password(request: HttpRequest, schema: UpdatePwInSchema) -> ApiResponse[StatusResponse]:
     container = get_container()
@@ -130,9 +176,20 @@ def update_password(request: HttpRequest, schema: UpdatePwInSchema) -> ApiRespon
 
 @router.patch(
     "update_email",
-    response=ApiResponse[TokenClientOutSchema],
+    response={
+        200: ApiResponse[TokenClientOutSchema],
+        400: ApiErrorResponse,
+        401: ApiErrorResponse,
+        409: ApiErrorResponse,
+    },
     operation_id='update_email',
     auth=jwt_auth,
+    summary="Change the current client's email",
+    description=(
+        "Updates the authenticated client's email after re-verifying the password. Because the email "
+        "is part of the JWT subject, a new access token is issued and a fresh `refresh_token` cookie "
+        "is set."
+    ),
 )
 def update_email(
         request: HttpRequest,
@@ -156,9 +213,15 @@ def update_email(
 
 @router.patch(
     "update_credentials",
-    response=ApiResponse[ClientSchemaPrivate],
+    response={
+        200: ApiResponse[ClientSchemaPrivate],
+        400: ApiErrorResponse,
+        401: ApiErrorResponse,
+    },
     operation_id='update_credentials',
     auth=jwt_auth,
+    summary="Change the current client's name fields",
+    description="Updates the authenticated client's first/last/middle name. Email and roles are not affected.",
 )
 def update_credentials(request: HttpRequest, schema: CredentialsInSchema) -> ApiResponse[ClientSchemaPrivate]:
     container = get_container()
@@ -179,6 +242,12 @@ def update_credentials(request: HttpRequest, schema: CredentialsInSchema) -> Api
     "delete_cookie",
     response=ApiResponse[StatusResponse],
     operation_id='delete_cookie',
+    summary="Clear the refresh_token cookie",
+    description=(
+        "Removes the `refresh_token` cookie from the browser. Use this when the client side wants to "
+        "wipe the cookie without going through the full `log-out` flow (e.g. after a 401 from "
+        "`update_access_token`)."
+    ),
 )
 def delete_cookies(request: HttpRequest, response: HttpResponse) -> ApiResponse[StatusResponse]:
     response.delete_cookie(key="refresh_token")

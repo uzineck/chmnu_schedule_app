@@ -16,6 +16,7 @@ class DeleteGroupUseCase:
 
     @cache_decorator.delete_caches([
         dict(model_prefix='group', func_prefix='all'),
+        dict(model_prefix='group', func_prefix='list', filters='*', pagination_in='*'),
         dict(model_prefix='group', identifier=lambda kw: kw['group_uuid'], func_prefix='*', filters='*'),
     ])
     def execute(self, group_uuid: str) -> None:
