@@ -83,8 +83,6 @@ def headman_client():
     return _build
 
 
-# --- GetList ---
-
 @pytest.mark.django_db
 def test_get_group_list_returns_paginated(get_list_use_case, group_create_batch):
     group_create_batch(size=5)
@@ -127,8 +125,6 @@ def test_get_group_list_handles_groups_without_headman(get_list_use_case):
     assert count == 1
     assert items[0].headman is None
 
-
-# --- Create ---
 
 @pytest.mark.django_db
 def test_create_group_invalid_faculty_uuid_raises(create_use_case, headman_client):
@@ -229,8 +225,6 @@ def test_create_group_happy_path(create_use_case, headman_client, faculty_create
     assert created.headman.id == client.id
 
 
-# --- Delete ---
-
 @pytest.mark.django_db
 def test_delete_group_invalid_uuid_raises(delete_use_case):
     with pytest.raises(InvalidUuidFormatStringException):
@@ -265,8 +259,6 @@ def test_delete_group_soft_deletes():
     assert group.is_active is False
 
 
-# --- GetInfo ---
-
 @pytest.mark.django_db
 def test_get_group_info_invalid_uuid_raises(get_info_use_case):
     with pytest.raises(InvalidUuidFormatStringException):
@@ -282,8 +274,6 @@ def test_get_group_info_happy_path(get_info_use_case):
     assert result.uuid == str(group.group_uuid)
     assert result.number == group.number
 
-
-# --- GetGroupLessons ---
 
 @pytest.mark.django_db
 def test_get_group_lessons_invalid_uuid_raises(get_group_lessons_use_case):
@@ -319,8 +309,6 @@ def test_get_group_lessons_happy_path(get_group_lessons_use_case):
     assert returned_group.uuid == str(group.group_uuid)
     assert isinstance(views, list)
 
-
-# --- UpdateHeadman ---
 
 @pytest.mark.django_db
 def test_update_group_headman_invalid_uuid_raises(update_headman_use_case):

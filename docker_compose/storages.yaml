@@ -19,23 +19,6 @@ services:
       retries: 5
     restart: unless-stopped
 
-
-  pgadmin:
-    image: dpage/pgadmin4:latest
-    container_name: pgadmin
-    profiles: ["dev"]
-    depends_on:
-      - postgres
-    links:
-      - postgres:postgres
-    ports:
-      - "${PGADMIN_PORT}:80"
-    volumes:
-      - pgadmin-data:/var/lib/pgadmin
-    env_file:
-      - ../.env
-    restart: unless-stopped
-
   redis:
     image: redis:latest
     container_name: chmnu-db-cache
@@ -54,20 +37,6 @@ services:
       timeout: 15s
     restart: unless-stopped
 
-  redis-insight:
-    image: redis/redisinsight:latest
-    container_name: redisinsight
-    profiles: ["dev"]
-    env_file:
-      - ../.env
-    ports:
-      - "${REDISINSIGHT_PORT}:5540"
-    volumes:
-      - redis-insight:/data
-    restart: unless-stopped
-
 volumes:
   postgres_data:
-  pgadmin-data:
   redis_data:
-  redis-insight:

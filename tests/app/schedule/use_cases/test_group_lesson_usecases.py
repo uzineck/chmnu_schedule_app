@@ -1,5 +1,6 @@
-import pytest
 from django.core.cache import cache
+
+import pytest
 from tests.factories.client.client import ClientModelFactory
 from tests.factories.client.role import RoleModelFactory
 from tests.factories.schedule.group import GroupModelFactory
@@ -25,8 +26,10 @@ from core.apps.schedule.exceptions.group_lesson import (
 )
 from core.apps.schedule.exceptions.lesson import LessonNotFoundException
 from core.apps.schedule.exceptions.validators.uuid_validator import InvalidUuidFormatStringException
-from core.apps.schedule.models import GroupLesson as GroupLessonModel
-from core.apps.schedule.models import Lesson as LessonModel
+from core.apps.schedule.models import (
+    GroupLesson as GroupLessonModel,
+    Lesson as LessonModel,
+)
 from core.apps.schedule.use_cases.group.admin_remove_lesson import AdminRemoveLessonFromGroupUseCase
 from core.apps.schedule.use_cases.group.admin_update_lesson import AdminUpdateLessonInGroupUseCase
 from core.apps.schedule.use_cases.group.headman_add_lesson import HeadmanAddLessonToGroupUseCase
@@ -71,8 +74,6 @@ def headman_remove_use_case(container) -> HeadmanRemoveLessonFromGroupUseCase:
 def headman_update_use_case(container) -> HeadmanUpdateLessonInGroupUseCase:
     return container.resolve(HeadmanUpdateLessonInGroupUseCase)
 
-
-# ====================== ADMIN REMOVE ======================
 
 @pytest.mark.django_db
 def test_admin_remove_invalid_uuid_raises(admin_remove_use_case):
@@ -137,8 +138,6 @@ def test_admin_remove_happy_path_lesson_still_attached_elsewhere_not_deleted(adm
     assert LessonModel.objects.filter(pk=lesson.pk).exists()
 
 
-# ====================== ADMIN UPDATE ======================
-
 @pytest.mark.django_db
 def test_admin_update_invalid_uuid_raises(admin_update_use_case):
     with pytest.raises(InvalidUuidFormatStringException):
@@ -200,8 +199,6 @@ def test_admin_update_happy_path_swaps_lessons_and_prunes_old(admin_update_use_c
     assert not GroupLessonModel.objects.filter(group=group, lesson=old_lesson).exists()
     assert not LessonModel.objects.filter(pk=old_lesson.pk).exists()
 
-
-# ====================== HEADMAN ADD ======================
 
 @pytest.mark.django_db
 def test_headman_add_invalid_uuid_raises(headman_add_use_case, headman_client):
@@ -293,8 +290,6 @@ def test_headman_add_happy_path(headman_add_use_case, headman_client):
     assert GroupLessonModel.objects.filter(group=group, lesson=lesson).exists()
 
 
-# ====================== HEADMAN REMOVE ======================
-
 @pytest.mark.django_db
 def test_headman_remove_invalid_uuid_raises(headman_remove_use_case, headman_client):
     with pytest.raises(InvalidUuidFormatStringException):
@@ -334,8 +329,6 @@ def test_headman_remove_happy_path(headman_remove_use_case, headman_client):
     assert returned_lesson.uuid == str(lesson.lesson_uuid)
     assert not GroupLessonModel.objects.filter(group=group, lesson=lesson).exists()
 
-
-# ====================== HEADMAN UPDATE ======================
 
 @pytest.mark.django_db
 def test_headman_update_invalid_uuid_raises(headman_update_use_case, headman_client):

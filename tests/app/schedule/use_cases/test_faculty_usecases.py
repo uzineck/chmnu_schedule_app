@@ -1,5 +1,6 @@
-import pytest
 from django.core.cache import cache
+
+import pytest
 from tests.factories.schedule.group import GroupModelFactory
 
 from core.api.filters import PaginationIn
@@ -55,8 +56,6 @@ def update_code_name_use_case(container) -> UpdateFacultyCodeNameUseCase:
     return container.resolve(UpdateFacultyCodeNameUseCase)
 
 
-# --- GetAll / GetList ---
-
 @pytest.mark.django_db
 def test_get_all_faculties_returns_list(get_all_use_case, faculty_create_batch):
     faculty_create_batch(size=3)
@@ -78,8 +77,6 @@ def test_get_faculty_list_returns_paginated(get_list_use_case, faculty_create_ba
     assert count == 5
     assert len(list(items)) == 5
 
-
-# --- Create ---
 
 @pytest.mark.django_db
 def test_create_faculty_happy_path(create_use_case, faculty_build):
@@ -124,8 +121,6 @@ def test_create_faculty_restores_soft_deleted_match(
     assert restored.is_active is True
 
 
-# --- Delete ---
-
 @pytest.mark.django_db
 def test_delete_faculty_invalid_uuid_raises(delete_use_case):
     with pytest.raises(InvalidUuidFormatStringException):
@@ -158,8 +153,6 @@ def test_delete_faculty_soft_deletes(delete_use_case, faculty_create, faculty_se
     assert found.is_active is False
 
 
-# --- Update name ---
-
 @pytest.mark.django_db
 def test_update_faculty_name_invalid_uuid_raises(update_name_use_case):
     with pytest.raises(InvalidUuidFormatStringException):
@@ -177,9 +170,6 @@ def test_update_faculty_name_not_found_raises(update_name_use_case):
 
 @pytest.mark.django_db
 def test_update_faculty_name_same_as_old_raises_already_exists(update_name_use_case, faculty_create):
-    # Note: SimilarOldAndNewFacultyNameValidatorService is dead from this path —
-    # AlreadyExistsByNameValidatorService runs first and the current name IS in the DB,
-    # so the "already exists" check always fires before "old == new". Asserting actual behavior.
     faculty = faculty_create()
 
     with pytest.raises(FacultyAlreadyExistsException):
@@ -207,11 +197,8 @@ def test_update_faculty_name_happy_path(update_name_use_case, faculty_create):
     assert updated.id == faculty.id
 
 
-# --- Update code_name ---
-
 @pytest.mark.django_db
 def test_update_faculty_code_name_same_as_old_raises_already_exists(update_code_name_use_case, faculty_create):
-    # Same dead-path note as test_update_faculty_name_same_as_old_raises_already_exists.
     faculty = faculty_create()
 
     with pytest.raises(FacultyAlreadyExistsException):

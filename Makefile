@@ -4,12 +4,12 @@ DC = docker compose
 STORAGES_FILE = docker_compose/storages.yaml
 APP_FILE = docker_compose/app.yaml
 APP_PROD_FILE = docker_compose/app.prod.yaml
-MONITORING_FILE = docker_compose/monitoring.yaml
 TEST_FILE = docker_compose/test.yaml
 
 # Docker-compose container names
 APP_CONTAINER = main-app
 PROXY_CONTAINER = proxy
+SCHEDULER_CONTAINER = scheduler
 DB_CONTAINER = chmnu-db
 CACHE_CONTAINER = chmnu-db-cache
 
@@ -25,34 +25,34 @@ ENV = --env-file .env
 MANAGE_PY = python manage.py
 
 .PHONY: all
-.PHONY: app app-down app-logs
-.PHONY: app-prod app-prod-down
+.PHONY: dev dev-down dev-logs
+.PHONY: prod prod-logs prod-down
 .PHONY: storages storages-down storages-logs
-.PHONY: proxy-logs proxy-reload
-.PHONY: monitoring monitoring-logs monitoring-down
-.PHONY: db-logs postgres cache-flush
+.PHONY: proxy-logs proxy-reload tls-init-dummy tls-issue tls-renew
+.PHONY: db-logs postgres cache-flush db-backup db-restore scheduler-logs
 .PHONY: migrations migrate superuser loaddata dumpdata collectstatic runscheduler
-.PHONY: test-app test-down test-restart test-run test-migrate
-
-all: app monitoring
+.PHONY: test-app test-down test-restart test-run test-migrate test-cov
 
 # --- App ---
 
-app:
+dev:
 	${DC} ${ENV} --profile dev -f ${APP_FILE} -f ${STORAGES_FILE} up --build -d
 
-app-logs:
+dev-logs:
 	${LOGS} ${APP_CONTAINER} -f
 
-app-down:
+dev-down:
 	${DC} ${ENV} --profile dev -f ${APP_FILE} -f ${STORAGES_FILE} down
 
 # --- App (prod) ---
 
-app-prod:
+prod:
 	${DC} ${ENV} -f ${APP_PROD_FILE} -f ${STORAGES_FILE} up --build -d
 
-app-prod-down:
+prod-logs:
+	${LOGS} ${APP_PROD_FILE} -f
+
+prod-down:
 	${DC} ${ENV} -f ${APP_PROD_FILE} -f ${STORAGES_FILE} down
 
 # --- Storages ---
@@ -75,6 +75,23 @@ postgres:
 cache-flush:
 	${EXEC} ${CACHE_CONTAINER} redis-cli FLUSHDB
 
+# --- Backups ---
+# Manual one-shot dump. Lands in BACKUP_DIR (host ./backups by default).
+db-backup:
+	${EXEC} ${SCHEDULER_CONTAINER} sh -c 'PGPASSWORD=$$POSTGRES_DB_PASSWORD \
+		pg_dump -Fc -h $$POSTGRES_HOST -U $$POSTGRES_DB_USER -d $$POSTGRES_DB_NAME \
+		-f /backups/chmnu-manual-$$(date +%Y%m%d-%H%M%S).dump'
+
+# Restore from a dump file. Usage: make db-restore FILE=chmnu-20260606-020000.dump
+# Tip: bring main-app down first so no app connections hold tables.
+db-restore:
+	${EXEC} ${SCHEDULER_CONTAINER} sh -c 'PGPASSWORD=$$POSTGRES_DB_PASSWORD \
+		pg_restore --clean --if-exists -h $$POSTGRES_HOST -U $$POSTGRES_DB_USER \
+		-d $$POSTGRES_DB_NAME /backups/${FILE}'
+
+scheduler-logs:
+	${LOGS} ${SCHEDULER_CONTAINER} -f
+
 # --- Proxy ---
 
 proxy-logs:
@@ -83,16 +100,27 @@ proxy-logs:
 proxy-reload:
 	${EXEC_IT} ${PROXY_CONTAINER} nginx -s reload
 
-# --- Monitoring ---
+# --- TLS / certbot ---
+# One-time bootstrap before first `make prod`. Seeds a self-signed cert so nginx can start;
+# certbot then replaces it with a real Let's Encrypt cert via `tls-issue`.
+tls-init-dummy:
+	${DC} ${ENV} -f ${APP_PROD_FILE} run --rm --entrypoint "sh -c \
+		'mkdir -p /etc/letsencrypt/live/$${DOMAIN} && \
+		openssl req -x509 -nodes -newkey rsa:2048 -days 1 \
+		-keyout /etc/letsencrypt/live/$${DOMAIN}/privkey.pem \
+		-out /etc/letsencrypt/live/$${DOMAIN}/fullchain.pem \
+		-subj /CN=localhost'" certbot
 
-monitoring:
-	${DC} ${ENV} -f ${MONITORING_FILE} up -d
+tls-issue:
+	${DC} ${ENV} -f ${APP_PROD_FILE} run --rm --entrypoint "sh -c \
+		'certbot certonly --webroot --webroot-path=/var/www/certbot \
+		--email $${CERTBOT_EMAIL} --agree-tos --no-eff-email \
+		--force-renewal -d $${DOMAIN}'" certbot
+	${EXEC_IT} ${PROXY_CONTAINER} nginx -s reload
 
-monitoring-logs:
-	${DC} ${ENV} -f ${MONITORING_FILE} logs -f
-
-monitoring-down:
-	${DC} ${ENV} -f ${MONITORING_FILE} down
+tls-renew:
+	${DC} ${ENV} -f ${APP_PROD_FILE} run --rm certbot renew
+	${EXEC_IT} ${PROXY_CONTAINER} nginx -s reload
 
 # --- Django ---
 
@@ -134,3 +162,6 @@ test-migrate:
 
 test-run:
 	${EXEC} ${APP_CONTAINER} pytest -v
+
+test-cov:
+	${EXEC} ${APP_CONTAINER} pytest --cov=core --cov-report=term-missing

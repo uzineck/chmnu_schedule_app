@@ -14,8 +14,6 @@ def group_lesson_service(container) -> BaseGroupLessonService:
     return container.resolve(BaseGroupLessonService)
 
 
-# --- check_lesson_belongs_to_any_group ---
-
 @pytest.mark.django_db
 def test_check_lesson_belongs_to_any_group_true_when_attached(
         group_lesson_service: BaseGroupLessonService,
@@ -34,8 +32,6 @@ def test_check_lesson_belongs_to_any_group_false_when_orphan(
 
     assert group_lesson_service.check_lesson_belongs_to_any_group(lesson_id=lesson.id) is False
 
-
-# --- delete ---
 
 @pytest.mark.django_db
 def test_delete_group_lesson_happy_path(group_lesson_service: BaseGroupLessonService):
@@ -58,8 +54,6 @@ def test_delete_group_lesson_raises_when_missing(group_lesson_service: BaseGroup
     with pytest.raises(GroupLessonDeleteError):
         group_lesson_service.delete(group_lesson=entity)
 
-
-# --- get_subgroup_from_group_lesson ---
 
 @pytest.mark.django_db
 def test_get_subgroup_from_group_lesson_returns_subgroups(

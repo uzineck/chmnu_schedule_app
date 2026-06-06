@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.http import (
     HttpRequest,
     HttpResponse,
@@ -80,7 +81,13 @@ def login(request: HttpRequest, response: HttpResponse, schema: LogInSchema) -> 
     container = get_container()
     use_case: LoginClientUseCase = container.resolve(LoginClientUseCase)
     client, jwt_tokens = use_case.execute(email=schema.email, password=schema.password)
-    response.set_cookie(key="refresh_token", value=jwt_tokens.refresh_token, httponly=True, samesite="Strict")
+    response.set_cookie(
+        key="refresh_token",
+        value=jwt_tokens.refresh_token,
+        httponly=True,
+        samesite="Strict",
+        secure=settings.REFRESH_COOKIE_SECURE,
+    )
 
     return ApiResponse(
         data=TokenOutSchema.from_values(access_token=jwt_tokens.access_token),
@@ -204,7 +211,13 @@ def update_email(
         new_email=schema.new_email,
         password=schema.password,
     )
-    response.set_cookie(key="refresh_token", value=jwt_tokens.refresh_token, httponly=True, samesite="Strict")
+    response.set_cookie(
+        key="refresh_token",
+        value=jwt_tokens.refresh_token,
+        httponly=True,
+        samesite="Strict",
+        secure=settings.REFRESH_COOKIE_SECURE,
+    )
 
     return ApiResponse(
         data=TokenClientOutSchema.from_entity_with_token_values(client=client, access_token=jwt_tokens.access_token),

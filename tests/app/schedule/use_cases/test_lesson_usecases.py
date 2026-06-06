@@ -41,8 +41,6 @@ def _build_lesson_entity(timeslot_model) -> LessonEntity:
     return LessonEntity(type=LessonType.LECTURE, timeslot=timeslot_entity)
 
 
-# --- GetOrCreate ---
-
 @pytest.mark.django_db
 def test_get_or_create_lesson_invalid_uuid_raises(get_or_create_use_case, timeslot_create):
     timeslot = timeslot_create()
@@ -144,8 +142,6 @@ def test_get_or_create_lesson_happy_path(
     assert created.id is not None
     assert created.subject.uuid == str(subject.subject_uuid)
 
-
-# --- Update ---
 
 @pytest.mark.django_db
 def test_update_lesson_invalid_uuid_raises(update_use_case, timeslot_create):

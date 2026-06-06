@@ -1,11 +1,11 @@
-import pytest
 from django.core.cache import cache
+
+import pytest
 from tests.factories.schedule.group_lesson import GroupLessonModelFactory
 from tests.factories.schedule.lesson import LessonModelFactory
 
 from core.api.filters import PaginationIn
 from core.apps.common.models import TeachersDegree
-from core.apps.schedule.filters.teacher import TeacherFilter
 from core.apps.schedule.exceptions.teacher import (
     OldAndNewTeacherRanksAreSimilarException,
     TeacherAlreadyExistsException,
@@ -14,6 +14,7 @@ from core.apps.schedule.exceptions.teacher import (
 )
 from core.apps.schedule.exceptions.validators.uuid_validator import InvalidUuidFormatStringException
 from core.apps.schedule.filters.group import LessonFilter
+from core.apps.schedule.filters.teacher import TeacherFilter
 from core.apps.schedule.use_cases.teacher.create import CreateTeacherUseCase
 from core.apps.schedule.use_cases.teacher.delete import DeleteTeacherUseCase
 from core.apps.schedule.use_cases.teacher.get_all import GetAllTeachersUseCase
@@ -229,7 +230,6 @@ def test_update_teacher_name_happy_path(update_name_use_case, teacher_create):
 
 @pytest.mark.django_db
 def test_update_teacher_rank_same_as_old_raises(update_rank_use_case, teacher_create):
-    # Reachable here: rank has no AlreadyExists check, so Similar fires correctly.
     teacher = teacher_create(rank=TeachersDegree.PROFESSOR)
 
     with pytest.raises(OldAndNewTeacherRanksAreSimilarException):

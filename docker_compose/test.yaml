@@ -3,7 +3,8 @@ services:
     build:
       context: ..
       dockerfile: Dockerfile
-    image: backend_chmnu_schedule:latest
+      target: dev
+    image: backend_chmnu_schedule:dev
     container_name: main-app
     command: "tail -f /dev/null"
     env_file:
@@ -33,17 +34,3 @@ services:
     environment:
       - REDIS_PASSWORD=${REDIS_PASSWORD}
     command: [ "--maxmemory", "250mb" ]
-
-  redis-insight:
-    image: redis/redisinsight:latest
-    container_name: redisinsight
-    env_file:
-      - ../.env
-    ports:
-      - "${REDISINSIGHT_PORT}:5540"
-    volumes:
-      - redis-insight:/data
-    restart: unless-stopped
-
-volumes:
-  redis-insight:

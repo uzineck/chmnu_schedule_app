@@ -50,14 +50,12 @@ INSTALLED_APPS = [
     'core.apps.notifications.apps.NotificationsConfig',
 
     # third party
-    'elasticapm.contrib.django',
     'django_apscheduler',
     'corsheaders',
 
 ]
 
 MIDDLEWARE = [
-    'core.project.middlewares.ElasticApmMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',
@@ -149,15 +147,6 @@ STATIC_ROOT = BASE_DIR / 'static'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-ELASTIC_APM = {
-    'SERVICE_NAME': 'Schedule',
-    'SERVER_URL': env('APM_URL'),
-    'DEBUG': DEBUG,
-    'CAPTURE_BODY': 'all',
-    "ENVIRONMENT": 'DEV',
-    'USE_ELASTIC_EXCEPTHOOK': True,
-}
-
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
@@ -166,57 +155,5 @@ CACHES = {
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         },
-    },
-}
-
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'formatters': {
-        'base': {
-            'format': '[%(asctime)s] - [%(levelname)s] -  %(name)s.%(funcName)s(%(lineno)d) - "%(message)s"',
-        },
-    },
-    'handlers': {
-        'file_schedule': {
-            'level': 'INFO',
-            'class': 'logging.handlers.TimedRotatingFileHandler',
-            'filename': f'{BASE_DIR}/logs/apps/schedule/app.log',
-            'backupCount': 7,
-            'when': 'midnight',
-            'interval': 1,
-            'formatter': 'base',
-        },
-        'file_client': {
-            'level': 'INFO',
-            'class': 'logging.handlers.TimedRotatingFileHandler',
-            'filename': f'{BASE_DIR}/logs/apps/client/app.log',
-            'backupCount': 7,
-            'when': 'midnight',
-            'interval': 1,
-            'formatter': 'base',
-        },
-        'elasticapm': {
-            'level': 'DEBUG',
-            'class': 'elasticapm.contrib.django.handlers.LoggingHandler',
-        },
-        'console': {
-            'level': 'DEBUG',
-            'class': 'logging.StreamHandler',
-        },
-    },
-    'loggers': {
-        'core.apps.schedule': {
-            'handlers': ['file_schedule', 'elasticapm'],
-            'level': 'DEBUG',
-        },
-        'core.apps.clients': {
-            'handlers': ['file_client', 'elasticapm'],
-            'level': 'DEBUG',
-        },
-        # 'django.db.backends': {
-        #     'level': 'DEBUG',
-        #     'handlers': ['console'],
-        # },
     },
 }

@@ -42,9 +42,6 @@ This is the backend part of the schedule app for CHMNU students and teachers.
     - `make storages-logs` - follow the logs in storages containers
     - `make postgres` - psql into postgres container
     - `make storages-down` - down all storage infrastructure
-    - `make monitoring` - up monitoring docker compose(kibana, apm, elastic)
-    - `make monitoring-logs` - show monitoring logs
-    - `make monitoring-down` - down monitoring docker containers
     - `make proxy-logs` - show proxy container logs
     - `make proxy-reload` - if any changes were made to nginx config, while server is on, write this command
 9. #### Django Specific Commands

@@ -1,5 +1,6 @@
-import pytest
 from django.core.cache import cache
+
+import pytest
 from tests.factories.schedule.group_lesson import GroupLessonModelFactory
 from tests.factories.schedule.lesson import LessonModelFactory
 
@@ -166,7 +167,6 @@ def test_update_room_number_happy_path(update_number_use_case, room_create):
 
 @pytest.mark.django_db
 def test_update_room_description_same_as_old_raises(update_description_use_case, room_create):
-    # Reachable here: description has no AlreadyExists validator, so Similar fires correctly.
     room = room_create(description="Whiteboard + projector")
 
     with pytest.raises(OldAndNewRoomDescriptionsAreSimilarException):

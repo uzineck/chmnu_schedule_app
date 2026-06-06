@@ -39,9 +39,6 @@ class ServiceException(Exception):
         return 'Application exception occurred'
 
 
-# Convenience bases — share http_status + log_level across common patterns.
-# Concrete exceptions inherit from these and (optionally) set a `code`.
-
 @dataclass(eq=False)
 class NotFoundException(ServiceException):
     http_status: ClassVar[int] = 404

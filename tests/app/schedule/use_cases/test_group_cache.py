@@ -158,7 +158,6 @@ def test_admin_add_lesson_reflected_in_get_all_after_cache_invalidation(
         subgroup=None,
         lesson_uuid=lesson.lesson_uuid,
     )
-    # The use case does not invalidate the cache; the handler does. Simulate handler invalidation:
     cache_service.invalidate_cache_pattern(
         key=cache_service.generate_cache_key(model_prefix='group', func_prefix='all'),
     )

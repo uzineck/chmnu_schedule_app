@@ -93,5 +93,7 @@ class ORMIssuedJwtTokenService(BaseIssuedJwtTokenService):
     @util.close_old_connections
     def delete_expired_tokens(self) -> None:
         current_timestamp = convert_to_timestamp(datetime.now(tz=timezone.utc))
-        IssuedJwtToken.objects.filter(expiration_time__lt=current_timestamp).delete()
-        logger.info('Expired tokens were successfully deleted')
+        deleted, _ = IssuedJwtToken.objects.filter(
+            expiration_time__lt=current_timestamp,
+        ).delete()
+        logger.info("Deleted %s expired JWT tokens", deleted)

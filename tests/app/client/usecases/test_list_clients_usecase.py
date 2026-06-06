@@ -42,8 +42,6 @@ def seed_roles_and_clients():
     return {"headman": headman, "admin": admin, "cm": cm}
 
 
-# --- GetList (paginated) ---
-
 @pytest.mark.django_db
 def test_get_client_list_admin_sees_all(get_list_use_case, seed_roles_and_clients):
     items, count = get_list_use_case.execute(
@@ -98,8 +96,6 @@ def test_get_client_list_search_filters_by_last_name(get_list_use_case):
     assert count == 1
     assert items[0].last_name == "Шевченко"
 
-
-# --- GetAll (non-paginated) ---
 
 @pytest.mark.django_db
 def test_get_all_clients_admin_sees_all(get_all_use_case, seed_roles_and_clients):

@@ -12,7 +12,6 @@ django-environ = "^0.11.2"
 django-ninja = "^1.1.0"
 bcrypt = "^4.1.2"
 pyjwt = "^2.8.0"
-elastic-apm = "^6.22.0"
 punq = "^0.7.0"
 django-redis = "^5.4.0"
 psycopg = {extras = ["pool"], version = "^3.2.3"}

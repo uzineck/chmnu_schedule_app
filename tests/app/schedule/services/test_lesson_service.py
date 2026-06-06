@@ -159,8 +159,6 @@ def test_check_if_room_has_lessons_false_when_only_orphan(
     assert lesson_service.check_if_room_has_lessons(room_id=create_lesson.room_id) is False
 
 
-# --- get_lessons_with_groups + get_lessons_with_subgroups_for_group ---
-
 @pytest.mark.django_db
 def test_get_lessons_with_groups_for_teacher_buckets_rows(
         lesson_service: BaseLessonService,
@@ -227,8 +225,6 @@ def test_get_lessons_with_subgroups_for_group_subgroup_filter(
     assert len(views) == 1
 
 
-# --- delete_by_uuid ---
-
 @pytest.mark.django_db
 def test_delete_by_uuid_happy_path(lesson_service: BaseLessonService, create_lesson):
     lesson_service.delete_by_uuid(lesson_uuid=str(create_lesson.lesson_uuid))
@@ -242,8 +238,6 @@ def test_delete_by_uuid_raises_when_not_found(lesson_service: BaseLessonService)
     with pytest.raises(LessonDeleteError):
         lesson_service.delete_by_uuid(lesson_uuid="00000000-0000-0000-0000-000000000000")
 
-
-# --- get_lessons_with_groups (raw Q-based) ---
 
 @pytest.mark.django_db
 def test_get_lessons_with_groups_with_raw_query(

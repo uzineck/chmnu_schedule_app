@@ -14,8 +14,6 @@ def group_service(container) -> BaseGroupService:
     return container.resolve(BaseGroupService)
 
 
-# --- get_group_from_headman ---
-
 @pytest.mark.django_db
 def test_get_group_from_headman_returns_group(group_service: BaseGroupService):
     headman = ClientModelFactory()
@@ -33,8 +31,6 @@ def test_get_group_from_headman_raises_when_no_assignment(group_service: BaseGro
     with pytest.raises(HeadmanNotAssignedToAnyGroup):
         group_service.get_group_from_headman(headman_id=client.id)
 
-
-# --- update_group_headman ---
 
 @pytest.mark.django_db
 def test_update_group_headman_happy_path(group_service: BaseGroupService):
@@ -54,8 +50,6 @@ def test_update_group_headman_raises_when_group_id_missing(group_service: BaseGr
     with pytest.raises(GroupHeadmanUpdateException):
         group_service.update_group_headman(group_id=99999, headman_id=client.id)
 
-
-# --- find_any_by_number ---
 
 @pytest.mark.django_db
 def test_find_any_by_number_returns_active_group(group_service: BaseGroupService):
@@ -84,8 +78,6 @@ def test_find_any_by_number_returns_soft_deleted_group(group_service: BaseGroupS
 def test_find_any_by_number_returns_none_when_missing(group_service: BaseGroupService):
     assert group_service.find_any_by_number(group_number="DOES-NOT-EXIST") is None
 
-
-# --- restore ---
 
 @pytest.mark.django_db
 def test_restore_reactivates_soft_deleted_group(group_service: BaseGroupService):
