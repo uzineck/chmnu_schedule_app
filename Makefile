@@ -104,6 +104,7 @@ proxy-reload:
 # One-time bootstrap before first `make prod`. Seeds a self-signed cert so nginx can start;
 # certbot then replaces it with a real Let's Encrypt cert via `tls-issue`.
 tls-init-dummy:
+	set -a; . ./.env; set +a; \
 	${DC} ${ENV} -f ${APP_PROD_FILE} -f ${STORAGES_FILE} run --rm --entrypoint "sh -c \
 		'mkdir -p /etc/letsencrypt/live/$${DOMAIN} && \
 		openssl req -x509 -nodes -newkey rsa:2048 -days 1 \
@@ -112,13 +113,18 @@ tls-init-dummy:
 		-subj /CN=localhost'" certbot
 
 tls-issue:
+	set -a; . ./.env; set +a; \
 	${DC} ${ENV} -f ${APP_PROD_FILE} -f ${STORAGES_FILE} run --rm --entrypoint "sh -c \
-		'certbot certonly --webroot --webroot-path=/var/www/certbot \
+		'rm -rf /etc/letsencrypt/live/$${DOMAIN} \
+			/etc/letsencrypt/archive/$${DOMAIN} \
+			/etc/letsencrypt/renewal/$${DOMAIN}.conf; \
+		certbot certonly --webroot --webroot-path=/var/www/certbot \
 		--email $${CERTBOT_EMAIL} --agree-tos --no-eff-email \
 		--force-renewal -d $${DOMAIN}'" certbot
 	${EXEC_IT} ${PROXY_CONTAINER} nginx -s reload
 
 tls-renew:
+	set -a; . ./.env; set +a; \
 	${DC} ${ENV} -f ${APP_PROD_FILE} -f ${STORAGES_FILE} run --rm certbot renew
 	${EXEC_IT} ${PROXY_CONTAINER} nginx -s reload
 
