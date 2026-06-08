@@ -3,7 +3,7 @@ services:
     image: postgres:latest
     container_name: chmnu-db
     ports:
-      - '${POSTGRES_PORT}:5432'
+      - '127.0.0.1:${POSTGRES_PORT}:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
     env_file:
@@ -23,12 +23,13 @@ services:
     image: redis:latest
     container_name: chmnu-db-cache
     ports:
-      - "${REDIS_PORT}:6379"
+      - "127.0.0.1:${REDIS_PORT}:6379"
     env_file:
       - ../.env
     environment:
       - REDIS_PASSWORD=${REDIS_PASSWORD}
-    command: [ "--maxmemory", "250mb" ]
+      - REDISCLI_AUTH=${REDIS_PASSWORD}
+    command: [ "--requirepass", "${REDIS_PASSWORD}", "--maxmemory", "250mb" ]
     volumes:
       - redis_data:/data
     healthcheck:
