@@ -46,6 +46,13 @@ services:
       - ${BACKUP_DIR:-../backups}:/backups
     restart: unless-stopped
 
+  frontend:
+    build:
+      context: ${FRONTEND_PATH}
+      target: prod
+    container_name: frontend
+    restart: unless-stopped
+
   proxy:
     build:
       context: ../nginx
@@ -59,6 +66,7 @@ services:
       - "127.0.0.1:81:81"
     depends_on:
       - main-app
+      - frontend
     volumes:
       - static:/static/
       - certbot_certs:/etc/letsencrypt:ro

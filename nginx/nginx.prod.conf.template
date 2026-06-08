@@ -6,6 +6,10 @@ upstream backend_chmnu_schedule {
     server main-app:8000;
 }
 
+upstream frontend {
+    server frontend:81;
+}
+
 gzip on;
 gzip_vary on;
 gzip_min_length 1024;
@@ -65,7 +69,7 @@ server {
         proxy_redirect off;
     }
 
-    location / {
+    location /api/ {
         limit_req zone=general burst=200 nodelay;
         proxy_pass http://backend_chmnu_schedule;
         proxy_set_header Host $host;
@@ -73,6 +77,13 @@ server {
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-Proto $scheme;
         proxy_redirect off;
+    }
+
+    location / {
+        proxy_pass http://frontend;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-Proto $scheme;
     }
 
     location /static/ {

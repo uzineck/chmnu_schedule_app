@@ -3,7 +3,7 @@ from .main import *  # noqa
 
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS')  # noqa
 DEBUG = False
-CORS_ALLOWED_ORIGINS = env.list('CORS_ALLOWED_ORIGINS')  # noqa
+CORS_ALLOWED_ORIGINS = env.list('CORS_ALLOWED_ORIGINS', default=[])  # noqa
 CSRF_TRUSTED_ORIGINS = env.list('CSRF_TRUSTED_ORIGINS')  # noqa
 
 SECURE_SSL_REDIRECT = env.bool('SECURE_SSL_REDIRECT', default=True)  # noqa
