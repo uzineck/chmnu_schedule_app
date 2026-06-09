@@ -99,10 +99,15 @@ server {
 
     location /admin/ {
         proxy_pass http://backend_chmnu_schedule;
-        proxy_set_header Host $host;
+        # Admin is reached only through the localhost:81 SSH tunnel (plain HTTP).
+        # Present the request to Django as the real domain over HTTPS so that
+        # ALLOWED_HOSTS and SECURE_SSL_REDIRECT pass without weakening prod
+        # settings. Browsers treat localhost as a secure context, so the Secure
+        # session/CSRF cookies are still accepted over http://localhost:8081.
+        proxy_set_header Host ${DOMAIN};
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Proto https;
         proxy_redirect off;
     }
 
