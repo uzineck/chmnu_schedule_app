@@ -4,5 +4,6 @@ RUN apk add --no-cache curl
 
 COPY ./nginx.prod.conf.template /etc/nginx/templates/default.conf.template
 COPY ./well-known/assetlinks.json /var/www/well-known/assetlinks.json
+COPY ./static/privacy-policy.html /var/www/static/privacy-policy.html
 
 RUN rm -f /etc/nginx/conf.d/default.conf

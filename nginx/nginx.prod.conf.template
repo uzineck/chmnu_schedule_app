@@ -56,6 +56,11 @@ server {
         default_type application/json;
     }
 
+    location = /privacy {
+        alias /var/www/static/privacy-policy.html;
+        default_type text/html;
+    }
+
     location /admin/ {
         return 404;
     }
