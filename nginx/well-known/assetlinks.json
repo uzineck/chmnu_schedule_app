@@ -1,0 +1,13 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.chnnuschedule.app",
+      "sha256_cert_fingerprints": [
+        "80:63:AA:08:E4:57:BF:4C:5E:AC:2A:D8:BF:86:E2:F7:3D:CA:84:0F:14:D0:BC:C1:1D:0E:D3:27:04:24:06:4B",
+	"51:77:EF:A8:32:34:E7:FD:0E:B3:39:9C:17:84:91:D9:8F:B6:78:58:72:5B:0F:E4:95:53:5D:66:7F:09:C8:AB"
+      ]
+    }
+  }
+]

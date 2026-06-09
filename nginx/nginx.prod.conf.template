@@ -51,6 +51,11 @@ server {
     add_header X-Content-Type-Options "nosniff" always;
     add_header Referrer-Policy "same-origin" always;
 
+    location = /.well-known/assetlinks.json {
+        alias /var/www/well-known/assetlinks.json;
+        default_type application/json;
+    }
+
     location /admin/ {
         return 404;
     }
